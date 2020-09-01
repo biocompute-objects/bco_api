@@ -1,2 +1,2 @@
-# bco_api
-The repository
+# BioCompute Objects API (BCO API)
+This is the repository for the BioCompute Objects API.  Architecturally, the API is separated from any BCO interface (BioCompute Portal, Galaxy, GlyGen, etc...) and can be used with the standard POST, GET, PATCH, and DELETE commands.  The repository comes with a standardized security policy and can be used within an organization's firewall without much further configuration on the part of the server.
