@@ -3,31 +3,36 @@
 
 The security policy for the server is based on an institution-group-user model.  This means that every user is part of a group and every group is part of an institution.  Of course, there can be multiple institutions, multiple groups in each institution, and multiple users in each group.  Also, users can be part of multiple groups.  But institutions are considered completely separate from the point of view of the security policy.
 
-For example, say we are a researcher named Mrs. Smith and we split our research duties between three groups.  The first is NCI Genomics at NIH, the second is Pharma Development at NIH, and the third is Bioinformatics-GlyGen at George Washington University.  Then in this case, we are part of two institutions but three groups - each of which may have different permissions.
+For example, say we are a researcher named Mrs. Smith and we split our research duties between three groups.  The first is NCI Genomics at NIH, the second is Pharma Development at NIH, and the third is Bioinformatics-GlyGen at George Washington University.  In this case, we are part of two institutions but three groups - each of which may have different permissions.
 
 **When should I set up a group?**
 
-In general, each lab, team, or research unit should have a group.  But the customization won't necessarily stop there.  For example, certain platforms that automatically generate JSON, such as Galaxy, can be assigned to a group that has publish permissions.  In essence, any user or platform that needs to generate JSON should be assigned a group and group inclusion should be as restrictive as possible.  This means that all users in the group should share some common purpose or have some common need to justify their permissions.
+In general, each lab, team, or research unit should have a group.  But the customization won't necessarily stop there.  For example, certain platforms that automatically generate JSON, such as Galaxy, can be assigned to a group that has publish permissions.  In essence, any user or platform that needs to generate JSON should be assigned a group and group inclusion should be as restrictive as possible.  This means that all users in the group should share some common purpose or have some common need to justify their permissions.  There are no sub-groups.  This means that no group can inherit permissions from any other - each group is defined on its own terms.
 
 # The security.policy file
 
-The api/security_policy/security.policy file is the master permissions list for an API installation.  Although you can edit permissions in Django admin, from a technical point of view, this file is the master record that you are actually writing to.  **The security.policy file should never be manually written to.  It is presented here to show how permissions are stored internally.  Always use the admin tool to change permissions!**
+The api/security_policy/security.policy file is the master permissions list for an API installation.  Although you will usually edit permissions in Django admin, from a technical point of view, this file is the master record that you are actually writing to.  **The security.policy file should never be manually written to.  It is presented here to show how permissions are stored internally.  Always use the admin tool to change permissions!**
 
 Permissions are assigned using the principle of "explicit is better than implicit".  This means that a user's default permissions are none, and only permissions specified in the security.policy file are assigned to the user.  A standard permissions directive is formatted as follows,
 
-institution_name group_name database_name table_name object_class object_name operation field_specifier
+[institution_names] [group_names] [database_names] [table_names] [object_classes] [object_names] [operations] [field_specifiers]
 
-Each of these components is explained in the following table.
+Each of these components is explained in the following table.<br/>
+<br/>
 
-||institution_name | group_name | database_name | table_name | object_class | object_name | operation | field_specifier
+||institution_names | group_names | database_names | table_names | object_classes | object_names | operations | field_specifiers
 ------------ | ------------ | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | -------------
 description | The associated institution(s) | The group(s) within that(those) institution(s) | The specific API database(s) | The specific table(s) | The "class(es)" of objects (see below) | The name(s) of the objects within a given class | The operation(s) | The field(s) to apply the operation to
 values | Any string | Any string | Any extant database | Any extant table | Any extant object class | Any extant object name within that class | Any combination of ALL, DELETE, GET, PATCH, POST | Any extant field within the named object
 
-The format is as follows.<br/>
-<br/>
 
-**security.policy file contents**
+<br/>Multiple permissions can be set with one command.  For example, <br/>
+
+[NIH, FDA] [genomics] [patient_records, lab_results] [current] [ongoing_research] [ALL] [GET, PATCH, POST] [patient.name, patient.status, patient.history[].procedures]
+
+This permission applies to all combinations of NIH, FDA with groups genomics, databases patient_records, lab_results, tables current, and so on.
+
+# security.policy contents
 
 INSTITUTIONS<br/>
 institution_name_1<br/>
