@@ -9,61 +9,62 @@ For example, say we are a researcher named Mrs. Smith and we split our research 
 
 The api/security_policy/security.policy file is the master permissions list for an API installation.  Although you can edit permissions in Django admin, from a technical point of view, this file is the master record that you are actually writing to.  **The security.policy file should never be manually written to.  It is presented here to show how permissions are stored internally.  Always use the admin tool to change permissions!**
 
-The format is as follows.
-&nbsp;
+The format is as follows.<br/>
+<br/>
 
 **security.policy file contents**
 
-INSTITUTIONS
-institution_name_1
-institution_name_2
-...
-institution_name_n
+INSTITUTIONS<br/>
+institution_name_1<br/>
+institution_name_2<br/>
+institution_name_3<br/>
+...<br/>
 
-GROUPS
-institution_name group_name_1
-institution_name group_name_2
-...
-institution_name group_name_n
+GROUPS<br/>
+institution_name group_name_1<br/>
+institution_name group_name_2<br/>
+institution_name group_name_3<br/>
+...<br/>
 
-USERS
-institution_name group_name username
-institution_name group_name username
-...
-institution_name group_name username
+USERS<br/>
+institution_name group_name username_1<br/>
+institution_name group_name username_2<br/>
+institution_name group_name username_3<br/>
+...<br/>
 
-PERMISSIONS
-institution_name group_name_1 database_name table_name object_class object_name permission_type [ALL, DELETE, GET, PATCH, POST] field_specifier
-&nbsp;
+PERMISSIONS<br/>
+institution_name group_name database_name table_name object_class object_name permission_type [ALL, DELETE, GET, PATCH, POST] field_specifier<br/>
+institution_name group_name database_name table_name object_class object_name permission_type [ALL, DELETE, GET, PATCH, POST] field_specifier<br/>
+institution_name group_name database_name table_name object_class object_name permission_type [ALL, DELETE, GET, PATCH, POST] field_specifier<br/>
+...<br/>
 
 **Example settings.policy file**
 
-INSTITUTIONS
-GWU
-FDA
-NIH
+INSTITUTIONS<br/>
+GWU<br/>
+FDA<br/>
+NIH<br/>
 
-GROUPS
-GWU HIVE
-GWU medschool
-FDA pharmaapproval
-NIH NCI-genomics
+GROUPS<br/>
+GWU HIVE<br/>
+GWU medschool<br/>
+FDA pharmaapproval<br/>
+NIH NCI-genomics<br/>
 
-USERS
-GWU HIVE chrisarmstrong
-GWU HIVE hadleyking
-GWU medschool misterdoctor
-FDA pharmaaproval msresearcher
-NIH NCI-genomics seniorresearcher
+USERS<br/>
+GWU HIVE chrisarmstrong<br/>
+GWU HIVE hadleyking<br/>
+GWU medschool misterdoctor<br/>
+FDA pharmaaproval msresearcher<br/>
+NIH NCI-genomics seniorresearcher<br/>
 
-PERMISSIONS
-GWU HIVE ALL ALL ALL \[ALL\] ALL [ALL]
-GWU HIVE BCOs GlyGen published_objects [ALL] ALL [ALL]
-GWU medschool BCOs Galaxy drafted_objects [ALL] [GET] [contributors]
-GWU medschool BCOs Galaxy published_objects [https://object1.org/v-1, https://object2.org/v-2] DELETE [ALL]
-FDA pharmaapproval Recipes HIVE drafted_objects ALL PATCH [authors.main, contributors.main]
-NIH NCI-genomics patient_records current ongoing_research [ALL] [GET, PATCH, POST] [patient.name, patient.status, patient.history[].procedures]
-&nbsp;
+PERMISSIONS<br/>
+GWU HIVE ALL ALL ALL \[ALL\] ALL [ALL]<br/>
+GWU HIVE BCOs GlyGen published_objects [ALL] ALL [ALL]<br/>
+GWU medschool BCOs Galaxy drafted_objects [ALL] [GET] [contributors]<br/>
+GWU medschool BCOs Galaxy published_objects [https://object1.org/v-1, https://object2.org/v-2] DELETE [ALL]<br/>
+FDA pharmaapproval Recipes HIVE drafted_objects ALL PATCH [authors.main, contributors.main]<br/>
+NIH NCI-genomics patient_records current ongoing_research [ALL] [GET, PATCH, POST] [patient.name, patient.status, patient.history[].procedures]<br/>
 
 **Explanation of Permissions**
 Institution | Group | Database | Table | Object Class | Object Name | Operation | Object Fields
