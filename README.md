@@ -28,5 +28,23 @@ API
     └─── urls.py (pass-through router to the API urls file)
 ```
 
-# Class Descriptions
+# Quick Start
+
+Clone the repository
+
+```
+git clone https://github.com/carmstrong1gw/bco_api
+```
+
+If necessary, add execute permissions to all shell scripts
+
+```
+Some grep commmand +x...
+```
+
+Start the server with the shell script
+
+```
+start_server.sh
+```
 
