@@ -58,7 +58,7 @@ python3 manage.py createsuperuser
 start_server.sh
 ```
 
-5.  Open up your browser and go to https://127.0.0.1/8000/admin
+5.  Open up your browser and go to <a href='https://127.0.0.1/8000/admin/' target='_blank'>https://127.0.0.1/8000/admin/</a>
 
 6.  Right now the only user is the administrator
 
