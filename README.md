@@ -22,27 +22,37 @@ API
        └─── GET.schema (the schema definition for a valid GET request)
        └─── PATCH.schema (the schema definition for a valid PATCH request)
        └─── POST.schema (the schema definition for a valid POST request)
-    └─── validation_definitions (schema definitions for each type of non-URI validation request)
+    └─── validation_definitions* (schema definitions for each type of non-URI validation request)
  └─── api_master (contains top-level project settings)
-    └─── settings.py (where settings such as default object naming and schema registration take place)
-    └─── urls.py (pass-through router to the API urls file)
+    └─── settings.py* (where settings such as default object naming and schema registration take place)
+    └─── urls.py* (pass-through router to the API urls file)
 ```
+
+\* These files are the only ones that should be manually edited, if at all.
 
 # Quick Start
 
-Clone the repository
+1.  Clone the repository.  If necessary, add execute permissions to all shell scripts.
 
 ```
 git clone https://github.com/carmstrong1gw/bco_api
+(optional, add execute permissions) Some grep commmand +x...
 ```
 
-If necessary, add execute permissions to all shell scripts
+2.  Initialize the folder contents (creates virtual environment and adjusts some settings).  At the end of this step, your command line should show an active virtual environment.
 
 ```
-Some grep commmand +x...
+initialize_api.sh
+(should see this after running initialize_api.sh) (env) user@computer:/path/to/json_api$
 ```
 
-Start the server with the shell script
+3.  Create a super user (administrator).  Fill in all details as necessary.
+
+```
+python3 manage.py createsuperuser
+```
+
+4.  Start the server with the shell script
 
 ```
 start_server.sh
