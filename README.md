@@ -1,7 +1,7 @@
 
 # JSON API (BCO API)
 
-This is the repository for the BioCompute Objects API.  Architecturally, the API is separated from any BCO interface (BioCompute Portal, Galaxy, GlyGen, etc...) and can be used with the standard POST, GET, PATCH, and DELETE commands.  The repository comes with an out-of-the-box security policy and can be used within an organization's firewall without much further configuration on the part of the server.
+This is the repository for the BioCompute Objects API.  Architecturally, the API is separated from any BCO interface (BioCompute Portal, Galaxy, GlyGen, etc...) and can be used with the standard POST, GET, PATCH, and DELETE commands.  The repository comes with an out-of-the-box security policy and can be used within an organization's firewall without much further configuration on the part of the administrator.
 
 # Overview of Repository Contents
 
@@ -36,7 +36,7 @@ API
 
 ```
 git clone https://github.com/carmstrong1gw/bco_api
-(optional, add execute permissions) Some grep commmand +x...
+(optional, add execute permissions) sudo some grep commmand +x...
 ```
 
 2.  Initialize the folder contents (creates virtual environment and adjusts some settings).  At the end of this step, your command line should show an active virtual environment.
