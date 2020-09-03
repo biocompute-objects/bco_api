@@ -62,4 +62,6 @@ start_server.sh
 
 6.  Right now the only user is the administrator, so you'll want to add at least a test user.  Click on the "Add User" button in the upper right-hand corner of the screen, fill out the fields, then click on "Save" in the lower right-hand corner.
 
+7.  The page that comes up can be used to set attributes of the user, such as first and last name and e-mail address.  You can set these if you'd like, but the main section you want to look at is "Permissions".  Make sure that the user is marked as "Active", but not as "Staff status" or "Superuser status", as these are statuses reserved for users with elevated privileges.
+
 
