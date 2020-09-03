@@ -64,4 +64,10 @@ start_server.sh
 
 7.  The page that comes up can be used to set attributes of the user, such as first and last name and e-mail address.  You can set these if you'd like, but the main section you want to look at is "Permissions".  Make sure that the user is marked as "Active", but not as "Staff status" or "Superuser status", as these are statuses reserved for users with elevated privileges.
 
+8.  Now that you have a user, you can proceed to set permissions.
+
+# Setting Permissions
+
+The permissions system for the JSON API is quite complex and the full description of its power is given in the LINKsecurityreadme.md.  Here we will be setting some basic permissions for our test user.
+
 
