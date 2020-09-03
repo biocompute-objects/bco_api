@@ -52,14 +52,14 @@ initialize_api.sh
 python3 manage.py createsuperuser
 ```
 
-4.  Start the server with the shell script
+4.  Start the server with the shell script.
 
 ```
 start_server.sh
 ```
 
-5.  Open up your browser and go to <a href='https://127.0.0.1/8000/admin/' target='_blank'>https://127.0.0.1/8000/admin/</a>
+5.  Open up your browser and go to <a href='https://127.0.0.1/8000/admin/' target='_blank'>https://127.0.0.1/8000/admin/</a>.  Log in with the credentials you created in Step 3.
 
-6.  Right now the only user is the administrator
+6.  Right now the only user is the administrator, so you'll want to add at least a test user.  Click on the "Add User" button in the upper right-hand corner of the screen, fill out the fields, then click on "Save" in the lower right-hand corner.
 
 
