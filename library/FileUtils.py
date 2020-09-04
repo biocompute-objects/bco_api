@@ -39,7 +39,7 @@ class FileUtils:
         # -------
 
         # A directory + pattern string.
-
+        print(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), directory + pattern))
         # Kick back the string.
         return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), directory + pattern)
 
@@ -111,4 +111,4 @@ class FileUtils:
         # Source:  https://stackoverflow.com/questions/39293968/python-how-do-i-search-directories-and-find-files-that-match-regex
         # Source:  https://stackoverflow.com/questions/30218802/get-parent-of-current-directory-from-python-script
 
-        return glob.glob(self().pathalizer(input_directory, regex))
+        return glob.glob(self.pathalizer(input_directory, regex))
