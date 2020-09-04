@@ -70,4 +70,50 @@ start_server.sh
 
 The permissions system for the JSON API is quite complex and the full description of its power is given in the LINKsecurityreadme.md.  Here we will be setting some basic permissions for our test user.
 
+to come...
 
+# Create, Read, Update, Delete (CRUD) Requests
+
+The four standard CRUD operations are represented by POST, GET, PATCH, and DELETE.  The requirements for constructing a valid request for each of these types are summarized in the tables below.
+
+## POST
+#### Request Type:  Array with JSON objects
+
+JSON Object Requirements
+
+field | description | type | allowable values
+------------ | ------------ | ------------ | -------------
+table | the table to write the object to | string | any of the table names in models.py
+object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in POST.schema
+schema | the schema under which the POSTed object falls | string | any URI or string matching the regex defined in validation_definitions
+payload | the JSON contents to be stored | JSON | any valid JSON
+state | the state of the object | string | "DRAFT" or "PUBLISHED"
+
+#### Example Request (Console)
+
+```
+fetch('http://127.0.0.1:8000/bco/objects/create/', {
+  method: 'POST',
+  body: JSON.stringify([
+  	{
+	    table: "glygen",
+	    object_id: "New",
+	    schema: "FDSA",
+	    bco: "{\"file test stuff\": \"here\"}",
+	    state:  "DRAFT"
+	  },
+	  {
+	    table: "oncomx",
+	    object_id: "A",
+	    schema: "IEEE 2791-2020",
+	    bco: "{\"file test stuff\": \"here\"}",
+	    state: "PUBLISHED"
+	  }
+  ]),
+  headers: {
+    'Content-type': 'application/json; charset=UTF-8'
+  }
+})
+.then(res => res.json())
+.then(console.log)
+```
