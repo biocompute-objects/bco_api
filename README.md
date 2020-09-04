@@ -86,17 +86,107 @@ DELETE | https://path/to/api/server/payloads/objects/delete/
 The requirements for constructing a valid request for each of these types are summarized in the tables below.
 
 ## POST
-#### Request Type:  Array with JSON objects
+
+#### Request Template:  Create new object
+
+##### Request Type:  Array with JSON objects
+
+JSON Object Requirements
+
+field | description | type | allowable values | optional
+------------ | ------------ | ------------ | ------------- | -------------
+table | the table to write the object to | string | any of the table names in models.py | no
+object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in POST.schema| no
+schema | the schema under which the POSTed object falls | string | any URI or string matching the regex defined in validation_definitions| no
+payload | the JSON contents to be stored | JSON | any valid JSON | no
+state | the state of the object | string | "DRAFT" or "PUBLISHED"| no
+
+#### Example Request (Console)
+
+```
+fetch('http://127.0.0.1:8000/bco/objects/create/', {
+  method: 'POST',
+  body: JSON.stringify([
+  	{
+	    table: "glygen",
+	    object_id: "New",
+	    schema: "FDSA",
+	    bco: "{\"file test stuff\": \"here\"}",
+	    state:  "DRAFT"
+	  },
+	  {
+	    table: "oncomx",
+	    object_id: "A",
+	    schema: "IEEE 2791-2020",
+	    bco: "{\"file test stuff\": \"here\"}",
+	    state: "PUBLISHED"
+	  }
+  ]),
+  headers: {
+    'Content-type': 'application/json; charset=UTF-8'
+  }
+})
+.then(res => res.json())
+.then(console.log)
+```
+
+#### Request Template:  Convert payload OR existing object between schemas
+
+##### Request Type:  Array with JSON objects
+
+JSON Object Requirements
+
+field | description | type | allowable values | optional
+------------ | ------------ | ------------ | ------------- | -------------
+source_table | the table from which to get the source object | string | any of the table names in models.py | yes
+source_id | the object ID in the source table | string | any existent object ID | yes
+destination_table | the table to write the object to | string | any of the table names in models.py | no
+destination_id | the object ID for the converted object | string | any object ID matching the regex requirements in settings.py | no
+schema | the schema under which the POSTed NEW object falls | string | any URI or string matching the regex defined in validation_definitions
+payload | the JSON contents to be stored | JSON | any valid JSON
+state | the state of the object | string | "DRAFT" or "PUBLISHED"
+
+#### Example Request (Console)
+
+```
+fetch('http://127.0.0.1:8000/bco/objects/create/', {
+  method: 'POST',
+  body: JSON.stringify([
+  	{
+	    table: "glygen",
+	    object_id: "New",
+	    schema: "FDSA",
+	    bco: "{\"file test stuff\": \"here\"}",
+	    state:  "DRAFT"
+	  },
+	  {
+	    table: "oncomx",
+	    object_id: "A",
+	    schema: "IEEE 2791-2020",
+	    bco: "{\"file test stuff\": \"here\"}",
+	    state: "PUBLISHED"
+	  }
+  ]),
+  headers: {
+    'Content-type': 'application/json; charset=UTF-8'
+  }
+})
+.then(res => res.json())
+.then(console.log)
+```
+
+#### Request Template:  Validate payload against schema
+
+##### Request Type:  Array with JSON objects
 
 JSON Object Requirements
 
 field | description | type | allowable values
 ------------ | ------------ | ------------ | -------------
-table | the table to write the object to | string | any of the table names in models.py
+table | the table in which the object_id exists | string | any of the table names in models.py
 object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in POST.schema
-schema | the schema under which the POSTed object falls | string | any URI or string matching the regex defined in validation_definitions
+schema | the schema to validate against | string | any URI or string matching the regex defined in validation_definitions
 payload | the JSON contents to be stored | JSON | any valid JSON
-state | the state of the object | string | "DRAFT" or "PUBLISHED"
 
 #### Example Request (Console)
 
