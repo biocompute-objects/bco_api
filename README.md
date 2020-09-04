@@ -76,14 +76,14 @@ to come...
 
 The four standard CRUD operations are represented by POST, GET, PATCH, and DELETE.  The 4 URLs that are available to the user for these requests are:
 
-request type | URL
------------- | ------------
-POST | https://path/to/api/server/payloads/objects/create/
-GET | https://path/to/api/server/payloads/objects/read/
-PATCH | https://path/to/api/server/payloads/objects/update/
-DELETE | https://path/to/api/server/payloads/objects/delete/
+request type | URL | functionalities (templates)
+------------ | ------------ | ------------
+POST | https://path/to/api/server/payloads/objects/create/ | Create a new object; Convert a JSON object between schemas; Validate a JSON object against a schema
+GET | https://path/to/api/server/payloads/objects/read/ | Read objects matching a regex and/or a set of conditions on the object
+PATCH | https://path/to/api/server/payloads/objects/update/ | Update objects matching a regex and/or a set of conditions on the object
+DELETE | https://path/to/api/server/payloads/objects/delete/ | Delete objects matching a regex and/or a set of conditions on the object
 
-The requirements for constructing a valid request for each of these types are summarized in the tables below.
+Each functionality for each type of request is defined in a **request template**.  The requirements for each of these templates are summarized in the tables below.
 
 ## POST
 
@@ -142,9 +142,11 @@ source_table | the table from which to get the source object | string | any of t
 source_id | the object ID in the source table | string | any existent object ID | yes
 destination_table | the table to write the object to | string | any of the table names in models.py | no
 destination_id | the object ID for the converted object | string | any object ID matching the regex requirements in settings.py | no
-schema | the schema under which the POSTed NEW object falls | string | any URI or string matching the regex defined in validation_definitions
-payload | the JSON contents to be stored | JSON | any valid JSON
-state | the state of the object | string | "DRAFT" or "PUBLISHED"
+schema | the schema under which the POSTed NEW object falls | string | any URI or string matching the regex defined in validation_definitions | no
+payload | the JSON contents to be stored | JSON | any valid JSON | no
+state | the state of the object | string | "DRAFT" or "PUBLISHED" | no
+
+Note: source_table and source_id must both be provided if converting an existing object.
 
 #### Example Request (Console)
 
