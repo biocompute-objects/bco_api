@@ -7,6 +7,11 @@ import sys
 # For regular expressions
 import re
 
+# For checking objects against schema.
+
+from . import JsonUtils
+
+
 class ConvertToSchema:
 
     # Class Description
@@ -137,15 +142,25 @@ class ConvertToSchema:
 
         # something
 
+
         for file, contents in p_bcos.items():
-            if file.get('ROOT') is not None:
+
+            for key, bco in contents.items():
 
                 # Compare the single object against the schema.
-                comparison = self.check_object_against_schema(bco_object=contents, i_schema=incoming_schema)
+                comparison = JsonUtils.JsonUtils().check_object_against_schema(object_pass=contents, schema_pass=incoming_schema)
 
+                # Make an error file for each bco and ride the output from check_object_against_schema.
+                if comparison is not None:
 
-            else:
-                print('hi')
+                    error_file = file + '.error'
+
+                    # Make an error file for each bco.
+                    with open(error_file, 'a') as f:
+                        f.write('BCO number ' + key + ' did not pass schema check. Below is the error report:\n\n')
+                        f.write(comparison)
+                        f.write('\n\n\n+++++++++++++++++++++++++++++++++++\n\n\n')
+
 
 
 
