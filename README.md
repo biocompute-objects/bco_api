@@ -25,7 +25,7 @@ API
     └─── validation_definitions* (schema definitions for each type of non-URI validation request)
  └─── api_master (contains top-level project settings)
     └─── settings.py* (where settings such as default object naming and schema registration take place)
-    └─── urls.py* (pass-through router to the API urls file)
+    └─── urls.py (pass-through router to the API urls file)
 ```
 
 \* These files are the only ones that should be manually edited, if at all.
@@ -74,7 +74,16 @@ to come...
 
 # Create, Read, Update, Delete (CRUD) Requests
 
-The four standard CRUD operations are represented by POST, GET, PATCH, and DELETE.  The requirements for constructing a valid request for each of these types are summarized in the tables below.
+The four standard CRUD operations are represented by POST, GET, PATCH, and DELETE.  The 4 URLs that are available to the user for these requests are:
+
+request type | URL
+------------ | ------------
+POST | https://path/to/api/server/payloads/objects/create/
+GET | https://path/to/api/server/payloads/objects/read/
+PATCH | https://path/to/api/server/payloads/objects/update/
+DELETE | https://path/to/api/server/payloads/objects/delete/
+
+The requirements for constructing a valid request for each of these types are summarized in the tables below.
 
 ## POST
 #### Request Type:  Array with JSON objects
