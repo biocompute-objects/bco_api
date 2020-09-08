@@ -145,21 +145,25 @@ class ConvertToSchema:
 
         for file, contents in p_bcos.items():
 
-            for key, bco in contents.items():
+            for key, bco_list in contents.items():
 
-                # Compare the single object against the schema.
-                comparison = JsonUtils.JsonUtils().check_object_against_schema(object_pass=contents, schema_pass=incoming_schema)
+                for bco in bco_list:
+                    print(incoming_schema)
+                    print(x)
 
-                # Make an error file for each bco and ride the output from check_object_against_schema.
-                if comparison is not None:
+                    # Compare the single object against the schema.
+                    comparison = JsonUtils.JsonUtils().check_object_against_schema(object_pass=bco, schema_pass=incoming_schema)
 
-                    error_file = file + '.error'
+                    # Make an error file for each bco and ride the output from check_object_against_schema.
+                    if comparison is not None:
 
-                    # Make an error file for each bco.
-                    with open(error_file, 'a') as f:
-                        f.write('BCO number ' + key + ' did not pass schema check. Below is the error report:\n\n')
-                        f.write(comparison)
-                        f.write('\n\n\n+++++++++++++++++++++++++++++++++++\n\n\n')
+                        error_file = file + '.error'
+
+                        # Make an error file for each bco.
+                        with open(error_file, 'a') as f:
+                            f.write('BCO number ' + key + ' did not pass schema check. Below is the error report:\n\n')
+                            f.write(comparison)
+                            f.write('\n\n\n+++++++++++++++++++++++++++++++++++\n\n\n')
 
 
 
