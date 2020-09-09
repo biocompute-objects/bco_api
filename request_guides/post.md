@@ -1,8 +1,10 @@
 # POST Request Templates
 
-#### Request Template:  Create new object
+<br/>
 
-##### Request Type:  Array with JSON objects
+### Request Template:  Create new object
+
+#### Request Type:  Array with JSON objects
 
 JSON Object Requirements
 
@@ -43,9 +45,11 @@ fetch('http://127.0.0.1:8000/bco/objects/create/', {
 .then(console.log)
 ```
 
-#### Request Template:  Convert payload OR existing object between schemas
+<br/>
 
-##### Request Type:  Array with JSON objects
+### Request Template:  Convert payload OR existing object between schemas
+
+#### Request Type:  Array with JSON objects
 
 JSON Object Requirements
 
@@ -90,9 +94,11 @@ fetch('http://127.0.0.1:8000/bco/objects/create/', {
 .then(console.log)
 ```
 
-#### Request Template:  Validate payload against schema
+<br/>
 
-##### Request Type:  Array with JSON objects
+### Request Template:  Validate payload against schema
+
+#### Request Type:  Array with JSON objects
 
 JSON Object Requirements
 
