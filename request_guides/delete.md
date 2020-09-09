@@ -15,7 +15,7 @@ state | the state of the object | string | "DRAFT" or "PUBLISHED"| yes
 #### Example Request (Console)
 
 ```
-fetch('http://127.0.0.1:8000/bco/objects/create/', {
+fetch('http://127.0.0.1:8000/bco/objects/delete/', {
   method: 'DELETE',
   body: JSON.stringify([
   	{
