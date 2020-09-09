@@ -2,7 +2,7 @@
 
 <br/>
 
-### Request Template:  Delete object(s)
+## Request Template:  Delete object(s)
 
 #### Request Type:  Array with JSON objects
 
