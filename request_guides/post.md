@@ -6,9 +6,7 @@
 
 #### Request Type:  Array with JSON objects
 
-JSON Object Requirements
-
-field | description | type | allowable values | optional
+Field | Description | Type | Allowable Values | Optional
 ------------ | ------------ | ------------ | ------------- | -------------
 table | the table to write the object to | string | any of the table names in models.py | no
 object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in POST.schema| no
