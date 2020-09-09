@@ -45,6 +45,12 @@ fetch('http://127.0.0.1:8000/bco/objects/create/', {
 .then(console.log)
 ```
 
+#### Example Response (Console)
+
+```
+Get from console...
+```
+
 <br/>
 
 ### Request Template:  Convert payload OR existing object between schemas
@@ -94,6 +100,12 @@ fetch('http://127.0.0.1:8000/bco/objects/create/', {
 .then(console.log)
 ```
 
+#### Example Response (Console)
+
+```
+Get from console...
+```
+
 <br/>
 
 ### Request Template:  Validate payload against schema
@@ -137,3 +149,8 @@ fetch('http://127.0.0.1:8000/bco/objects/create/', {
 .then(res => res.json())
 .then(console.log)
 ```
+
+#### Example Response (Console)
+
+```
+Get from console...
