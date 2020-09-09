@@ -58,7 +58,7 @@ python3 manage.py createsuperuser
 start_server.sh
 ```
 
-5.  Open up your browser and go to <a href='https://127.0.0.1/8000/admin/' target='_blank'>https://127.0.0.1/8000/admin/</a>.  Log in with the credentials you created in Step 3.  The administrator page is the starting point for controlling any aspect of your installation.  Here is where you can add and delete users, set certain permissions, and 
+5.  Open up your browser and go to https://<i></i>127.0.0.1/8000/admin/.  Log in with the credentials you created in Step 3.  The administrator page is the starting point for controlling any aspect of your installation.  Here is where you can add and delete users, set certain permissions, and 
 
 6.  Right now the only user is the administrator, so you'll want to add at least a test user.  Click on the "Add User" button in the upper right-hand corner of the screen, fill out the fields, then click on "Save" in the lower right-hand corner.
 
