@@ -83,4 +83,4 @@ GET | https://<i></i>path/to/api/server/payloads/objects/read/ | Read objects ma
 PATCH | https://<i></i>path/to/api/server/payloads/objects/update/ | Update objects matching a regex and/or a set of conditions on the object
 DELETE | https://<i></i>path/to/api/server/payloads/objects/delete/ | Delete objects matching a regex and/or a set of conditions on the object
 
-Each functionality for each type of request is defined in a **request template**.  The requirements for each of these templates can be viewed in the [Request Definitions](./request_guides/).
+Each functionality for each type of request is defined in a **request template**.  The requirements for each of these templates can be viewed in the [Request Guides](./request_guides/).
