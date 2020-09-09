@@ -2,7 +2,7 @@
 
 <br/>
 
-### Request Template:  Create new object
+## Request Template:  Create new object
 
 #### Request Type:  Array with JSON objects
 
@@ -51,7 +51,7 @@ Get from console...
 
 <br/>
 
-### Request Template:  Convert payload OR existing object between schemas
+## Request Template:  Convert payload OR existing object between schemas
 
 #### Request Type:  Array with JSON objects
 
@@ -104,7 +104,7 @@ Get from console...
 
 <br/>
 
-### Request Template:  Validate payload against schema
+## Request Template:  Validate payload against schema
 
 #### Request Type:  Array with JSON objects
 
