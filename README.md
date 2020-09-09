@@ -10,7 +10,7 @@ The API is built on Django.  Initial setup only involves modifying a few setting
 ## Folder Description
 
 ```
-API
+json_api
  └─── api (contains the heart of the API)
     └─── library (class definitions)
        └─── DbUtils.py (class for interacting with the SQLite database)
