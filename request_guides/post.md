@@ -108,9 +108,7 @@ Get from console...
 
 #### Request Type:  Array with JSON objects
 
-JSON Object Requirements
-
-field | description | type | allowable values
+Field | Description | Type | Allowable Values
 ------------ | ------------ | ------------ | -------------
 table | the table in which the object_id exists | string | any of the table names in models.py
 object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in POST.schema
