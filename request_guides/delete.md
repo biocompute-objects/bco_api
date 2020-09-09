@@ -9,7 +9,7 @@
 Field | Description | Type | Allowable Values | Optional
 ------------ | ------------ | ------------ | ------------- | -------------
 table | the table to delete the objects in | string | any of the table names in models.py | no
-object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in DELETE.schema| no
+object_id | the ID of the object to delete | string | any string matching the regex defined in DELETE.schema| no
 state | the state of the object | string | "DRAFT" or "PUBLISHED"| yes
 
 #### Example Request (Console)
