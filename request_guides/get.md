@@ -22,17 +22,17 @@ fetch('http://127.0.0.1:8000/bco/objects/delete/', {
     {
 	    table: "glygen",
 	    object_id: "New",
-      fields: "ALL",
+	    fields: "ALL",
 	    state:  "DRAFT"
 	  },
 	  {
 	    table: "oncomx",
 	    object_id: "A",
-      fields: [
-        'description_domain',
-        'provenance_domain',
-        'extension_domain.authors.contributors'
-      ]
+            fields: [
+                'description_domain',
+                'provenance_domain',
+                'extension_domain.authors.contributors'
+            ]
 	    state: "PUBLISHED"
 	  }
   ]),
