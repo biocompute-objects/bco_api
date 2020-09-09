@@ -78,9 +78,9 @@ The four standard CRUD operations are represented by POST, GET, PATCH, and DELET
 
 request type | URL | functionalities (templates)
 ------------ | ------------ | ------------
-POST | https://path/to/api/server/payloads/objects/create/ | Create a new object; Convert a JSON object between schemas; Validate a JSON object against a schema
-GET | https://path/to/api/server/payloads/objects/read/ | Read objects matching a regex and/or a set of conditions on the object; Retrieve an object chain
-PATCH | https://path/to/api/server/payloads/objects/update/ | Update objects matching a regex and/or a set of conditions on the object
-DELETE | https://path/to/api/server/payloads/objects/delete/ | Delete objects matching a regex and/or a set of conditions on the object
+POST | https://<i></i>path/to/api/server/payloads/objects/create/ | Create a new object; Convert a JSON object between schemas; Validate a JSON object against a schema
+GET | https://<i></i>path/to/api/server/payloads/objects/read/ | Read objects matching a regex and/or a set of conditions on the object; Retrieve an object chain
+PATCH | https://<i></i>path/to/api/server/payloads/objects/update/ | Update objects matching a regex and/or a set of conditions on the object
+DELETE | https://<i></i>path/to/api/server/payloads/objects/delete/ | Delete objects matching a regex and/or a set of conditions on the object
 
 Each functionality for each type of request is defined in a **request template**.  The requirements for each of these templates can be viewed in the [Request Definitions](./request_guides/).
