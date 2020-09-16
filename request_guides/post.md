@@ -108,8 +108,8 @@ Get from console...
 
 Field | Description | Type | Allowable Values | Optional
 ------------ | ------------ | ------------ | ------------- | -------------
-source_table | the table from which to get the source object | string | any of the table names in models.py | yes
-source_id | the object ID in the source table | string | any existent object ID | yes
+source_table | the table from which to get the source object | string | any of the table names in models.py | no
+source_id | the object ID in the source table | string | any existent object ID | no
 destination_table | the table to write the object to | string | any of the table names in models.py | no
 destination_id | the object ID for the converted object | string | any object ID matching the regex requirements in settings.py | no
 schema | the schema under which the POSTed NEW object falls | string | any URI or string matching the regex defined in validation_definitions | no
