@@ -9,9 +9,9 @@
 Field | Description | Type | Allowable Values | Optional
 ------------ | ------------ | ------------ | ------------- | -------------
 table | the table to retrieve the objects from | string | any of the table names in models.py | no
-object_id | the ID of the object to delete | string | any string matching the regex defined in GET.schema | no
-fields | the fields within the object to retrieve | string | any string matching the regex defined in GET.schema | no
-state | the state of the object | string | "DRAFT" or "PUBLISHED"| yes
+object_id | the ID of the object to delete | string | any string matching the regex defined in GET.schema | yes
+fields | the fields within the object to retrieve | string | any string matching the regex defined in GET.schema | yes
+state | the state of the object | string | "DRAFT" or "PUBLISHED"| no
 
 #### Example Request (Console)
 
