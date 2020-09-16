@@ -49,3 +49,37 @@ fetch('http://127.0.0.1:8000/bco/objects/delete/', {
 ```
 Get from console...
 ```
+
+<br/>
+
+## Request Template:  Retrieve available schema(s)
+
+#### Request Type:  JSON object
+
+Field | Description | Type | Allowable Values | Optional
+------------ | ------------ | ------------ | ------------- | -------------
+schemas | filler field | string | "ALL" | no
+
+#### Example Request (Console)
+
+```
+fetch('http://127.0.0.1:8000/bco/objects/delete/', {
+  method: 'DELETE',
+  body: JSON.stringify(
+    {
+    	schemas: "ALL"
+    }
+  ),
+  headers: {
+    'Content-type': 'application/json; charset=UTF-8'
+  }
+})
+.then(res => res.json())
+.then(console.log)
+```
+
+#### Example Response (Console)
+
+```
+Get from console...
+```
