@@ -197,3 +197,36 @@ fetch('http://127.0.0.1:8000/bco/objects/create/', {
 
 ```
 Get from console...
+```
+
+## Request Template:  Start/Stop API logging
+
+#### Request Type:  JSON Object
+
+Field | Description | Type | Allowable Values
+------------ | ------------ | ------------ | -------------
+logging | field describing logging command | string | "START" or "STOP"
+
+#### Example Request (Console)
+
+```
+fetch('http://127.0.0.1:8000/bco/objects/create/', {
+  method: 'POST',
+  body: JSON.stringify([
+  	{
+	    logging: "START"
+	  }
+  ]),
+  headers: {
+    'Content-type': 'application/json; charset=UTF-8'
+  }
+})
+.then(res => res.json())
+.then(console.log)
+```
+
+#### Example Response (Console)
+
+```
+Get from console...
+```
