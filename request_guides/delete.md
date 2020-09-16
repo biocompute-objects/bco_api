@@ -12,6 +12,8 @@ table | the table to delete the objects in | string | any of the table names in 
 object_id | the ID of the object to delete | string | any string matching the regex defined in DELETE.schema| no
 state | the state of the object | string | "DRAFT" or "PUBLISHED"| yes
 
+### Note: A DELETE request only marks an object for deletion.  A second DELETE request must be sent for the same object to delete it.  The second request must occur within 1 minute of the first DELETE request in order to go through.  Otherwise, the object state is reverted back to non-deletable.
+
 #### Example Request (Console)
 
 ```
