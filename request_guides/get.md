@@ -13,6 +13,13 @@ object_id | the ID of the object to delete | string | any string matching the re
 fields | the fields within the object to retrieve | string | any string matching the regex defined in GET.schema | yes
 state | the state of the object | string | "DRAFT" or "PUBLISHED"| no
 
+#### Return Codes (non-400)
+
+Code | Description | Payload
+------------ | ------------ | ------------
+200 | successful request for object(s) | JSON
+404 | the fields and state provided could not be matched to an object_id in the provided table | string
+
 #### Example Request (Console)
 
 ```
