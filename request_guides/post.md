@@ -161,10 +161,8 @@ Get from console...
 
 Field | Description | Type | Allowable Values
 ------------ | ------------ | ------------ | -------------
-table | the table in which the object_id exists | string | any of the table names in models.py
-object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in bco_api/request_definitions/POST.schema
-schema | the schema to validate against | string | any URI or string matching the regex defined in validation_definitions
 payload | the JSON contents to be stored | JSON | any valid JSON
+schema | the schema to validate against | string | any URI or string matching the regex defined in validation_definitions
 
 #### Example Request (Console)
 
