@@ -9,7 +9,7 @@
 Field | Description | Type | Allowable Values | Optional
 ------------ | ------------ | ------------ | ------------- | -------------
 table | the table to write the object to | string | any of the table names in models.py | no
-object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in POST.schema| no
+object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in bco_api/request_definitions/POST.schema| no
 schema | the schema under which the POSTed object falls | string | any URI or string matching the regex defined in validation_definitions| no
 payload | the JSON contents to be stored | JSON | any valid JSON | no
 state | the state of the object | string | "DRAFT" or "PUBLISHED"| no
@@ -162,7 +162,7 @@ Get from console...
 Field | Description | Type | Allowable Values
 ------------ | ------------ | ------------ | -------------
 table | the table in which the object_id exists | string | any of the table names in models.py
-object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in POST.schema
+object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in bco_api/request_definitions/POST.schema
 schema | the schema to validate against | string | any URI or string matching the regex defined in validation_definitions
 payload | the JSON contents to be stored | JSON | any valid JSON
 
