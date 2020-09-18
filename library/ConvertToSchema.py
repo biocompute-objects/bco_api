@@ -183,9 +183,10 @@ class ConvertToSchema:
         # Declare the dictionary that will return the mappings.
         mappings = {}
 
-
         # Go over each mapping file.
         for current_file in mapping_locations:
+
+            print(current_file)
 
             # Open the mapping file and store it.
             with open(current_file, mode='r') as file:
@@ -193,44 +194,47 @@ class ConvertToSchema:
                 # Initialize mappings[current_file]
                 mappings[current_file] = {}
 
-                for line in file.readlines():
+                for line_number, line in enumerate(file, 1):
 
+                    print(line_number)
                     # Check each line for compliance with CRD with regex, quit on failure.
                     # Source: https://stackoverflow.com/questions/8888567/match-a-line-with-multiple-regex-using-python
                     # *** Find JSON path regex
                     # Regex accepts any values for JSON path and old/new values
-                    #if not any re.match(line) for re in ['^FILE_PATH_REGEX,URI_REGEX,CREATE,[\"(.*?)\"],[\"(.*?)\"]$','^FILE_PATH_REGEX,URI_REGEX,CONVERT,[\"(.*?)\"],[\"(.*?)\"],[\"(.*?)\"]$','^FILE_PATH_REGEX,URI_REGEX,DELETE,[\"(.*?)\"]$']:
-                    if 1:
+                    # Source for file path regex: https://stackoverflow.com/questions/28989672/regex-to-tell-if-a-string-contains-a-linux-file-path-or-if-a-linux-file-path-as
+                    # if not any re.match(line) for re in['^(/[^/ ]*)+/?bco_set_\d+.txt,https://portal.aws.biochemistry.gwu.edu/bco/BCO_\d+,CREATE,[\"(.*?)\"],[\"(.*?)\"]$', '^FILE_PATH_REGEX,URI_REGEX,CONVERT,[\"(.*?)\"],[\"(.*?)\"],[\"(.*?)\"]$', '^FILE_PATH_REGEX,URI_REGEX,DELETE,[\"(.*?)\"]$']:
+                    if not any(re.match(regex, line) for regex in ['^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CREATE\,(\"(.*?)\")\,(\"(.*?)\")$']):
                         # Print the error to the command line.
                         # *** How do you print the line number
-                        print('Provided mapping file ' + current_file + ' had invalid instruction formatting for line ' + line)
+                        print('Provided mapping file ' + current_file + ' had invalid instruction formatting at line number ' + str(line_number))
 
                         # Exit the program completely.
-                        sys.exit(2)
+                        #sys.exit(2)
 
                     else:
                         # Store the mappings.
-                        split_line = ','.split(line)
+                        print(line)
+                        split_line = line.split(',')
+                        print(split_line)
+                        print(mappings[current_file])
 
-                        # Check if the BCO URI is already defined in mappings dict.
-                        # Append the instructions after the BCO URI if the BCO URI is already defined.
-                        if split_line[1] in mappings[current_file][split_line[0]]:
-                            mappings[current_file][split_line[0]][split_line[1]].append(','.join(split_line[2:]))
+                        # Check if the BCO file is already defined in mappings dict.
+                        if split_line[0] not in mappings[current_file]:
+                            mappings[current_file][split_line[0]] = {split_line[1]: [','.join(split_line[2:])]}
 
-                        # If the BCO URI is not already defined, define it and make it a list populated with the instructions.
                         else:
-                            mappings[current_file][split_line[0]][split_line[1]] = [','.join(split_line[2:])]
 
+                            # Check if the BCO URI is already defined in BCO file dict.
+                            # Append the instructions after the BCO URI if the BCO URI is already defined.
+                            if split_line[1] not in mappings[current_file][split_line[0]]:
+
+                                mappings[current_file][split_line[0]][split_line[1]] = [','.join(split_line[2:])]
+
+                            # If the BCO URI is not already defined, define it and make it a list populated with the instructions.
+                            else:
+                                mappings[current_file][split_line[0]][split_line[1]].append(','.join(split_line[2:]))
+            print('-----------------\n\n\n\n\n')
         return mappings
-
-
-
-
-            
-
-
-    def check_object_against_schema(self, bco_object, i_schema):
-        print('1')
 
     def create_bco_from_instructions(self, bco_dict, mappings_dict):
 
