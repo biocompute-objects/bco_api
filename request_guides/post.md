@@ -8,7 +8,7 @@
 
 Field | Description | Type | Allowable Values | Optional
 ------------ | ------------ | ------------ | ------------- | -------------
-template | the name of the request template | string | CREATE | no
+template | the name of the request template | string | "CREATE" | no
 table | the table to write the object to | string | any of the table names in models.py | no
 object_id | either 'NEW' or an existing ID in the repository | string | any string matching the regex defined in bco_api/request_definitions/POST.schema| no
 schema | the schema under which the POSTed object falls | string | any URI or string matching the regex defined in validation_definitions| no
