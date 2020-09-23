@@ -11,6 +11,8 @@ import re
 
 from . import JsonUtils
 
+from . import FileUtils
+
 
 class ConvertToSchema:
 
@@ -203,7 +205,7 @@ class ConvertToSchema:
                     # Regex accepts any values for JSON path and old/new values
                     # Source for file path regex: https://stackoverflow.com/questions/28989672/regex-to-tell-if-a-string-contains-a-linux-file-path-or-if-a-linux-file-path-as
                     # if not any re.match(line) for re in['^(/[^/ ]*)+/?bco_set_\d+.txt,https://portal.aws.biochemistry.gwu.edu/bco/BCO_\d+,CREATE,[\"(.*?)\"],[\"(.*?)\"]$', '^FILE_PATH_REGEX,URI_REGEX,CONVERT,[\"(.*?)\"],[\"(.*?)\"],[\"(.*?)\"]$', '^FILE_PATH_REGEX,URI_REGEX,DELETE,[\"(.*?)\"]$']:
-                    if not any(re.match(regex, line) for regex in ['^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CREATE\,(\"(.*?)\")\,(\"(.*?)\")$']):
+                    if not any(re.match(regex, line) for regex in ['^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CREATE\,(\"(.*?)\")\,(\"(.*?)\")$', '^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CONVERT\,(\"(.*?)\")\,(\"(.*?)\")\,(\"(.*?)\")$', '^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,DELETE\,(\"(.*?)\")$']):
                         # Print the error to the command line.
                         # *** How do you print the line number
                         print('Provided mapping file ' + current_file + ' had invalid instruction formatting at line number ' + str(line_number))
@@ -236,25 +238,37 @@ class ConvertToSchema:
             print('-----------------\n\n\n\n\n')
         return mappings
 
-    def create_bco_from_instructions(self, bco_dict, mappings_dict):
+    def create_bco_from_mappings(self, bco_dict, mappings_dict, out_directory):
 
         # Arguments
         # ---------
 
         # Take in the dictionary from read_mapping_files (mappings_dict) and the BCOs from load_bco_files.
+        # Output the new bcos to out_directory.
 
         # Returns
         # -------
 
-        # A dictionary of where the key is the new BCO file name and the value is the new BCO contents.
+        # A dictionary where the key is the new BCO file name and the value is the new BCO contents.
 
         # Possible errors:
         # - file existence has already been checked in previous functions
         # - an instruction is given in mappings_dict for an object in bco_dict that does not exist
         # - an instruction is given in mappings_dict for a field that does not exist in an existing object in bco_dict
 
+        # Future modifications:
+        # Add path dependency check to commands. Check for backward dependency i.e. does a command depend on previous commands to be valid?
+
+        # Tell the user to only use one bco_id per mapping file, do not replicate bco_ids across mapping files.
+        # In the future we can collapse all mapping files to master mapping list.
+
+        # Run new BCO back through schema check to generate any remaining errors.
+
         # Create a dictionary to hold the new jsons and their contents.
-        new_jsons = {}
+        new_bco_dict = bco_dict
+
+        # Instantiate JsonUtils
+        ju = JsonUtils.JsonUtils()
 
         # Iterate through the mappings files dict.
         for mappings_file, mappings_contents in mappings_dict.items():
@@ -281,25 +295,66 @@ class ConvertToSchema:
                             split_command = ','.split(command)
 
                             # Perform the CREATE command.
-                            if split_command[0] == 'CREATE':
-                                exec('new_bco[' + split_command[1] + '] =' + split_command[2])
+                            if split_command[2] == 'CREATE':
+
+        
+                                exec('new_bco' + ju.convert_json_path_to_keys(json_path=split_command[3]) + ' =' + split_command[4])
+
+                                # Check if new field already exists
+                                #if split_command[3] not in new_bco:
+                                    # If it does not exit then create the new field with the new value.
+
+                                #else:
+                                    #If it already exists then print error message.
+                                    #print("Field " + split_command[4] + "already exists in " + new_bco)
+
 
                             # Perform the CONVERT command.
-                            elif split_command[0] == 'CONVERT':
+                            elif split_command[2] == 'CONVERT':
 
-                                # Come back to this.
-                                exec(split_command[1] + '=' + split_command[2])
+                                # Delete the old field.
+                                exec('new_bco.pop(' + split_command[3] + ', None)')
+
+                                # Create the new field.
+                                exec('new_bco[' + split_command[4] + '] =' + split_command[5])
+
+                                # Check if field to be converted exists.
+                                #if split_command[3] in new_bco:
+                                    # If it does exist then replace the old field with the new field and new value.
+
+                                #else:
+                                    # If it does not exist print an error message.
+                                    #print("Field " + split_command[4] + "does not exist in " + new_bco)
+
 
                             # Perform the DELETE command.
                             else:
-                                new_bco.pop(split_command[1], None)
+                                new_bco.pop(split_command[3], None)
 
-                        # Write new_bco to file.
+                                # Check that field to be deleted exists.
+                                #if split_command[3] in new_bco:
+                                    # Delete the field.
 
+                                #else:
+                                    # If field does not exists print error message.
+                                    #print("Field " + split_command[4] + "does not exist in " + new_bco)
+
+                            # Update the master BCO record.
+                            new_bco_dict[bco_file][bco_id] = new_bco
 
                     # Error statement if bco_id was not found.
                     else:
                         print(bco_id + ' was not found in ' + bco_file)
+
+        # Instantiate FileUtils
+        fileutils = FileUtils.FileUtils()
+
+        # Write each converted bco into a new bco file.
+        for bco_file, bco_id in new_bco_dict.items():
+            fileutils.create_files(payload = new_bco_dict[bco_file], output_directory = out_directory, file_extension='.converted' )
+
+
+
 
 
 
