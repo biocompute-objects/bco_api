@@ -1,5 +1,6 @@
 # For JSON parsing and schema validation.
 import jsonschema
+import json
 
 # For catching print output.
 import sys
@@ -59,3 +60,76 @@ class JsonUtils:
 
             # Collapse and return the errors.
             return error_string
+
+
+    def check_for_field(self, json_file, key):
+        # Check for the existence of a key in a json file.
+
+        # Arguments
+        # ---------
+
+        # json_file:  the json file to be checked.
+
+        # Returns
+        # -------
+
+        # A true or false flag indicating if the field exists.
+
+        # Set the key flag as a boolean
+        key_flag = None
+
+        # Open the json file.
+        with open(json_file, 'r') as file:
+            json = json.load(file)
+
+            # Check if the key exists.
+            if key in json:
+                # If the key exists return the flag as True.
+                key_flag = True
+
+            else:
+                # If the key does not exist return the flag as False.
+                key_flag = False
+
+        return key_flag
+
+    def convert_json_path_to_keys(self, json_path):
+        # Take a json path and convert it to a key path for a dictionary.
+
+        # Arguments
+        # ---------
+
+        # json_path:  the json path to be converted.
+
+        # Returns
+        # -------
+
+        # A key path.
+
+
+        # This version assumes there are no quoted fields.
+        # Only works for a top level array, not nested arras i.e. [key][1][2][3]
+
+        # Split the json path.
+        split_path = json_path.split('.')
+
+        # Make a list to hold the processed path.
+        processed_path = []
+
+        # Process arrays in the path.
+        for item in split_path:
+            item.replace(']', '')
+            item.replace('[', '][')
+            processed_path.append(item)
+
+        # Join the split path.
+        key_path = '[' + ']['.join(split_path) + ']'
+
+        return key_path
+
+
+
+
+
+
+
