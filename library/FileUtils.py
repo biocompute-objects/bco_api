@@ -6,6 +6,8 @@ import glob
 # For writing.
 import os
 
+import json
+
 
 # --- MAIN --- #
 
@@ -77,8 +79,17 @@ class FileUtils:
 
         # Construct the output path for each file and write.
         for original_filename, contents in payload.items():
-            with open(self().pathalizer(output_directory, original_filename + file_extension), mode='w') as f:
-                f.write(contents)
+
+            with open(self.pathalizer(output_directory, original_filename + file_extension), mode='w') as f:
+
+                # Check for object type.
+                if type(contents) is str:
+
+                    f.write(contents)
+
+                elif type(contents) is dict:
+
+                    f.write(json.dumps(contents, indent=4, sort_keys=True))
 
 
 

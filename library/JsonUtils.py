@@ -110,20 +110,52 @@ class JsonUtils:
         # This version assumes there are no quoted fields.
         # Only works for a top level array, not nested arras i.e. [key][1][2][3]
 
+        # Remove the left and right quotation marks.
+        json_path = json_path[1:]
+        json_path = json_path[:-1]
+
         # Split the json path.
         split_path = json_path.split('.')
 
         # Make a list to hold the processed path.
         processed_path = []
 
+        # Indices for items in split path that has an array.
+        has_array = []
+
         # Process arrays in the path.
-        for item in split_path:
-            item.replace(']', '')
-            item.replace('[', '][')
-            processed_path.append(item)
+        for index in range(0, len(split_path)):
+
+            # Check for an array.
+            if split_path[index].find(']') >= 0:
+
+                split_path[index] = split_path[index].replace(']', '')
+                split_path[index] = split_path[index].replace('[', '"][')
+
+                has_array.append(index)
+
+            processed_path.append(split_path[index])
+
+        print('test')
+        print(processed_path)
+
+        for index in range(0, len(processed_path) - 1):
+
+            # Check if the index is found in the array list has_array.
+            try:
+                has_array.index(index)
+
+                processed_path[index] = processed_path[index] + ']["'
+
+            except:
+
+                processed_path[index] = processed_path[index] + '"]["'
+
+        print(processed_path)
 
         # Join the split path.
-        key_path = '[' + ']['.join(split_path) + ']'
+        key_path = '["' + ''.join(processed_path) + '"]'
+        print(key_path)
 
         return key_path
 

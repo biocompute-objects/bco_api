@@ -20,6 +20,7 @@ class ConvertToSchema:
     # -----------------
 
     # These methods are for taking a BCO and making it fit into a schema. More broadly, this script takes a JSON and converts it into JSON with a provided schema.
+    # Stores each BCO as an array, but a modification is to store each BCO with the BCO ID as keys and the BCO contents as the values (not written here)
 
     # Load a schema to force the provided JSON to fit.
     def load_schema(self, schema_location, location_type):
@@ -118,11 +119,11 @@ class ConvertToSchema:
                 processed_bcos[filename] = {}
 
                 # Determine the type of contents.
-                if type(contents) == 'list':
+                if type(contents) == list:
 
                     # Iterate over each item in the list.
                     for index in range(0, len(contents)):
-                        processed_bcos[filename][str(index)] = contents
+                        processed_bcos[filename][str(index)] = contents[index]
 
                 else:
                     processed_bcos[filename]['0'] = contents
@@ -214,6 +215,11 @@ class ConvertToSchema:
                         #sys.exit(2)
 
                     else:
+                        # Strip new line off the end if it exists.
+                        # Source: https://stackoverflow.com/questions/275018/how-can-i-remove-a-trailing-newline
+
+                        line = line.rstrip('\r\n')
+
                         # Store the mappings.
                         print(line)
                         split_line = line.split(',')
@@ -274,84 +280,96 @@ class ConvertToSchema:
         for mappings_file, mappings_contents in mappings_dict.items():
 
             # Iterate through the mappings contents dict, where each key is a bco_file and each value is a bco_id within that file.
-            for bco_file, bco_id in mappings_contents.items():
+            for bco_file, bco_file_mappings in mappings_contents.items():
+                print(bco_file)
+                print(bco_file_mappings)
+                # print(json.dumps(bco_dict, sort_keys=True, indent=4))
 
                 # Iterate over each of the BCOs in the bco file.
-                for bco in bco_dict[bco_file]:
+                for bco_id, bco_commands in bco_file_mappings.items():
 
                     # Check that bco_id exists in the bco. If so, run all commands.
-                    if bco_id in bco:
+                    # if bco_id in bco:
 
-                        # Create a copy of the bco contents.
-                        new_bco = bco
+                    # Loop through the file contents to find the index associated with the BCO id.
+                    for index, bco in new_bco_dict[bco_file].items():
 
-                        # Load the commands from the mapping dictionary.
-                        commands = mappings_dict[mappings_file][bco_file][bco_id]
+                        # If the object ID matches the BCO ID then set the index key.
+                        if bco_id == bco['object_id']:
 
-                        # Iterate through the commands for that bco.
-                        for command in commands:
+                            # Iterate through the commands for that bco.
+                            for command in bco_commands:
 
-                            # Split the command string into blocks.
-                            split_command = ','.split(command)
+                                print(command)
 
-                            # Perform the CREATE command.
-                            if split_command[2] == 'CREATE':
+                                # Split the command string into blocks.
+                                split_command = command.split(',')
 
-        
-                                exec('new_bco' + ju.convert_json_path_to_keys(json_path=split_command[3]) + ' =' + split_command[4])
+                                print(split_command)
 
-                                # Check if new field already exists
-                                #if split_command[3] not in new_bco:
-                                    # If it does not exit then create the new field with the new value.
+                                # Perform the CREATE command.
+                                if split_command[0] == 'CREATE':
 
-                                #else:
-                                    #If it already exists then print error message.
-                                    #print("Field " + split_command[4] + "already exists in " + new_bco)
+                                    exec('new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ' = ' + split_command[2])
 
+                                    # Check if new field already exists
+                                    #if split_command[3] not in new_bco:
+                                        # If it does not exit then create the new field with the new value.
 
-                            # Perform the CONVERT command.
-                            elif split_command[2] == 'CONVERT':
-
-                                # Delete the old field.
-                                exec('new_bco.pop(' + split_command[3] + ', None)')
-
-                                # Create the new field.
-                                exec('new_bco[' + split_command[4] + '] =' + split_command[5])
-
-                                # Check if field to be converted exists.
-                                #if split_command[3] in new_bco:
-                                    # If it does exist then replace the old field with the new field and new value.
-
-                                #else:
-                                    # If it does not exist print an error message.
-                                    #print("Field " + split_command[4] + "does not exist in " + new_bco)
+                                    #else:
+                                        #If it already exists then print error message.
+                                        #print("Field " + split_command[4] + "already exists in " + new_bco)
 
 
-                            # Perform the DELETE command.
-                            else:
-                                new_bco.pop(split_command[3], None)
+                                # Perform the CONVERT command.
+                                elif split_command[0] == 'CONVERT':
 
-                                # Check that field to be deleted exists.
-                                #if split_command[3] in new_bco:
-                                    # Delete the field.
+                                    # Delete the old field.
+                                    print('new_bco_dict["' + bco_file + '"]["' + index + '"].pop(' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ', None)')
 
-                                #else:
-                                    # If field does not exists print error message.
-                                    #print("Field " + split_command[4] + "does not exist in " + new_bco)
+                                    #exec('new_bco_dict["' + bco_file + '"]["' + index + '"].pop(' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ', None)')
 
-                            # Update the master BCO record.
-                            new_bco_dict[bco_file][bco_id] = new_bco
+                                    # Create the new field.
+                                    #exec('new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[2]) + ' =' + split_command[3])
 
-                    # Error statement if bco_id was not found.
-                    else:
-                        print(bco_id + ' was not found in ' + bco_file)
+                                    # Check if field to be converted exists.
+                                    #if split_command[3] in new_bco:
+                                        # If it does exist then replace the old field with the new field and new value.
+
+                                    #else:
+                                        # If it does not exist print an error message.
+                                        #print("Field " + split_command[4] + "does not exist in " + new_bco)
+
+
+                                # Perform the DELETE command.
+                                elif split_command[0] == 'DELETE':
+
+                                    print('test')
+
+                                    # Delete the old field.
+                                    #exec('new_bco_dict["' + bco_file + '"]["' + index + '"].pop(' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ', None)')
+
+                                    # Check that field to be deleted exists.
+                                    #if split_command[3] in new_bco:
+                                        # Delete the field.
+
+                                    #else:
+                                        # If field does not exists print error message.
+                                        #print("Field " + split_command[4] + "does not exist in " + new_bco)
+
+                            # Error statement if bco_id was not found.
+                            # else:
+                                # print(bco_id + ' was not found in ' + bco_file)
 
         # Instantiate FileUtils
-        fileutils = FileUtils.FileUtils()
+        fu = FileUtils.FileUtils()
+
+        # Collapse new BCO dictionary to list.
+
 
         # Write each converted bco into a new bco file.
-        for bco_file, bco_id in new_bco_dict.items():
-            fileutils.create_files(payload = new_bco_dict[bco_file], output_directory = out_directory, file_extension='.converted' )
+        for bco_file, bco_index in new_bco_dict.items():
+            fu.create_files(payload=new_bco_dict[bco_file], output_directory=out_directory, file_extension='.converted')
 
 
 
