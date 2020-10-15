@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://example.com/product.schema.json",
+    "title": "POST_BCO",
+    "description": "A POST request to the BCO API.",
+    "type": "array",
+    "items":
+    {
+        "type": "object",
+        "properties":
+        {
+            "object_id":
+            {
+                "description": "Either 'NEW' or an existing BCO ID in the repository.",
+                "type": "string",
+                "pattern": "^https://nih.gov/NIH_(\\d+)_v_(\\d+)$|^ftp://nih.gov/NIH_(\\d+)_v_(\\d+)$|^doi://nih.gov/NIH_(\\d+)_v_(\\d+)$|^http://nih.gov/NIH_(\\d+)_v_(\\d+)$|^NEW$"
+            },
+            "schema":
+            {
+                "description": "The schema under which the POSTed BCO falls.",
+                "type": "string",
+                "pattern": "^IEEE 2791-2020$"
+            },
+            "bco":
+            {
+                "description": "The BCO.",
+                "$ref": "https://opensource.ieee.org/2791-object/ieee-2791-schema/raw/master/2791object.json"
+            },
+            "state":
+            {
+                "description": "Either 'DRAFT' or 'PUBLISHED'.",
+                "type": "string",
+                "pattern": "^DRAFT$|^PUBLISHED$"
+            }
+        },
+        "required":
+        [
+            "object_id",
+            "schema",
+            "bco",
+            "state"
+        ]
+    }
+}

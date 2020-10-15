@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "request_definitions/templates/GET_retrieve_available_schema.schema",
+    "title": "GET_retrieve_available_schema",
+    "description": "A GET request to ask the API what schema are available to validate against.",
+    "type": "object",
+        "properties":
+        {
+        },
+        "required":
+        [
+        ]
+}

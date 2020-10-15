@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "request_definitions/POST.schema",
+    "title": "POST",
+    "description": "A POST request.",
+    "type": "object",
+    "properties":
+    {
+        "POST_create_new_object":
+        {
+            "description": "The template for creating a new object.",
+            "$ref": "request_definitions/templates/POST_create_new_object.schema"
+        }
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "request_definitions/templates/POST_create_new_object.schema",
+    "title": "POST_create_new_object",
+    "description": "A POST request for creating a new object.",
+    "type": "array",
+    "items":
+    {
+        "type": "object",
+        "properties":
+        {
+            "table":
+            {
+                "description": "The table to write the new object to.",
+                "type": "string"
+            },
+            "object_id":
+            {
+                "description": "Either 'NEW' or an existing JSON ID in the repository.",
+                "type": "string"
+            },
+            "schema":
+            {
+                "description": "The schema under which the POSTed JSON falls.",
+                "type": "string"
+            },
+            "payload":
+            {
+                "description": "The JSON contents to be stored",
+                "type": "object"
+            },
+            "state":
+            {
+                "description": "Either 'DRAFT' or 'PUBLISHED'.",
+                "type": "string",
+                "pattern": "^DRAFT$|^PUBLISHED$"
+            }
+        },
+        "required":
+        [
+            "table",
+            "object_id",
+            "schema",
+            "payload",
+            "state"
+        ]
+    }
+}

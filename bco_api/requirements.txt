@@ -1,0 +1,10 @@
+asgiref==3.2.10
+attrs==19.3.0
+Django==3.0.9
+djangorestframework==3.11.0
+jsonref==0.2
+jsonschema==3.2.0
+pyrsistent==0.16.0
+pytz==2020.1
+six==1.15.0
+sqlparse==0.3.1

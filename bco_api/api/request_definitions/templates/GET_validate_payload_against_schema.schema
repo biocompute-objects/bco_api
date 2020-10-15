@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "request_definitions/templates/GET_validate_payload_against_schema.schema",
+    "title": "GET_validate_payload_against_schema",
+    "description": "A GET request to validate an object against a schema.",
+    "type": "array",
+    "items":
+    {
+        "type": "object",
+        "properties":
+        {
+            "payload":
+            {
+                "description": "The table to write the new object to.",
+                "type": "string"
+            },
+            "schema":
+            {
+                "description": "Either a provided schema or one residing on the server.",
+                "type": "string"
+            }
+        },
+        "required":
+        [
+            "payload",
+            "schema"
+        ]
+    }
+}
