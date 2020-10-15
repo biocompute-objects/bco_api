@@ -11,6 +11,8 @@ import re
 
 from . import JsonUtils
 
+from . import FileUtils
+
 
 class ConvertToSchema:
 
@@ -18,6 +20,7 @@ class ConvertToSchema:
     # -----------------
 
     # These methods are for taking a BCO and making it fit into a schema. More broadly, this script takes a JSON and converts it into JSON with a provided schema.
+    # Stores each BCO as an array, but a modification is to store each BCO with the BCO ID as keys and the BCO contents as the values (not written here)
 
     # Load a schema to force the provided JSON to fit.
     def load_schema(self, schema_location, location_type):
@@ -116,11 +119,11 @@ class ConvertToSchema:
                 processed_bcos[filename] = {}
 
                 # Determine the type of contents.
-                if type(contents) == 'list':
+                if type(contents) == list:
 
                     # Iterate over each item in the list.
                     for index in range(0, len(contents)):
-                        processed_bcos[filename][str(index)] = contents
+                        processed_bcos[filename][str(index)] = contents[index]
 
                 else:
                     processed_bcos[filename]['0'] = contents
@@ -183,9 +186,10 @@ class ConvertToSchema:
         # Declare the dictionary that will return the mappings.
         mappings = {}
 
-
         # Go over each mapping file.
         for current_file in mapping_locations:
+
+            print(current_file)
 
             # Open the mapping file and store it.
             with open(current_file, mode='r') as file:
@@ -193,109 +197,182 @@ class ConvertToSchema:
                 # Initialize mappings[current_file]
                 mappings[current_file] = {}
 
-                for line in file.readlines():
+                for line_number, line in enumerate(file, 1):
 
+                    print(line_number)
                     # Check each line for compliance with CRD with regex, quit on failure.
                     # Source: https://stackoverflow.com/questions/8888567/match-a-line-with-multiple-regex-using-python
                     # *** Find JSON path regex
                     # Regex accepts any values for JSON path and old/new values
-                    #if not any re.match(line) for re in ['^FILE_PATH_REGEX,URI_REGEX,CREATE,[\"(.*?)\"],[\"(.*?)\"]$','^FILE_PATH_REGEX,URI_REGEX,CONVERT,[\"(.*?)\"],[\"(.*?)\"],[\"(.*?)\"]$','^FILE_PATH_REGEX,URI_REGEX,DELETE,[\"(.*?)\"]$']:
-                    if 1:
+                    # Source for file path regex: https://stackoverflow.com/questions/28989672/regex-to-tell-if-a-string-contains-a-linux-file-path-or-if-a-linux-file-path-as
+                    # if not any re.match(line) for re in['^(/[^/ ]*)+/?bco_set_\d+.txt,https://portal.aws.biochemistry.gwu.edu/bco/BCO_\d+,CREATE,[\"(.*?)\"],[\"(.*?)\"]$', '^FILE_PATH_REGEX,URI_REGEX,CONVERT,[\"(.*?)\"],[\"(.*?)\"],[\"(.*?)\"]$', '^FILE_PATH_REGEX,URI_REGEX,DELETE,[\"(.*?)\"]$']:
+                    if not any(re.match(regex, line) for regex in ['^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CREATE\,(\"(.*?)\")\,(\"(.*?)\")$', '^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CONVERT\,(\"(.*?)\")\,(\"(.*?)\")\,(\"(.*?)\")$', '^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,DELETE\,(\"(.*?)\")$']):
                         # Print the error to the command line.
                         # *** How do you print the line number
-                        print('Provided mapping file ' + current_file + ' had invalid instruction formatting for line ' + line)
+                        print('Provided mapping file ' + current_file + ' had invalid instruction formatting at line number ' + str(line_number))
 
                         # Exit the program completely.
-                        sys.exit(2)
+                        #sys.exit(2)
 
                     else:
+                        # Strip new line off the end if it exists.
+                        # Source: https://stackoverflow.com/questions/275018/how-can-i-remove-a-trailing-newline
+
+                        line = line.rstrip('\r\n')
+
                         # Store the mappings.
-                        split_line = ','.split(line)
+                        print(line)
+                        split_line = line.split(',')
+                        print(split_line)
+                        print(mappings[current_file])
 
-                        # Check if the BCO URI is already defined in mappings dict.
-                        # Append the instructions after the BCO URI if the BCO URI is already defined.
-                        if split_line[1] in mappings[current_file][split_line[0]]:
-                            mappings[current_file][split_line[0]][split_line[1]].append(','.join(split_line[2:]))
+                        # Check if the BCO file is already defined in mappings dict.
+                        if split_line[0] not in mappings[current_file]:
+                            mappings[current_file][split_line[0]] = {split_line[1]: [','.join(split_line[2:])]}
 
-                        # If the BCO URI is not already defined, define it and make it a list populated with the instructions.
                         else:
-                            mappings[current_file][split_line[0]][split_line[1]] = [','.join(split_line[2:])]
 
+                            # Check if the BCO URI is already defined in BCO file dict.
+                            # Append the instructions after the BCO URI if the BCO URI is already defined.
+                            if split_line[1] not in mappings[current_file][split_line[0]]:
+
+                                mappings[current_file][split_line[0]][split_line[1]] = [','.join(split_line[2:])]
+
+                            # If the BCO URI is not already defined, define it and make it a list populated with the instructions.
+                            else:
+                                mappings[current_file][split_line[0]][split_line[1]].append(','.join(split_line[2:]))
+            print('-----------------\n\n\n\n\n')
         return mappings
 
-
-
-
-            
-
-
-    def check_object_against_schema(self, bco_object, i_schema):
-        print('1')
-
-    def create_bco_from_instructions(self, bco_dict, mappings_dict):
+    def create_bco_from_mappings(self, bco_dict, mappings_dict, out_directory):
 
         # Arguments
         # ---------
 
         # Take in the dictionary from read_mapping_files (mappings_dict) and the BCOs from load_bco_files.
+        # Output the new bcos to out_directory.
 
         # Returns
         # -------
 
-        # A dictionary of where the key is the new BCO file name and the value is the new BCO contents.
+        # A dictionary where the key is the new BCO file name and the value is the new BCO contents.
 
         # Possible errors:
         # - file existence has already been checked in previous functions
         # - an instruction is given in mappings_dict for an object in bco_dict that does not exist
         # - an instruction is given in mappings_dict for a field that does not exist in an existing object in bco_dict
 
+        # Future modifications:
+        # Add path dependency check to commands. Check for backward dependency i.e. does a command depend on previous commands to be valid?
+
+        # Tell the user to only use one bco_id per mapping file, do not replicate bco_ids across mapping files.
+        # In the future we can collapse all mapping files to master mapping list.
+
+        # Run new BCO back through schema check to generate any remaining errors.
+
         # Create a dictionary to hold the new jsons and their contents.
-        new_jsons = {}
+        new_bco_dict = bco_dict
+
+        # Instantiate JsonUtils
+        ju = JsonUtils.JsonUtils()
 
         # Iterate through the mappings files dict.
         for mappings_file, mappings_contents in mappings_dict.items():
 
             # Iterate through the mappings contents dict, where each key is a bco_file and each value is a bco_id within that file.
-            for bco_file, bco_id in mappings_contents.items():
+            for bco_file, bco_file_mappings in mappings_contents.items():
+                print(bco_file)
+                print(bco_file_mappings)
+                # print(json.dumps(bco_dict, sort_keys=True, indent=4))
 
                 # Iterate over each of the BCOs in the bco file.
-                for bco in bco_dict[bco_file]:
+                for bco_id, bco_commands in bco_file_mappings.items():
 
                     # Check that bco_id exists in the bco. If so, run all commands.
-                    if bco_id in bco:
+                    # if bco_id in bco:
 
-                        # Create a copy of the bco contents.
-                        new_bco = bco
+                    # Loop through the file contents to find the index associated with the BCO id.
+                    for index, bco in new_bco_dict[bco_file].items():
 
-                        # Load the commands from the mapping dictionary.
-                        commands = mappings_dict[mappings_file][bco_file][bco_id]
+                        # If the object ID matches the BCO ID then set the index key.
+                        if bco_id == bco['object_id']:
 
-                        # Iterate through the commands for that bco.
-                        for command in commands:
+                            # Iterate through the commands for that bco.
+                            for command in bco_commands:
 
-                            # Split the command string into blocks.
-                            split_command = ','.split(command)
+                                print(command)
 
-                            # Perform the CREATE command.
-                            if split_command[0] == 'CREATE':
-                                exec('new_bco[' + split_command[1] + '] =' + split_command[2])
+                                # Split the command string into blocks.
+                                split_command = command.split(',')
 
-                            # Perform the CONVERT command.
-                            elif split_command[0] == 'CONVERT':
+                                print(split_command)
 
-                                # Come back to this.
-                                exec(split_command[1] + '=' + split_command[2])
+                                # Perform the CREATE command.
+                                if split_command[0] == 'CREATE':
 
-                            # Perform the DELETE command.
-                            else:
-                                new_bco.pop(split_command[1], None)
+                                    exec('new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ' = ' + split_command[2])
 
-                        # Write new_bco to file.
+                                    # Check if new field already exists
+                                    #if split_command[3] not in new_bco:
+                                        # If it does not exit then create the new field with the new value.
+
+                                    #else:
+                                        #If it already exists then print error message.
+                                        #print("Field " + split_command[4] + "already exists in " + new_bco)
 
 
-                    # Error statement if bco_id was not found.
-                    else:
-                        print(bco_id + ' was not found in ' + bco_file)
+                                # Perform the CONVERT command.
+                                elif split_command[0] == 'CONVERT':
+
+                                    # Delete the old field.
+                                    print('new_bco_dict["' + bco_file + '"]["' + index + '"].pop(' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ', None)')
+
+                                    #exec('new_bco_dict["' + bco_file + '"]["' + index + '"].pop(' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ', None)')
+
+                                    # Create the new field.
+                                    #exec('new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[2]) + ' =' + split_command[3])
+
+                                    # Check if field to be converted exists.
+                                    #if split_command[3] in new_bco:
+                                        # If it does exist then replace the old field with the new field and new value.
+
+                                    #else:
+                                        # If it does not exist print an error message.
+                                        #print("Field " + split_command[4] + "does not exist in " + new_bco)
+
+
+                                # Perform the DELETE command.
+                                elif split_command[0] == 'DELETE':
+
+                                    print('test')
+
+                                    # Delete the old field.
+                                    #exec('new_bco_dict["' + bco_file + '"]["' + index + '"].pop(' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ', None)')
+
+                                    # Check that field to be deleted exists.
+                                    #if split_command[3] in new_bco:
+                                        # Delete the field.
+
+                                    #else:
+                                        # If field does not exists print error message.
+                                        #print("Field " + split_command[4] + "does not exist in " + new_bco)
+
+                            # Error statement if bco_id was not found.
+                            # else:
+                                # print(bco_id + ' was not found in ' + bco_file)
+
+        # Instantiate FileUtils
+        fu = FileUtils.FileUtils()
+
+        # Collapse new BCO dictionary to list.
+
+
+        # Write each converted bco into a new bco file.
+        for bco_file, bco_index in new_bco_dict.items():
+            fu.create_files(payload=new_bco_dict[bco_file], output_directory=out_directory, file_extension='.converted')
+
+
+
 
 
 
