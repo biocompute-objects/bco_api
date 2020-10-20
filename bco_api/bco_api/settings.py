@@ -30,7 +30,7 @@ SECRET_KEY = '$vz@#@^q(od&$rf&*6^z!m5nh6qw2*cq*j6fha#^h9(r7$xqy4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['34.204.34.42']
 
 
 # Application definition
@@ -141,5 +141,5 @@ REQUEST_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_param
     'request_definitions/': '.schema'
 })
 REQUEST_TEMPLATES = SettingsUtils.SettingsUtils().define_request_schema(schema=REQUEST_TEMPLATES['request_definitions/'])
-import json
-print(json.dumps(REQUEST_TEMPLATES, indent=4, sort_keys=True))
+#import json
+#print(json.dumps(REQUEST_TEMPLATES, indent=4, sort_keys=True))

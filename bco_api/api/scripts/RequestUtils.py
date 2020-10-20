@@ -23,8 +23,12 @@ class RequestUtils:
         # Subset the templates to the ones for this request method.
         request_templates = request_templates[method]
 
+        import json
+        print(json.dumps(request, indent=4, sort_keys=True))
+        print(json.dumps(request_templates, indent=4, sort_keys=True))
+
         # Validate against the templates.
-        print(JsonUtils.JsonUtils().check_object_against_schema(object_pass=request, schema_pass=request_templates))
+        JsonUtils.JsonUtils().check_object_against_schema(object_pass=request, schema_pass=request_templates)
 
         '''
         # Go over each part of the request.
