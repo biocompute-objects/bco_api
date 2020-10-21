@@ -107,7 +107,7 @@ class SettingsUtils:
                     
                     # Set the id.
                     schema[folder][current_file]['$id'] = 'file:' + current_file
-
+                    
         # Now go through and define the absolute reference paths.
         # We have to do this recursively as we do not know
         # where we will see "$ref$.

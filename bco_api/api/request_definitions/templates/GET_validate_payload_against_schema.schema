@@ -21,7 +21,7 @@
             },
             "schema_own":
             {
-                "description": "A schema provided with the request."
+                "description": "A schema provided with the request.",
                 "type": "object"
             }
         },
