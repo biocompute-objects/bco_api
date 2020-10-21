@@ -157,6 +157,7 @@ class BcoGetObject(APIView):
         serializer = BcoGetSerializer(data=request.data)
         #serializer = BcoPostSerializer(data=request.data, many=True)
         RequestUtils.RequestUtils().check_request_template(method='GET', request=request.data)
+        print('HERE')
 
     '''
     # For reading.
