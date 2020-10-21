@@ -1,8 +1,11 @@
 # Utilities
 from . import JsonUtils
 
-# For checking request formats.
+# For checking request formats
 from django.conf import settings
+
+# Request-specific methods
+from .method_specific import GET_validate_payload_against_schema
 
 
 class RequestUtils:
@@ -50,8 +53,26 @@ class RequestUtils:
                 return {'REQUEST_ERROR': 'Undefined template \'' + request['template'] + '\' for request method \'' + method + '\''}
         '''
 
+    def process_request_templates(self, method, request):
 
+        # Arguments
 
+        # method: one of DELETE, GET, PATCH, POST
+        # request: the raw request
 
+        # Define the request templates.
+        request_templates = settings.REQUEST_TEMPLATES
+
+        # Subset the templates to the ones for this request method.
+        request_templates = request_templates[method]
+
+        # To avoid exec calls to functions (unsafe), we'll manually
+        # enumerate the methods here.
+        if 'GET_validate_payload_against_schema' in request:
+            run_request = GET_validate_payload_against_schema(request['GET_validate_payload_against_schema'])
+
+            # The operation went fine?
+            if run_request is not None:
+                return run_request
 
 

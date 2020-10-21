@@ -154,7 +154,14 @@ class BcoGetObject(APIView):
         else:
             print('VALID TEMPLATE')
 
-        # Serialize the request.
+            # Pass the request to be processed template-by-template.
+            processed = RequestUtils.RequestUtils().process_request_templates(method='GET', request=request.data)
+
+            # Did the request get processed without error?
+            if processed is not None:
+                return Response('Error processing templates...see below...', status = status.HTTP_400_BAD_REQUEST)
+
+        # Serialize the request (move to request (DELETE, GET, PATCH, POST) function-specific calls later).
         #serializer = BcoPostSerializer(data=request.data, many=True)
         #serializer = BcoGetSerializer(data=request.data)
 
