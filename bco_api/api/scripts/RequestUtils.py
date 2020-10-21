@@ -8,7 +8,7 @@ from django.conf import settings
 class RequestUtils:
 
     # Check for a valid template.
-    def check_request_template(self, method, request):
+    def check_request_templates(self, method, request):
 
         # Arguments
 
@@ -31,7 +31,7 @@ class RequestUtils:
         print('========================')
 
         # Validate against the templates.
-        JsonUtils.JsonUtils().check_object_against_schema(object_pass=request, schema_pass=request_templates)
+        return JsonUtils.JsonUtils().check_object_against_schema(object_pass=request, schema_pass=request_templates)
 
         '''
         # Go over each part of the request.

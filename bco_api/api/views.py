@@ -145,13 +145,18 @@ class BcoGetObject(APIView):
     # For creating.
     def get(self, request):
 
-        # Did we get a request matching a template?
-        RequestUtils.RequestUtils().check_request_template(method='GET', request=request.data)
+        # Did we get a request with valid templates?
+        valid_template = RequestUtils.RequestUtils().check_request_templates(method='GET', request=request.data)
+
+        # If we didn't get a request with valid templates, return an error.
+        if valid_template is not None:
+            return Response('GET request did not consist of valid templates.  See output below...' + valid_template, status=status.HTTP_404_NOT_FOUND)
+        else:
+
 
         # Serialize the request.
         #serializer = BcoPostSerializer(data=request.data, many=True)
-        serializer = BcoGetSerializer(data=request.data)
-        print('HERE')
+        #serializer = BcoGetSerializer(data=request.data)
 
     '''
     # For reading.
