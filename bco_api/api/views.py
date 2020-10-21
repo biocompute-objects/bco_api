@@ -142,6 +142,22 @@ class BcoGetObject(APIView):
 
     # -------- CRUD Operations ------- #
 
+    # For creating.
+    def get(self, request):
+
+        print('REQUEST DATA')
+        print(request.data)
+        #print(type(request.data))
+        #print(request.data[0]['bco'])
+        #print(type(request.data[0]))
+        #print('REQUEST DATA END')
+
+        # Serialize the request.
+
+        serializer = BcoGetSerializer(data=request.data)
+        #serializer = BcoPostSerializer(data=request.data, many=True)
+        RequestUtils.RequestUtils().check_request_template(method='GET', request=request.data)
+
     '''
     # For reading.
     def get(self, request, object_id):

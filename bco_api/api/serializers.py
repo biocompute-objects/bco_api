@@ -27,7 +27,12 @@ class BcoPostSerializer(TypeBaseSerializer):
 
 
 # Model based serializer for GET.
-class BcoGetSerializer(serializers.Serializer):
+class BcoGetSerializer(TypeBaseSerializer):
+    
+    # Required to be able to pass JSON in the POST.
+    # Source:  https://stackoverflow.com/questions/50374192/not-a-valid-string-error-when-trying-save-dict-to-textfield-in-django-rest
+    generic_serializer = serializers.JSONField()
+
     class Meta:
         model = bco_object
         fields = ['object_id']

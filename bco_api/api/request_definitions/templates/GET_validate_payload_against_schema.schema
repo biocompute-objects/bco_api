@@ -14,16 +14,20 @@
                 "description": "The table to write the new object to.",
                 "type": "string"
             },
-            "schema":
+            "schema_server":
             {
-                "description": "Either a provided schema or one residing on the server.",
+                "description": "The name of the schema on the server to use.",
                 "type": "string"
+            },
+            "schema_own":
+            {
+                "description": "A schema provided with the request."
+                "type": "object"
             }
         },
         "required":
         [
-            "payload",
-            "schema"
+            "payload"
         ]
     }
 }
