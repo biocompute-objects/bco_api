@@ -118,15 +118,15 @@ class BcoPostObject(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # For reading (testing only).
-    def get(self, request):
+    #def get(self, request):
 
-        bco_objects = bco_object.objects.all()
+        #bco_objects = bco_object.objects.all()
 
         # Get one object or many?  Use the payload to determine
         # how many we get (can use a list of object IDs to retrieve).
-        serializer = BcoGetSerializer(bco_objects, many=True)
+        #serializer = BcoGetSerializer(bco_objects, many=True)
 
-        return Response(serializer.data)
+        #return Response(serializer.data)
 
 
 
