@@ -152,7 +152,7 @@ class BcoGetObject(APIView):
         if valid_template is not None:
             return Response('GET request did not consist of valid templates.  See output below...' + valid_template, status=status.HTTP_404_NOT_FOUND)
         else:
-
+            print('VALID TEMPLATE')
 
         # Serialize the request.
         #serializer = BcoPostSerializer(data=request.data, many=True)
