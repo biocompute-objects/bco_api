@@ -145,18 +145,12 @@ class BcoGetObject(APIView):
     # For creating.
     def get(self, request):
 
-        print('REQUEST DATA')
-        print(request.data)
-        #print(type(request.data))
-        #print(request.data[0]['bco'])
-        #print(type(request.data[0]))
-        #print('REQUEST DATA END')
+        # Did we get a request matching a template?
+        print(RequestUtils.RequestUtils().check_request_template(method='GET', request=request.data))
 
         # Serialize the request.
-
-        serializer = BcoGetSerializer(data=request.data)
         #serializer = BcoPostSerializer(data=request.data, many=True)
-        print(RequestUtils.RequestUtils().check_request_template(method='GET', request=request.data))
+        serializer = BcoGetSerializer(data=request.data)
         print('HERE')
 
     '''
