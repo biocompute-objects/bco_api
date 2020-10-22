@@ -12,7 +12,7 @@
             "payload":
             {
                 "description": "The table to write the new object to.",
-                "type": "string"
+                "type": "object"
             },
             "schema_server":
             {

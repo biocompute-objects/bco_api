@@ -159,7 +159,9 @@ class BcoGetObject(APIView):
 
             # Did the request get processed without error?
             if processed is not None:
-                return Response('Error processing templates...see below...', status = status.HTTP_400_BAD_REQUEST)
+                return Response(json.dumps(processed), status = status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response('GET request processed succesfully.', status = status.HTTP_200_OK)
 
         # Serialize the request (move to request (DELETE, GET, PATCH, POST) function-specific calls later).
         #serializer = BcoPostSerializer(data=request.data, many=True)

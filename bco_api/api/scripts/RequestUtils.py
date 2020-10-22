@@ -5,7 +5,7 @@ from . import JsonUtils
 from django.conf import settings
 
 # Request-specific methods
-from .method_specific import GET_validate_payload_against_schema
+from .method_specific.GET_validate_payload_against_schema import GET_validate_payload_against_schema
 
 
 class RequestUtils:
@@ -66,6 +66,9 @@ class RequestUtils:
         # Subset the templates to the ones for this request method.
         request_templates = request_templates[method]
 
+        # Define a dictionary to hold errors from individual templates.
+        errors = {}
+
         # To avoid exec calls to functions (unsafe), we'll manually
         # enumerate the methods here.
         if 'GET_validate_payload_against_schema' in request:
@@ -73,6 +76,13 @@ class RequestUtils:
 
             # The operation went fine?
             if run_request is not None:
-                return run_request
+                errors['GET_validate_payload_against_schema'] = run_request
+
+        # Did we have any errors?
+
+        # Source: https://stackoverflow.com/questions/23177439/python-checking-if-a-dictionary-is-empty-doesnt-seem-to-work
+        if bool(errors):
+            return errors
+
 
 
