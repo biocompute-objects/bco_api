@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "request_definitions/templates/GET_validate_payload_against_schema.schema",
-    "title": "GET_validate_payload_against_schema",
-    "description": "A GET request to validate an object against a schema.",
+    "$id": "request_definitions/templates/POST_validate_payload_against_schema.schema",
+    "title": "POST_validate_payload_against_schema",
+    "description": "A POST request to validate an object against a schema.",
     "type": "array",
     "items":
     {

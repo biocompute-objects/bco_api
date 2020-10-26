@@ -158,5 +158,8 @@ class JsonUtils:
 
             print('Schema failure with given payload.  This message will only show up in the terminal.')
 
+            print('CORE ERRORS')
+            print(error_string)
+            print('CORE ERRORS STOP')
             # Collapse and return the errors.
             return error_string

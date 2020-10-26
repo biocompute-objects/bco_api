@@ -10,11 +10,6 @@
         {
             "description": "The template for seeing what schema are available on the server to validate against.",
             "$ref": "request_definitions/templates/GET_retrieve_available_schema.schema"
-        },
-        "GET_validate_payload_against_schema":
-        {
-            "description": "The template for validating an object against a schema.",
-            "$ref": "request_definitions/templates/GET_validate_payload_against_schema.schema"
         }
     }
 }

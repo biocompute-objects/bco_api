@@ -5,7 +5,7 @@ from . import JsonUtils
 from django.conf import settings
 
 # Request-specific methods
-from .method_specific.GET_validate_payload_against_schema import GET_validate_payload_against_schema
+from .method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
 
 
 class RequestUtils:
@@ -71,12 +71,12 @@ class RequestUtils:
 
         # To avoid exec calls to functions (unsafe), we'll manually
         # enumerate the methods here.
-        if 'GET_validate_payload_against_schema' in request:
-            run_request = GET_validate_payload_against_schema(request['GET_validate_payload_against_schema'])
+        if 'POST_validate_payload_against_schema' in request:
+            run_request = POST_validate_payload_against_schema(request['POST_validate_payload_against_schema'])
 
             # The operation went fine?
             if run_request is not None:
-                errors['GET_validate_payload_against_schema'] = run_request
+                errors['POST_validate_payload_against_schema'] = run_request
 
         # Did we have any errors?
 

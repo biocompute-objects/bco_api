@@ -1,7 +1,7 @@
 import json
 from .. import JsonUtils
 
-def GET_validate_payload_against_schema(bulk_request):
+def POST_validate_payload_against_schema(bulk_request):
 
 	# Take the bulk request and determine which
 	# kind of schema we're looking for.

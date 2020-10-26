@@ -44,6 +44,44 @@ class BcoPostObject(APIView):
     # For creating.
     def post(self, request):
 
+        
+        # Did we get a request with valid templates?
+        valid_template = RequestUtils.RequestUtils().check_request_templates(method='POST', request=request.data)
+
+        # If we didn't get a request with valid templates, return an error.
+        if valid_template is not None:
+            return Response('POST request did not consist of valid templates.  See output below...' + valid_template, status=status.HTTP_404_NOT_FOUND)
+        else:
+            print('VALID TEMPLATE')
+
+            # Pass the request to be processed template-by-template.
+            processed = RequestUtils.RequestUtils().process_request_templates(method='POST', request=request.data)
+
+            # Did the request get processed without error?
+            if processed is not None:
+                print('VALIDATION ERRORS')
+                print(json.dumps(processed))
+                return Response(json.dumps(processed), status = status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response('POST request processed succesfully.', status = status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        # --------------- OLD ----------------- #
+
+
         #print('REQUEST DATA')
         #print(request.data)
         #print(type(request.data))
@@ -144,6 +182,30 @@ class BcoGetObject(APIView):
 
     # For creating.
     def get(self, request):
+
+        # Convert to dictionary if necessary.
+
+        print(request)
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+
+        # Sketchy fix, but necessary.
+        print('888888888888888888')
+        print(request.body)
+        print('0000000000000000')
+
+        # Source: https://stackoverflow.com/questions/48747401/json-data-parsing-in-django-ajax-post-request
+
+        # Source: https://stackoverflow.com/questions/22628850/empty-querydict-in-django
+
+        # Convert the incoming data.
+        print('**********************************')
+        print(json.loads(json.dumps(request.data)))
+        print('==================================')
+        print(json.loads(json.dumps(request.GET)))
+        for k, v in json.loads(json.dumps(request.GET)).items():
+            converted = json.loads(k)
+        
+        print(json.dumps(converted, indent = 4, sort_keys = True))
 
         # Did we get a request with valid templates?
         valid_template = RequestUtils.RequestUtils().check_request_templates(method='GET', request=request.data)
