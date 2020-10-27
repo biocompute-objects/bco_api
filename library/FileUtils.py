@@ -91,6 +91,10 @@ class FileUtils:
 
                     f.write(json.dumps(contents, indent=4, sort_keys=True))
 
+                elif type(contents) is list:
+
+                    f.write(json.dumps(contents, indent=4, sort_keys=True))
+
 
 
     def read_files(self, input_directory, regex):

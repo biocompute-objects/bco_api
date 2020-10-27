@@ -206,7 +206,11 @@ class ConvertToSchema:
                     # Regex accepts any values for JSON path and old/new values
                     # Source for file path regex: https://stackoverflow.com/questions/28989672/regex-to-tell-if-a-string-contains-a-linux-file-path-or-if-a-linux-file-path-as
                     # if not any re.match(line) for re in['^(/[^/ ]*)+/?bco_set_\d+.txt,https://portal.aws.biochemistry.gwu.edu/bco/BCO_\d+,CREATE,[\"(.*?)\"],[\"(.*?)\"]$', '^FILE_PATH_REGEX,URI_REGEX,CONVERT,[\"(.*?)\"],[\"(.*?)\"],[\"(.*?)\"]$', '^FILE_PATH_REGEX,URI_REGEX,DELETE,[\"(.*?)\"]$']:
-                    if not any(re.match(regex, line) for regex in ['^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CREATE\,(\"(.*?)\")\,(\"(.*?)\")$', '^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CONVERT\,(\"(.*?)\")\,(\"(.*?)\")\,(\"(.*?)\")$', '^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,DELETE\,(\"(.*?)\")$']):
+                    #if not any(re.match(regex, line) for regex in ['^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CREATE\,(\"(.*?)\")\,(\"(.*?)\")$', '^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,CONVERT\,(\"(.*?)\")\,(\"(.*?)\")\,(\"(.*?)\")$', '^(/[^/ ]*)+/?bco_set_\d+\.txt\,https://portal\.aws\.biochemistry\.gwu\.edu/bco/BCO_\d+\,DELETE\,(\"(.*?)\")$']):
+                    if not any(re.match(regex, line) for regex in [
+                        '^(/[^/ ]*)+/?bco_set_\d+\.txt\,http://data\.glygen\.org/GLY_\d+\,CREATE\,(\"(.*?)\")\,(\"(.*?)\")$',
+                        '^(/[^/ ]*)+/?bco_set_\d+\.txt\,http://data\.glygen\.org/GLY_\d+\,CONVERT\,(\"(.*?)\")\,(\"(.*?)\")\,(\"(.*?)\")$',
+                        '^(/[^/ ]*)+/?bco_set_\d+\.txt\,http://data\.glygen\.org/GLY_\d+\,DELETE\,(\"(.*?)\")$']):
                         # Print the error to the command line.
                         # *** How do you print the line number
                         print('Provided mapping file ' + current_file + ' had invalid instruction formatting at line number ' + str(line_number))
@@ -295,7 +299,8 @@ class ConvertToSchema:
                     for index, bco in new_bco_dict[bco_file].items():
 
                         # If the object ID matches the BCO ID then set the index key.
-                        if bco_id == bco['object_id']:
+                        # Searching for 'bco_id' as a temporary fix.
+                        if bco_id == bco['bco_id'] or bco_id == bco['object_id']:
 
                             # Iterate through the commands for that bco.
                             for command in bco_commands:
@@ -310,6 +315,8 @@ class ConvertToSchema:
                                 # Perform the CREATE command.
                                 if split_command[0] == 'CREATE':
 
+                                    print('00000000000000000000000000000000000000000000000000000000')
+                                    print('new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ' = ' + split_command[2])
                                     exec('new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ' = ' + split_command[2])
 
                                     # Check if new field already exists
@@ -324,13 +331,22 @@ class ConvertToSchema:
                                 # Perform the CONVERT command.
                                 elif split_command[0] == 'CONVERT':
 
+                                    # Save the value of the field.
+                                    exec('old_value = ' + 'new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[1]))
+
                                     # Delete the old field.
-                                    print('new_bco_dict["' + bco_file + '"]["' + index + '"].pop(' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ', None)')
+                                    exec('del new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[1]))
 
-                                    #exec('new_bco_dict["' + bco_file + '"]["' + index + '"].pop(' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ', None)')
+                                    # Check if old value should be used for the new field name.
+                                    print('+++++++++++++++++++++++++++++++++++++++++++++')
+                                    print(split_command[3])
+                                    print('+++++++++++++++++++++++++++++++++++++++++++++')
+                                    if split_command[3] == '"USE_CURRENT_VALUE"':
+                                        exec('new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[2]) + ' = old_value')
 
-                                    # Create the new field.
-                                    #exec('new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[2]) + ' =' + split_command[3])
+                                    else:
+                                        exec('new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[2]) + ' = ' + split_command[3])
+
 
                                     # Check if field to be converted exists.
                                     #if split_command[3] in new_bco:
@@ -344,7 +360,7 @@ class ConvertToSchema:
                                 # Perform the DELETE command.
                                 elif split_command[0] == 'DELETE':
 
-                                    print('test')
+                                    exec('del new_bco_dict["' + bco_file + '"]["' + index + '"]' + ju.convert_json_path_to_keys(json_path=split_command[1]))
 
                                     # Delete the old field.
                                     #exec('new_bco_dict["' + bco_file + '"]["' + index + '"].pop(' + ju.convert_json_path_to_keys(json_path=split_command[1]) + ', None)')
@@ -364,12 +380,26 @@ class ConvertToSchema:
         # Instantiate FileUtils
         fu = FileUtils.FileUtils()
 
-        # Collapse new BCO dictionary to list.
+        # Collapse new BCO dictionary to lists.
+        # The dictionary that will hold the converted lists.
+        final_bco_dict = {}
 
+        # Loop through each bco contained in a file.
+        for bco_file, bco_index in new_bco_dict.items():
+            # The array that will hold the bco objects.
+            bco_array = []
+
+            # Add each bco to the array
+            for bco_index, bco_object in new_bco_dict[bco_file].items():
+                bco_array.append(bco_object)
+
+            # Add the bco to the new dictionary where each key is ONLY the file name, not the full path.
+            # Each value is the list of bcos.
+            final_bco_dict[bco_file.split('/')[-1]] = bco_array
 
         # Write each converted bco into a new bco file.
-        for bco_file, bco_index in new_bco_dict.items():
-            fu.create_files(payload=new_bco_dict[bco_file], output_directory=out_directory, file_extension='.converted')
+        for bco_file, bco_array in final_bco_dict.items():
+            fu.create_files(payload=final_bco_dict, output_directory=out_directory, file_extension='.converted')
 
 
 
