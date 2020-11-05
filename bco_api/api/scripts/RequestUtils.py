@@ -78,6 +78,12 @@ class RequestUtils:
             if run_request is not None:
                 errors['POST_validate_payload_against_schema'] = run_request
 
+        if 'GET_retrieve_available_schema' in request:
+            run_request = GET_retrieve_available_schema(request['GET_retrieve_available_schema'])
+
+            if run_request is not None:
+                errors['GET_retrieve_available_schema'] = run_request
+
         # Did we have any errors?
 
         # Source: https://stackoverflow.com/questions/23177439/python-checking-if-a-dictionary-is-empty-doesnt-seem-to-work

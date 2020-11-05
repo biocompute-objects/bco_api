@@ -82,9 +82,11 @@ class SettingsUtils:
 
 
     # Create a dictionary to hold schema information.
-    def load_schema_local(self, search_parameters):
+    def load_schema_local(self, search_parameters, mode):
 
         # search_parameters: dictionary of file search locations and file endings.
+
+        # mode: loading for requests or for validation?
 
         # A more advanced version of this would set the schema $id based on
         # where the schema resides, negating the need for manual entry of the $id.
@@ -143,11 +145,35 @@ class SettingsUtils:
             # Kick it back.
             return(d)
 
-        # Call set refs by each top-level folder.
-        for folder, contents in schema.items():
-            schema[folder] = set_refs(schema[folder], root_folder='api/')
+        # A more advanced implementation would allow for referencing schema
+        # outside of the hosting folder.
 
-        #print(json.dumps(schema, indent=4, sort_keys=True))
+        # Are we defining for requests or for validations?
+        
+        if mode == 'requests':
+
+             # Call set refs by each top-level folder.
+            for folder, contents in schema.items():
+                schema[folder] = set_refs(schema[folder], root_folder='api/')
+
+        elif mode == 'validations':
+
+            # Call set refs by each top-level folder.
+            for file, contents in schema['validation_definitions/'].items():
+
+                # Split the file name up to help construct the root folder.
+                file_name_split = file.split('/')
+
+                # Where is the 'validation_definitions/' item?
+                vd_index = file_name_split.index('validation_definitions')
+
+                # Collapse everything after this index but before the file name.
+                collapsed = '/'.join(file_name_split[vd_index+1:len(file_name_split)-1]) + '/'
+
+                # Set the name.
+                schema['validation_definitions/'][file] = set_refs(schema['validation_definitions/'][file], root_folder='api/validation_definitions/' + collapsed)
+
+            #print(json.dumps(schema, indent=4, sort_keys=True))
 
         # Return the processed schema.
         return schema
@@ -178,7 +204,78 @@ class SettingsUtils:
         return returning
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # --- USER METHODS --- #
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     # Here are methods for updating fields in the loaded schema.

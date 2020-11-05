@@ -114,7 +114,7 @@ class FileUtils:
         return glob.glob(self.pathalizer(input_directory, regex))
 
 
-    # Find the entire tree of a folder.
+    # Find the entire tree of a folder based on an extension.
     def get_folder_tree(self, search_folder, search_extension):
 
         # search_folder: where we're looking.
