@@ -177,53 +177,55 @@ class BcoGetObject(APIView):
 
     # This view only allows reading.
 
+    # For our server, GET requests are tied to specific, constant things
+    # on the server.  More complex requests and requests of arbitrary
+    # length are treated in the POST section.
+
+    # Instead of writing a bunch of different API views, we just
+    # parse the URI and write actions for each URI.  This somewhat
+    # re-invents the wheel relative to how django works but
+    # allows for more compact code and easier bug tracing.
+
+    # In a sense, GET is used as a "meta" function of the server,
+    # describing what is available on the server for the user
+    # to interact with.
+
+    # There is only one action per GET request, as opposed to
+    # the possiblit of multiple actions with a POST request.
+
 
     # -------- CRUD Operations ------- #
 
     # For creating.
     def get(self, request):
 
-        # Convert to dictionary if necessary.
+        # Define functions based on the uri.
 
-        print(request)
-        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        # Source: https://stackoverflow.com/questions/26989078/how-to-get-full-url-from-django-request
 
-        # Sketchy fix, but necessary.
-        print('888888888888888888')
-        print(request.body)
-        print('0000000000000000')
+        # We don't need to check templates at all because this same
+        # functionality exists at the level above this where django
+        # checks for valid URIs.  Thus, we can tie URIs directly
+        # to functions.
 
-        # Source: https://stackoverflow.com/questions/48747401/json-data-parsing-in-django-ajax-post-request
+        uri_actions = {'/api/description/validations/schema': {
+            'GET_retrieve_available_schema': {}
+            }
+        }
 
-        # Source: https://stackoverflow.com/questions/22628850/empty-querydict-in-django
+        # Pass the request to be processed.
+        processed = RequestUtils.RequestUtils().process_request_templates(method='GET', request=uri_actions[request.META.get('PATH_INFO', None)])
+        import json
+        print(json.dumps(processed, indent=4))
+        return Response(processed, status=status.HTTP_200_OK)
 
-        # Convert the incoming data.
-        print('**********************************')
-        print(json.loads(json.dumps(request.data)))
-        print('==================================')
-        print(json.loads(json.dumps(request.GET)))
-        for k, v in json.loads(json.dumps(request.GET)).items():
-            converted = json.loads(k)
-        
-        print(json.dumps(converted, indent = 4, sort_keys = True))
-
-        # Did we get a request with valid templates?
-        valid_template = RequestUtils.RequestUtils().check_request_templates(method='GET', request=request.data)
-
-        # If we didn't get a request with valid templates, return an error.
-        if valid_template is not None:
-            return Response('GET request did not consist of valid templates.  See output below...' + valid_template, status=status.HTTP_404_NOT_FOUND)
-        else:
-            print('VALID TEMPLATE')
-
-            # Pass the request to be processed template-by-template.
-            processed = RequestUtils.RequestUtils().process_request_templates(method='GET', request=request.data)
-
-            # Did the request get processed without error?
-            if processed is not None:
-                return Response(json.dumps(processed), status = status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response('GET request processed succesfully.', status = status.HTTP_200_OK)
+        # Did the request get processed without error?
+        #if processed is not None:
+            #print('VALIDATION ERRORS')
+            #print(json.dumps(processed))
+            #return Response(json.dumps(processed), status = status.HTTP_400_BAD_REQUEST)
+        #else:
+            #return Response('GET request processed succesfully.  The request had the following output for each template:', status = status.HTTP_200_OK)
 
         # Serialize the request (move to request (DELETE, GET, PATCH, POST) function-specific calls later).
         #serializer = BcoPostSerializer(data=request.data, many=True)

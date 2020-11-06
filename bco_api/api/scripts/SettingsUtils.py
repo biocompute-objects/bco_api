@@ -96,11 +96,14 @@ class SettingsUtils:
 
         # Iterate over the search parameters.
         for folder, extension in search_parameters.items():
-            raw_files = FileUtils.FileUtils().get_folder_tree(search_folder=folder, search_extension=extension)
+            raw_files = FileUtils.FileUtils().get_folder_tree_by_extension(search_folder=folder, search_extension=extension)
 
             # We now have the files, so load the schema.
+
             # First, initialize schema.
             schema[folder] = {}
+
+            # Now go over each path.
             for current_file in raw_files['paths']:
 
                 # We can now set keys.
@@ -110,6 +113,10 @@ class SettingsUtils:
                     # Set the id.
                     schema[folder][current_file]['$id'] = 'file:' + current_file
                     
+        
+        print('PRE-PROCESSED-----------')
+        print(json.dumps(schema, indent=4))
+        print('=====================================')
         # Now go through and define the absolute reference paths.
         # We have to do this recursively as we do not know
         # where we will see "$ref$.
@@ -175,7 +182,7 @@ class SettingsUtils:
 
             #print(json.dumps(schema, indent=4, sort_keys=True))
 
-        # Return the processed schema.
+        # Return the public-facing schema AND the processed schema?
         return schema
 
 

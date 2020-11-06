@@ -6,6 +6,7 @@ from django.conf import settings
 
 # Request-specific methods
 from .method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
+from .method_specific.GET_retrieve_available_schema import GET_retrieve_available_schema
 
 
 class RequestUtils:
@@ -69,6 +70,10 @@ class RequestUtils:
         # Define a dictionary to hold errors from individual templates.
         errors = {}
 
+        # Define a dictionary to hold information about processing
+        # the request.
+        request_result = {}
+
         # To avoid exec calls to functions (unsafe), we'll manually
         # enumerate the methods here.
         if 'POST_validate_payload_against_schema' in request:
@@ -81,14 +86,16 @@ class RequestUtils:
         if 'GET_retrieve_available_schema' in request:
             run_request = GET_retrieve_available_schema(request['GET_retrieve_available_schema'])
 
-            if run_request is not None:
-                errors['GET_retrieve_available_schema'] = run_request
+            # Did the request run?
+            request_result['GET_retrieve_available_schema'] = run_request
+        
+        return request_result
 
         # Did we have any errors?
 
         # Source: https://stackoverflow.com/questions/23177439/python-checking-if-a-dictionary-is-empty-doesnt-seem-to-work
-        if bool(errors):
-            return errors
+        #if bool(errors):
+            #return errors
 
 
 

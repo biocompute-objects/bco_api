@@ -115,7 +115,7 @@ class FileUtils:
 
 
     # Find the entire tree of a folder based on an extension.
-    def get_folder_tree(self, search_folder, search_extension):
+    def get_folder_tree_by_extension(self, search_folder, search_extension):
 
         # search_folder: where we're looking.
         # search_extension: the extension we're looking for.
@@ -135,5 +135,29 @@ class FileUtils:
                 returning['paths'].append(os.path.join(root, name))
 
         returning['paths'] = [x for x in returning['paths'] if x.find(search_extension) != -1]
+
+        return returning
+
+
+    # Find the entire tree of a folder, regardless of extension.
+    def get_folder_tree(self, search_folder):
+
+        # search_folder: where we're looking.
+
+        # Source: https://www.tutorialspoint.com/python/os_walk.htm
+
+        # Set the root directory.
+        root_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), search_folder)
+
+        # Create a dictionary to return.
+        returning = {'root_directory': root_directory, 'paths': []}
+
+        for root, dirs, files in os.walk(root_directory):
+            for name in files:
+                returning['paths'].append(os.path.join(root, name))
+            for name in dirs:
+                returning['paths'].append(os.path.join(root, name))
+
+        returning['paths'] = [x for x in returning['paths'] if 1]
 
         return returning
