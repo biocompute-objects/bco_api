@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import bco_object
+from .models import json_object
 
 
 # ----- Request Serializers ----- #
@@ -14,41 +14,41 @@ class TypeBaseSerializer(serializers.Serializer):
         abstract = True
 
 # Model-based serializer for POST.
-class BcoPostSerializer(TypeBaseSerializer):
+class JsonPostSerializer(TypeBaseSerializer):
 
     # Required to be able to pass JSON in the POST.
     # Source:  https://stackoverflow.com/questions/50374192/not-a-valid-string-error-when-trying-save-dict-to-textfield-in-django-rest
     bco = serializers.JSONField()
 
     class Meta:
-        model = bco_object
-        fields = TypeBaseSerializer.Meta.fields + ['schema', 'bco', 'object_class', 'state']
+        model = json_object
+        #fields = TypeBaseSerializer.Meta.fields + ['schema', 'bco', 'object_class', 'state']
         #fields = ['object_id', 'schema', 'bco', 'object_class', 'state']
 
 
 # Model based serializer for GET.
-class BcoGetSerializer(TypeBaseSerializer):
+class JsonGetSerializer(TypeBaseSerializer):
     
     # Required to be able to pass JSON in the POST.
     # Source:  https://stackoverflow.com/questions/50374192/not-a-valid-string-error-when-trying-save-dict-to-textfield-in-django-rest
     generic_serializer = serializers.JSONField()
 
     class Meta:
-        model = bco_object
+        model = json_object
         fields = ['object_id']
 
 
 # Model based serializer for PATCH.
-class BcoPatchSerializer(serializers.Serializer):
+class JsonPatchSerializer(serializers.Serializer):
     class Meta:
-        model = bco_object
+        model = json_object
         fields = ['object_id']
 
 
 # Model-based serializer for DELETE.
-class BcoDeleteSerializer(serializers.ModelSerializer):
+class JsonDeleteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = bco_object
+        model = json_object
         fields = ['object_id']
 
 

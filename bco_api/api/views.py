@@ -4,8 +4,8 @@
 
 # Create your views here.
 
-from .models import bco_object
-from .serializers import BcoPostSerializer, BcoGetSerializer, BcoPatchSerializer, BcoDeleteSerializer
+#from .models import bco_object
+from .serializers import JsonPostSerializer, JsonGetSerializer, JsonPatchSerializer, JsonDeleteSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -56,15 +56,18 @@ class BcoPostObject(APIView):
 
             # Pass the request to be processed template-by-template.
             processed = RequestUtils.RequestUtils().process_request_templates(method='POST', request=request.data)
+            return Response(processed, status = status.HTTP_200_OK)
+            #return Response({'response_text': 'POST request processed succesfully...see payload for any errors.', 'response_payload': json.dumps(processed)}, status = status.HTTP_200_OK)
 
             # Did the request get processed without error?
+            '''
             if processed is not None:
                 print('VALIDATION ERRORS')
                 print(json.dumps(processed))
                 return Response(json.dumps(processed), status = status.HTTP_400_BAD_REQUEST)
             else:
-                return Response('POST request processed succesfully.', status = status.HTTP_200_OK)
-
+                return Response({'response_text': 'POST request processed succesfully...see payload for any errors.', 'response_payload': json.dumps(processed)}, status = status.HTTP_200_OK)
+            '''
 
 
 
@@ -91,8 +94,8 @@ class BcoPostObject(APIView):
 
         # Serialize the request.
 
-        serializer = BcoPostSerializer(data=request.data)
-        #serializer = BcoPostSerializer(data=request.data, many=True)
+        serializer = JsonPostSerializer(data=request.data)
+        #serializer = JsonPostSerializer(data=request.data, many=True)
         RequestUtils.RequestUtils().check_request_template(method='POST', request=request.data)
         print(x)
 
@@ -162,7 +165,7 @@ class BcoPostObject(APIView):
 
         # Get one object or many?  Use the payload to determine
         # how many we get (can use a list of object IDs to retrieve).
-        #serializer = BcoGetSerializer(bco_objects, many=True)
+        #serializer = JsonGetSerializer(bco_objects, many=True)
 
         #return Response(serializer.data)
 
@@ -228,8 +231,8 @@ class BcoGetObject(APIView):
             #return Response('GET request processed succesfully.  The request had the following output for each template:', status = status.HTTP_200_OK)
 
         # Serialize the request (move to request (DELETE, GET, PATCH, POST) function-specific calls later).
-        #serializer = BcoPostSerializer(data=request.data, many=True)
-        #serializer = BcoGetSerializer(data=request.data)
+        #serializer = JsonPostSerializer(data=request.data, many=True)
+        #serializer = JsonGetSerializer(data=request.data)
 
     '''
     # For reading.
@@ -247,7 +250,7 @@ class BcoGetObject(APIView):
             bco_objects = bco_object.objects.all()
 
             # Serializer the response.
-            serializer = BcoGetSerializer(bco_objects, many=True)
+            serializer = JsonGetSerializer(bco_objects, many=True)
 
             return Response(serializer.data)
 
@@ -265,7 +268,7 @@ class BcoGetObject(APIView):
 
         # Get one object or many?  Use the payload to determine
         # how many we get (can use a list of object IDs to retrieve).
-        serializer = BcoGetSerializer(bco_object_helper)
+        serializer = JsonGetSerializer(bco_object_helper)
 
         return Response(serializer.data)
     '''
@@ -288,7 +291,7 @@ class BcoPatchObject(APIView):
     def patch(self, request):
 
         # Serialize the request.
-        serializer = BcoPatchSerializer(data=request.data)
+        serializer = JsonPatchSerializer(data=request.data)
 
         # Did the request pass validation?
         if serializer.is_valid():
@@ -312,7 +315,7 @@ class BcoDeleteObject(APIView):
     def delete(self, request):
 
         # Serialize the request.
-        serializer = BcoDeleteSerializer(data=request.data)
+        serializer = JsonDeleteSerializer(data=request.data)
 
         # Did the request pass validation?
         if serializer.is_valid():
@@ -377,6 +380,6 @@ class BcoGetAll(APIView):
         bco_objects = bco_object.objects.all()
 
         # Serializer the response.
-        serializer = BcoGetSerializer(bco_objects, many=True)
+        serializer = JsonGetSerializer(bco_objects, many=True)
 
         return Response(serializer.data)

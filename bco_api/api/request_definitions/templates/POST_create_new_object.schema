@@ -14,11 +14,6 @@
                 "description": "The table to write the new object to.",
                 "type": "string"
             },
-            "object_id":
-            {
-                "description": "Either 'NEW' or an existing JSON ID in the repository.",
-                "type": "string"
-            },
             "schema":
             {
                 "description": "The schema under which the POSTed JSON falls.",
@@ -39,7 +34,6 @@
         "required":
         [
             "table",
-            "object_id",
             "schema",
             "payload",
             "state"

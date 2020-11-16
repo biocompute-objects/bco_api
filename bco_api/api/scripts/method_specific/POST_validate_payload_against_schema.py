@@ -22,9 +22,9 @@ def POST_validate_payload_against_schema(bulk_request):
 			with open('api/validation_definitions/' + validation_object['schema_server'], 'r') as f:
 				schema_helper = json.load(f)
 
-			return JsonUtils.JsonUtils().check_object_against_schema(object_pass=to_be_validated, schema_pass=schema_helper)
+			return({'request_status': 'success', 'contents': JsonUtils.JsonUtils().check_object_against_schema(object_pass=to_be_validated, schema_pass=schema_helper)})
 
 		elif 'schema_own' in bulk_request:
 			
 			# Use the provided schema.
-			return JsonUtils.JsonUtils().check_object_against_schema(object_pass=to_be_validated, schema_pass=validation_object['schema_own'])
+			return({'request_status': 'success', 'contents': JsonUtils.JsonUtils().check_object_against_schema(object_pass=to_be_validated, schema_pass=validation_object['schema_own'])})

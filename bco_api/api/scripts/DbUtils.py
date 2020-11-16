@@ -1,9 +1,9 @@
-# For creating BCO IDs.
+# For creating JSON IDs.
 from django.conf import settings
 
 # For retrieving objects.
-from ..models import bco_object
-from ..serializers import BcoGetSerializer
+from ..models import json_object
+from ..serializers import JsonGetSerializer
 
 class DbUtils:
 
@@ -11,6 +11,15 @@ class DbUtils:
     # -----------------
 
     # These methods are for interacting with our sqlite database.
+
+    # Get objects from the database.
+    def retrieve_objects(self, object_id_regex='ALL'):
+
+        # regex: the regex used to search object IDs.  a more advanced
+        # implementation would give regex by field to search...
+        json_objects = BcoGetSerializer(json_object.objects.all(), many=True).data
+
+
 
     # Generate unique object IDs.
     def generate_object_id(self, existing_id=False, version_flag=False):

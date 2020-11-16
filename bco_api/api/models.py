@@ -10,7 +10,7 @@ from django.db import models
 
 
 # Generic BCO model
-class bco_object(models.Model):
+class json_object(models.Model):
 
 
 	# The unique object ID.
@@ -21,14 +21,14 @@ class bco_object(models.Model):
 
 	# The schema under which the object falls.
 
-	# Field is optional.
-	schema = models.TextField(blank=True, null=True)
+	# Field is required.
+	schema = models.TextField()
 
 
-	# The entirety of the BCO.
+	# The entirety of the object.
 
-	# Field is optional.
-	bco = models.TextField(blank=True, null=True)
+	# Field is required.
+	contents = models.TextField()
 
 
 	# What is the class of the object (typically used to describe overall
@@ -38,10 +38,10 @@ class bco_object(models.Model):
 	object_class = models.TextField(blank=True, null=True)
 
 
-	# The state of the object, is it a draft or is it committed?
+	# The state of the object, is it a draft or is it published?
 
-	# Field is optional.
-	state = models.TextField(blank=True, null=True)
+	# Field is required.
+	state = models.TextField()
 
 
 	# Make this class a parent.
@@ -49,16 +49,33 @@ class bco_object(models.Model):
 		abstract = True
 
 
-# Galaxy table
-class galaxy(bco_object):
+# BCO tables
+class bco_draft(json_object):
+	pass
+
+class bco_publish(json_object):
 	pass
 
 
-# GlyGen table
-class glygen(bco_object):
+# Galaxy tables
+class galaxy_draft(json_object):
+	pass
+
+class galaxy_publish(json_object):
 	pass
 
 
-# OncoMX table
-class oncomx(bco_object):
+# GlyGen tables
+class glygen_draft(json_object):
+	pass
+
+class glygen_publish(json_object):
+	pass
+
+
+# OncoMX tables
+class oncomx_draft(json_object):
+	pass
+
+class oncomx_publish(json_object):
 	pass

@@ -6,6 +6,7 @@ from django.conf import settings
 
 # Request-specific methods
 from .method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
+from .method_specific.POST_create_new_object import POST_create_new_object
 from .method_specific.GET_retrieve_available_schema import GET_retrieve_available_schema
 
 
@@ -79,9 +80,14 @@ class RequestUtils:
         if 'POST_validate_payload_against_schema' in request:
             run_request = POST_validate_payload_against_schema(request['POST_validate_payload_against_schema'])
 
-            # The operation went fine?
-            if run_request is not None:
-                errors['POST_validate_payload_against_schema'] = run_request
+            # Did the request run?
+            request_result['POST_validate_payload_against_schema'] = run_request
+
+        if 'POST_create_new_object' in request:
+            run_request = POST_create_new_object(request['POST_create_new_object'])
+
+            # Did the request run?
+            request_result['POST_create_new_object'] = run_request
 
         if 'GET_retrieve_available_schema' in request:
             run_request = GET_retrieve_available_schema(request['GET_retrieve_available_schema'])
