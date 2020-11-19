@@ -19,7 +19,7 @@
                 "description": "The schema under which the POSTed JSON falls.",
                 "type": "string"
             },
-            "payload":
+            "contents":
             {
                 "description": "The JSON contents to be stored",
                 "type": "object"
@@ -35,7 +35,7 @@
         [
             "table",
             "schema",
-            "payload",
+            "contents",
             "state"
         ]
     }

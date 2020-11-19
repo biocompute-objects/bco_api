@@ -161,3 +161,63 @@ class FileUtils:
         returning['paths'] = [x for x in returning['paths'] if 1]
 
         return returning
+
+
+    # Read a configuration file.
+    def read_conf_file(self, file_location, keys):
+
+        # file_location: where is the file?
+        # keys: which keys are we looking for?
+
+        # Construct a dictionary to hold each part of the settings file.
+        return_dict = {}
+
+        for key, typekey in keys.items():
+            
+            # Construct based on the provided type.
+            if(typekey == 'list'):
+                return_dict[key] = []
+            elif(typekey == 'dict'):
+                return_dict[key] = {}
+
+        # Construct a list for the stripped check.
+        stripped_check = ['[' + i + ']' for i in keys]
+
+        # Read the settings file line-by-line.
+        with open(file_location, mode='r') as f:
+            
+            lines = f.readlines()
+
+            # Create a section flag and key.
+            section_flag = 0
+            section_key = ''
+
+            for line in lines:
+                
+                # Strip any whitespace, then interpret.
+                stripped = line.strip()
+
+                if section_flag == 1:
+
+                    # Append to the dictionary if we have something.
+                    if stripped != '':
+                        
+                        # If there is an '=', split up into a sub-key and value.
+                        if(stripped.find('=') != -1):
+                            return_dict[section_key][stripped.split('=')[0]] = stripped.split('=')[1]
+                        else:
+                            return_dict[section_key].append(stripped)
+
+                if(stripped in stripped_check):
+                    
+                    section_flag = 1
+                    section_key = stripped.split('[')[1].split(']')[0]
+
+                if(stripped == ''):
+
+                    # Reset.
+                    section_flag = 0
+                    section_key = ''
+
+        # Kick it back.
+        return return_dict

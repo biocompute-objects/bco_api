@@ -17,51 +17,20 @@ class SettingsUtils:
 
 
     # Load the settings file.
-    def load_settings_file(self):
+    def load_settings_file(self, file_path):
 
-        # No arguments.
+        # file_path: the file to read for settings.
 
-        # Construct a dictionary to hold each part of the settings file.
-        return_dict = {'HOSTNAMES': [], 'OBJECT_NAMING': {}, 'REQUESTS': {}, 'VALIDATIONS': {}, 'DATA_MODES': {}}
-
-        # Read the settings file line-by-line.
-        with open('./server.conf', mode='r') as f:
-            
-            lines = f.readlines()
-
-            # Create a section flag and key.
-            section_flag = 0
-            section_key = ''
-
-            for line in lines:
-
-                # Strip any whitespace, then interpret.
-                stripped = line.strip()
-
-                if section_flag == 1:
-
-                    # Append to the dictionary if we have something.
-                    if stripped != '':
-                        
-                        # If there is an '=', split up into a sub-key and value.
-                        if(stripped.find('=') != -1):
-                            return_dict[section_key][stripped.split('=')[0]] = stripped.split('=')[1]
-                        else:
-                            return_dict[section_key].append(stripped)
-
-                if(stripped in ['[HOSTNAMES]', '[OBJECT_NAMING]', '[REQUESTS]', '[VALIDATIONS]', '[DATA_MODES]']):
-                    
-                    section_flag = 1
-                    section_key = stripped.split('[')[1].split(']')[0]
-
-                if(stripped == ''):
-
-                    # Reset.
-                    section_flag = 0
-                    section_key = ''
-
-        # Kick it back.
-        return return_dict
+        return FileUtils.FileUtils().read_conf_file(
+            file_location = file_path, 
+            keys = {
+                'HOSTNAMES': 'list', 
+                'OBJECT_NAMING': 'dict', 
+                'REQUESTS': 'dict', 
+                'VALIDATIONS': 'dict', 
+                'DATA_MODES': 'dict'
+            }
+        )
 
 
     # Load the request templates.

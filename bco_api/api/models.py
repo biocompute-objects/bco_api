@@ -8,8 +8,12 @@ from django.db import models
 # Create a base model, then inherit for each table.
 # See the 4th example under "Model Inheritance" at https://docs.djangoproject.com/en/3.1/topics/db/models/#model-inheritance
 
+from django.conf import settings
+# For reading the configuration file.
+from api.scripts import DbUtils
 
-# Generic BCO model
+
+# Generic JSON model
 class json_object(models.Model):
 
 
@@ -28,7 +32,7 @@ class json_object(models.Model):
 	# The entirety of the object.
 
 	# Field is required.
-	contents = models.TextField()
+	contents = models.JSONField()
 
 
 	# What is the class of the object (typically used to describe overall
@@ -49,33 +53,41 @@ class json_object(models.Model):
 		abstract = True
 
 
-# BCO tables
-class bco_draft(json_object):
-	pass
-
-class bco_publish(json_object):
-	pass
+# Generic meta data model
+class meta_table(models.Model):
 
 
-# Galaxy tables
-class galaxy_draft(json_object):
-	pass
+	# The number of objects in a given table.
 
-class galaxy_publish(json_object):
-	pass
+	# Field is required.
+	n_objects = models.TextField()
 
 
-# GlyGen tables
-class glygen_draft(json_object):
-	pass
-
-class glygen_publish(json_object):
-	pass
+	# Make this class a parent.
+	class Meta:
+		abstract = True
 
 
-# OncoMX tables
-class oncomx_draft(json_object):
-	pass
+# Create referrable dict.
+models_dict = {}
 
-class oncomx_publish(json_object):
-	pass
+# Read the configuration file.
+db_settings_from_file = DbUtils.DbUtils().load_settings_file(file_path='./tables.conf')
+
+# Go through each template and create the associated table.
+for template, tables in db_settings_from_file.items():
+
+	# lower because the model names are lowercase.
+	lowered = template.lower()
+
+	# Register the template with the "global" dict.
+	models_dict[lowered] = []
+
+	for table in tables:
+		exec('class ' + table + '(' + lowered + '):\n\tpass')
+
+		# Register the table with the "global" variable.
+		models_dict[lowered].append(table)
+
+# Now define the global variable.
+settings.MODELS = models_dict

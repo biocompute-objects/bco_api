@@ -2,23 +2,59 @@
 from django.conf import settings
 
 # For retrieving objects.
-from ..models import json_object
-from ..serializers import JsonGetSerializer
+#from ..models import bco_draft, bco_publish, galaxy_draft, galaxy_publish, glygen_draft, glygen_publish, oncomx_draft, oncomx_publish
+#from ..models import bco_draft_meta, bco_publish_meta, galaxy_draft_meta, galaxy_publish_meta, glygen_draft_meta, glygen_publish_meta, oncomx_draft_meta, oncomx_publish_meta
+
+# Utilities
+from . import FileUtils
+
 
 class DbUtils:
+
 
     # Class Description
     # -----------------
 
     # These methods are for interacting with our sqlite database.
 
+
+    # Load the settings file.
+    def load_settings_file(self, file_path):
+
+        # file_path: the file to read for settings.
+
+        # Because we don't know ahead of time how many tables
+        # there are, we read the configuration file TWICE,
+        # the first time to get the models, the second
+        # time to assign tables to the models.
+
+        models = FileUtils.FileUtils().read_conf_file(
+            file_location = file_path, 
+            keys = {
+                'MODEL_TEMPLATES': 'list'
+            }
+        )
+
+        # Make the keys based on these models.
+        derived_keys = {}
+
+        # Uppercase because that's how the sections are
+        # in the configuration file.
+        for i in models['MODEL_TEMPLATES']:
+            derived_keys[i.upper()] = 'list'
+        
+        return FileUtils.FileUtils().read_conf_file(
+            file_location = file_path, 
+            keys = derived_keys
+        )
+
+        
     # Get objects from the database.
     def retrieve_objects(self, object_id_regex='ALL'):
 
         # regex: the regex used to search object IDs.  a more advanced
         # implementation would give regex by field to search...
         json_objects = BcoGetSerializer(json_object.objects.all(), many=True).data
-
 
 
     # Generate unique object IDs.
@@ -131,6 +167,7 @@ class DbUtils:
         # Return our new ID.
         return created_id
 
+
     # Retrieve an object from the database.
     def retrieve_object(self, object_id_pass):
 
@@ -146,6 +183,7 @@ class DbUtils:
         except bco_object.DoesNotExist:
 
             return 'OBJECT_ID_DOES_NOT_EXIST'
+
 
     # Commit a draft BCO.
     def commit_object_draft(self, object_id_pass):

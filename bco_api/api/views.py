@@ -5,7 +5,7 @@
 # Create your views here.
 
 #from .models import bco_object
-from .serializers import JsonPostSerializer, JsonGetSerializer, JsonPatchSerializer, JsonDeleteSerializer
+#from .serializers import JsonPostSerializer, JsonGetSerializer, JsonPatchSerializer, JsonDeleteSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
