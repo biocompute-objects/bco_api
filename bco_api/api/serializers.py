@@ -13,25 +13,16 @@ from .models import bco_draft, bco_publish
 
 # Source (4th response): https://stackoverflow.com/questions/30831731/create-a-generic-serializer-with-a-dynamic-model-in-meta
 
-def getGenericSerializer(incoming_model):
+def getGenericSerializer(incoming_model, incoming_fields):
 
     class GenericObjectSerializer(serializers.ModelSerializer):
     
     # Arguments
     # incoming_table: the table to write to.
 
-    # Need to re-declare fields since this is not a ModelSerializer.
-
-    # Have to use CharField instead of TextField, see https://stackoverflow.com/questions/38849201/how-to-serialize-bigintegerfield-textfield-in-serializer-django
-    #object_id = serializers.CharField()
-    #schema = serializers.CharField()
-    #contents = serializers.JSONField()
-    #object_class = serializers.CharField()
-    #state = serializers.CharField()
-
         class Meta:
             model = incoming_model
-            fields = ['object_id', 'schema', 'contents', 'state']
+            fields = incoming_fields
 
     return GenericObjectSerializer
 
