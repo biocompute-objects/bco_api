@@ -8,31 +8,32 @@ from .models import bco_draft, bco_publish
 # Source (last solution): https://stackoverflow.com/questions/33137165/django-rest-framework-abstract-class-serializer
 
 # Base serializers to be inherited by each model.
-class TypeBaseSerializer(serializers.Serializer):
+
+# Abstract so that any model can be used.
+
+# Source (4th response): https://stackoverflow.com/questions/30831731/create-a-generic-serializer-with-a-dynamic-model-in-meta
+
+def getGenericSerializer(incoming_model):
+
+    class GenericObjectSerializer(serializers.ModelSerializer):
     
     # Arguments
     # incoming_table: the table to write to.
 
-    # Set the model.
-    exec('model = ' + self.context.get(incoming_table))
-
     # Need to re-declare fields since this is not a ModelSerializer.
 
     # Have to use CharField instead of TextField, see https://stackoverflow.com/questions/38849201/how-to-serialize-bigintegerfield-textfield-in-serializer-django
-    object_id = serializers.CharField()
-    schema = serializers.CharField()
-    contents = serializers.JSONField()
-    object_class = serializers.CharField()
-    state = serializers.CharField()
+    #object_id = serializers.CharField()
+    #schema = serializers.CharField()
+    #contents = serializers.JSONField()
+    #object_class = serializers.CharField()
+    #state = serializers.CharField()
 
-    class Meta:
-        fields = ['object_id', 'schema', 'contents', 'state']
+        class Meta:
+            model = incoming_model
+            fields = ['object_id', 'schema', 'contents', 'state']
 
-
-class GenericObjectSerializer(TypeBaseSerializer, serializers.ModelSerializer):
-
-    class Meta:
-        fields = TypeBaseSerializer.Meta.fields
+    return GenericObjectSerializer
 
 '''
 # Model-based serializer for POST.

@@ -55,12 +55,13 @@ class RequestUtils:
                 return {'REQUEST_ERROR': 'Undefined template \'' + request['template'] + '\' for request method \'' + method + '\''}
         '''
 
-    def process_request_templates(self, method, request):
+    def process_request_templates(self, method, request, passable_context):
 
         # Arguments
 
         # method: one of DELETE, GET, PATCH, POST
         # request: the raw request
+        # passable_context: to allow interaction with the app-level infrastructure
 
         # Define the request templates.
         request_templates = settings.REQUEST_TEMPLATES
@@ -84,7 +85,7 @@ class RequestUtils:
             request_result['POST_validate_payload_against_schema'] = run_request
 
         if 'POST_create_new_object' in request:
-            run_request = POST_create_new_object(request['POST_create_new_object'])
+            run_request = POST_create_new_object(request['POST_create_new_object'], passed_context = passable_context)
 
             # Did the request run?
             request_result['POST_create_new_object'] = run_request
