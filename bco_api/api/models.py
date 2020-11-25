@@ -29,6 +29,12 @@ class json_object(models.Model):
 	schema = models.TextField()
 
 
+	# The state of the object, is it a draft or is it published?
+
+	# Field is required.
+	state = models.TextField()
+
+
 	# The entirety of the object.
 
 	# Field is required.
@@ -40,12 +46,6 @@ class json_object(models.Model):
 
 	# Field is optional.
 	object_class = models.TextField(blank=True, null=True)
-
-
-	# The state of the object, is it a draft or is it published?
-
-	# Field is required.
-	state = models.TextField()
 
 
 	# Make this class a parent.
@@ -60,7 +60,7 @@ class meta_table(models.Model):
 	# The number of objects in a given table.
 
 	# Field is required.
-	n_objects = models.TextField()
+	n_objects = models.IntegerField()
 
 
 	# Make this class a parent.
@@ -84,10 +84,13 @@ for template, tables in db_settings_from_file.items():
 	models_dict[lowered] = []
 
 	for table in tables:
+
+		# Replace later with model registration...
 		exec('class ' + table + '(' + lowered + '):\n\tpass')
 
 		# Register the table with the "global" variable.
 		models_dict[lowered].append(table)
 
-# Now define the global variable.
+# Now define the global variable (is this actually used anywhere?
+# some places are using app_info...).
 settings.MODELS = models_dict

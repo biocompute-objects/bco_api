@@ -9,6 +9,11 @@
         "type": "object",
         "properties":
         {
+            "object_id":
+            {
+                "description": "The object ID to create a new version for.",
+                "type": "string"
+            },
             "table":
             {
                 "description": "The table to write the new object to.",

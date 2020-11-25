@@ -84,3 +84,6 @@ PATCH | https://<i></i>path/to/api/server/payloads/objects/update/ | Update obje
 DELETE | https://<i></i>path/to/api/server/payloads/objects/delete/ | Delete objects matching a regex and/or a set of conditions on the object
 
 Each functionality for each type of request is defined in a **request template**.  The requirements for each of these templates can be viewed in the [Request Guides](./request_guides/).
+
+You MUST set the object incrementer manually.  This is done to avoid overwriting the incrementer on start-up of the API.
+INSERT INTO api_bco_publish_meta VALUES (1,'0');

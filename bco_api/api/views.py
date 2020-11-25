@@ -50,9 +50,8 @@ class BcoPostObject(APIView):
 
         # If we didn't get a request with valid templates, return an error.
         if valid_template is not None:
-            return Response('POST request did not consist of valid templates.  See output below...' + valid_template, status=status.HTTP_404_NOT_FOUND)
+            return Response('POST request did not consist of valid templates.  See output below...' + valid_template, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print('VALID TEMPLATE')
 
             # Pass the request to be processed template-by-template.
 
