@@ -7,6 +7,7 @@ from django.conf import settings
 # Request-specific methods
 from .method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
 from .method_specific.POST_create_new_object import POST_create_new_object
+from .method_specific.POST_read_object import POST_read_object
 from .method_specific.GET_retrieve_available_schema import GET_retrieve_available_schema
 
 
@@ -89,6 +90,12 @@ class RequestUtils:
 
             # Did the request run?
             request_result['POST_create_new_object'] = run_request
+
+        if 'POST_read_object' in request:
+            run_request = POST_read_object(request['POST_read_object'])
+
+            # Did the request run?
+            request_result['POST_read_object'] = run_request
 
         if 'GET_retrieve_available_schema' in request:
             run_request = GET_retrieve_available_schema(request['GET_retrieve_available_schema'])

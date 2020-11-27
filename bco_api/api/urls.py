@@ -6,6 +6,7 @@ from .views import BcoPostObject, BcoGetObject, BcoPatchObject, BcoDeleteObject,
 
 urlpatterns = [
     path('bco/objects/create', BcoPostObject.as_view()),
+    path('bco/objects/read', BcoPostObject.as_view()),
     path('api/description/validations/schema', BcoGetObject.as_view()),
     path('bco/objects/update', BcoPatchObject.as_view()),
     path('bco/objects/delete', BcoDeleteObject.as_view()),

@@ -11,6 +11,11 @@
             "description": "The template for creating a new object.",
             "$ref": "request_definitions/templates/POST_create_new_object.schema"
         },
+        "POST_read_object":
+        {
+            "description": "The template for reading a(n) object(s).",
+            "$ref": "request_definitions/templates/POST_read_object.schema"
+        },
         "POST_validate_payload_against_schema":
         {
             "description": "The template for validating an object against a schema.",

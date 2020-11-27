@@ -58,6 +58,7 @@ class BcoPostObject(APIView):
             # passable_context passes the self context so that individual
             # methods can interact with the overall app infrastructure.
             processed = RequestUtils.RequestUtils().process_request_templates(method='POST', request=request.data)
+            print(processed)
             return Response(processed, status = status.HTTP_200_OK)
             #return Response({'response_text': 'POST request processed succesfully...see payload for any errors.', 'response_payload': json.dumps(processed)}, status = status.HTTP_200_OK)
 
