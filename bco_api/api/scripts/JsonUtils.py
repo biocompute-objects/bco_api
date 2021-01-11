@@ -124,6 +124,10 @@ class JsonUtils:
         # schema_pass:  the schema to check against.
         
         # Check the object against the provided schema.
+        print('@@@@@@@@@@@@@@@@@@@@@@@2')
+        print(object_pass)
+        print('$#$#$#$#$#$#$#$#$#$#$')
+        print(schema_pass)
 
         # Define a validator.
         validator = jsonschema.Draft7Validator(schema_pass)
