@@ -142,7 +142,6 @@ STATIC_URL = '/static/'
 
 
 '''
-
 # FIX LATER
 
 # First, the request definitions.

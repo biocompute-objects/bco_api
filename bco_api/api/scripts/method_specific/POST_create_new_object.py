@@ -5,7 +5,7 @@ from .. import JsonUtils
 from django.conf import settings
 
 # For getting the model.
-from django.apps import apps 
+from django.apps import apps
 
 # For getting objects out of the database.
 from .. import DbUtils
@@ -50,6 +50,9 @@ def POST_create_new_object(bulk_request):
 	print('===============')
 	print(json.dumps(object_naming_info, indent=4))
 	print(json.dumps(available_tables, indent=4))
+
+	# Define a variable to hold the status of the request.
+	request_status = ''
 
 	# Since bulk_request is an array, go over each
 	# item in the array.
@@ -188,8 +191,12 @@ def POST_create_new_object(bulk_request):
 			if(serialized.is_valid()):
 				serialized.save()
 
+				# Update the request status.
+				request_status = {'request_status': 'SUCCESS', 'contents': 'The object was created with ID \'' + creation_object['object_id'] + '\' on table \'' + creation_object['table'] + '\'.'}
+
 		else:
+			
+			# Update the request status.
+			request_status = {'request_status': 'FAILURE', 'contents': 'The table with name \'' + creation_object['table'] + '\' was not found on the server.'}
 
-			print('Table not found!')
-
-	return({'request_status': 'success', 'contents': 'Object created succesfully with ID:...'})
+	return(request_status)

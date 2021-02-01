@@ -68,6 +68,9 @@ class meta_table(models.Model):
 		abstract = True
 
 
+# TODO: put all of this under a flag later so that cloning
+# GitHub does not automatically erase the database...
+
 # Create referrable dict.
 models_dict = {}
 
