@@ -47,6 +47,9 @@ def POST_read_object(bulk_request):
 					# Get the objects for the given table.
 					table = apps.get_model(app_label = 'api', model_name = read_object['table'])
 
+					# We can't use get() here because the object ID
+					# is stored within a sub-field?
+					
 					# Get all objects matching the id (could be done more efficienty
 					# by just selecting one field?).
 
@@ -57,10 +60,17 @@ def POST_read_object(bulk_request):
 					# Source: https://stackoverflow.com/questions/6930982/how-to-use-a-variable-inside-a-regular-expression
 
 					# Source: https://stackoverflow.com/questions/7503241/django-models-selecting-single-field
-					fielded = table.objects.values_list('contents')
+
+					# TODO: Put in regex search later...
+					#fielded = table.objects.values_list('contents')
 					id_search = read_object['object_id']
-					fielded = fielded.filter(object_id__regex = rf'{id_search}').values()
-					fielded = list(fielded)[0]
+					#fielded = fielded.filter(object_id__regex = rf'{id_search}').values()
+					#fielded = list(fielded)[0]
+
+					# Source: https://stackoverflow.com/a/57211081
+					print('########')
+					print(id_search)
+					print(table.objects.filter(object_id=id_search))
 
 					# Drop the internal (model) id.
 					del fielded['id']
