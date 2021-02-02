@@ -70,20 +70,38 @@ def POST_read_object(bulk_request):
 					#fielded = list(fielded)[0]
 					print('########')
 
-					# Serialize the result.
+					# Serialize the result, if we have any.
 					# Source: https://stackoverflow.com/a/57211081
 					# Source: https://stackoverflow.com/a/47205948
-					result = json.loads(serialize('json', table.objects.filter(object_id=id_search)))[0]['fields']['contents']
+					try:
+						result = json.loads(serialize('json', table.objects.filter(object_id=id_search)))[0]['fields']['contents']
 
-					# Append the found object if we have any.
-					if len(result) > 0:
+						# Update the request status.
+						returning.append({
+							'request_status': 'SUCCESS', 
+							'request_code': '200', 
+							'message': 'Object with ID \'' + id_search + '\' was found in table \'' + read_object['table'] + '\'.', 
+							'contents': {'object_id': id_search, 'table': read_object['table'], 'object': result}
+						})
 
-						print('here')
-						# Append the object to be returned.
-						returning.append({'object_id': id_search, 'table': read_object['table'], 'object': result})
+					except IndexError as e:
+						
+						# No objects found.
 
+						# Update the request status.
+						returning.append({
+							'request_status': 'FAILURE', 
+							'request_code': '404', 
+							'message': 'Object with ID \'' + id_search + '\' was not found in table \'' + read_object['table'] + '\'.'
+						})
+		
 		else:
 
-			print('Table not found!')
-
-	return({'request_status': 'success', 'contents': returning})
+			# Update the request status.
+			returning.append({
+				'request_status': 'FAILURE', 
+				'request_code': '404', 
+				'message': 'The table with name \'' + read_object['table'] + '\' was not found on the server.'
+			})
+	
+	return(returning)

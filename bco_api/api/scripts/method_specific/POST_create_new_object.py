@@ -51,8 +51,8 @@ def POST_create_new_object(bulk_request):
 	print(json.dumps(object_naming_info, indent=4))
 	print(json.dumps(available_tables, indent=4))
 
-	# Define a variable to hold the status of the request.
-	request_status = ''
+	# Construct an array to return the objects.
+	returning = []
 
 	# Since bulk_request is an array, go over each
 	# item in the array.
@@ -192,11 +192,19 @@ def POST_create_new_object(bulk_request):
 				serialized.save()
 
 				# Update the request status.
-				request_status = {'request_status': 'SUCCESS', 'contents': 'The object was created with ID \'' + creation_object['object_id'] + '\' on table \'' + creation_object['table'] + '\'.'}
+				returning.append({
+					'request_status': 'SUCCESS', 
+					'request_code': '200',
+					'message': 'The object was created with ID \'' + creation_object['object_id'] + '\' on table \'' + creation_object['table'] + '\'.'
+				})
 
 		else:
 			
 			# Update the request status.
-			request_status = {'request_status': 'FAILURE', 'contents': 'The table with name \'' + creation_object['table'] + '\' was not found on the server.'}
+			returning.append({
+				'request_status': 'FAILURE', 
+				'request_code': '404',
+				'message': 'The table with name \'' + creation_object['table'] + '\' was not found on the server.'
+			})
 
-	return(request_status)
+	return(returning)
