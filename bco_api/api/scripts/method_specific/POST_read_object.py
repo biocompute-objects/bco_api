@@ -12,6 +12,8 @@ from .. import DbUtils
 
 # TODO: push most of these operations to DbUtils later?
 
+from django.core.serializers import serialize
+
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
 def POST_read_object(bulk_request):
@@ -66,21 +68,19 @@ def POST_read_object(bulk_request):
 					id_search = read_object['object_id']
 					#fielded = fielded.filter(object_id__regex = rf'{id_search}').values()
 					#fielded = list(fielded)[0]
-
-					# Source: https://stackoverflow.com/a/57211081
 					print('########')
-					print(id_search)
-					print(table.objects.filter(object_id=id_search))
 
-					# Drop the internal (model) id.
-					del fielded['id']
+					# Serialize the result.
+					# Source: https://stackoverflow.com/a/57211081
+					# Source: https://stackoverflow.com/a/47205948
+					result = json.loads(serialize('json', table.objects.filter(object_id=id_search)))[0]['fields']['contents']
 
 					# Append the found object if we have any.
-					if len(fielded) > 0:
+					if len(result) > 0:
 
 						print('here')
 						# Append the object to be returned.
-						returning.append({'object_id': id_search, 'table': read_object['table'], 'object': fielded})
+						returning.append({'object_id': id_search, 'table': read_object['table'], 'object': result})
 
 		else:
 
