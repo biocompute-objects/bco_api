@@ -95,6 +95,12 @@ def POST_create_new_object(bulk_request):
 			# Draft object.
 			if state == 'draft':
 
+				# Check to see whether or not a draft ID was given, and if
+				# so, check to see whether or not the ID exists in the given
+				# table.
+
+				# If not, throw an error.  If so, update the draft's contents.
+				
 				# Create a draft ID that is essentially randomized.
 				creation_object['object_id'] =  constructed_name + '_DRAFT_' + rando.uuid4().hex
 

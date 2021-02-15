@@ -2,8 +2,6 @@
 
 # For instructions on calling class methods from other classes, see https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
 
-# Create your views here.
-
 #from .models import bco_object
 #from .serializers import JsonPostSerializer, JsonGetSerializer, JsonPatchSerializer, JsonDeleteSerializer
 from rest_framework.views import APIView
