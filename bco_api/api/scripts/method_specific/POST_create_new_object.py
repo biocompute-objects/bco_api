@@ -165,49 +165,39 @@ def POST_create_new_object(bulk_request):
 				# If an object ID is provided and it does not exist, return an error.
 
 				if 'object_id' in creation_object:
-
-					# Does the object ID exist?
-					if db.check_object_id_exists(
-						p_app_label = 'api',
-						p_model_name = creation_object['table'],
-						p_object_id = creation_object['object_id']
-					) is None:
 						
-						print('object exists')
-						
-						# TODO: Re-write to simplify versioning.
-						# TODO: Allow user to give manual version number.
-						
-						# Note that this logic is indifferent to whether or
-						# not the actual latest version of the object was
-						# provided.
+					# TODO: Re-write to simplify versioning.
+					# TODO: Allow user to give manual version number.
+					
+					# Note that this logic is indifferent to whether or
+					# not the actual latest version of the object was
+					# provided.
 
-						# Should be done with meta tables to speed up...
+					# Should be done with meta tables to speed up...
 
-						# Increment only "0" part of "1.0"...
+					# Increment only "0" part of "1.0"...
 
-						# Split up the object name.
-						object_name_split = creation_object['object_id'].split('/')
+					# Split up the object name.
+					object_name_split = creation_object['object_id'].split('/')
 
-						# Parse the string we're looking for, MINUS the version.
-						searchable = '/'.join(object_name_split[:-1]) + '/(.*?)'
+					# Parse the string we're looking for, MINUS the version.
+					searchable = '/'.join(object_name_split[:-1]) + '/(.*?)'
 
-						# Get the objects for the given table.
-						table = apps.get_model(app_label = 'api', model_name = creation_object['table'])
+					# Get the objects for the given table.
+					table = apps.get_model(app_label = 'api', model_name = creation_object['table'])
 
-						# Get all objects matching the id (could be done more efficienty
-						# by just selecting one field?).
+					# Get all objects matching the id (could be done more efficienty
+					# by just selecting one field?).
 
-						# Source: https://stackoverflow.com/questions/51905712/how-to-get-the-value-of-a-django-model-field-object
-						# Source: https://stackoverflow.com/questions/6930982/how-to-use-a-variable-inside-a-regular-expression
+					# Source: https://stackoverflow.com/questions/51905712/how-to-get-the-value-of-a-django-model-field-object
+					# Source: https://stackoverflow.com/questions/6930982/how-to-use-a-variable-inside-a-regular-expression
 
-						# Source: https://stackoverflow.com/questions/7503241/django-models-selecting-single-field
-						fielded = table.objects.values_list('object_id', flat = True)
-						fielded = list(fielded.filter(object_id__regex = rf'{searchable}'))
-
-						# TODO: Remove this logic block, already taken care of above.
-						# Only create the new version if ANY version of the object is actually there.
-						#if len(fielded) > 0:
+					# Source: https://stackoverflow.com/questions/7503241/django-models-selecting-single-field
+					fielded = table.objects.values_list('object_id', flat = True)
+					fielded = list(fielded.filter(object_id__regex = rf'{searchable}'))
+					
+					# Only create the new version if ANY version of the object is actually there.
+					if len(fielded) > 0:
 
 						# Now just go through and find the maximum version number.
 						max_v = 0
