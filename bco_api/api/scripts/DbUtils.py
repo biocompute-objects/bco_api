@@ -8,6 +8,12 @@ from django.conf import settings
 # Utilities
 from . import FileUtils
 
+# For getting the model.
+from django.apps import apps
+
+# For writing objects to the database.
+from ..serializers import getGenericSerializer
+
 
 class DbUtils:
 
@@ -16,6 +22,8 @@ class DbUtils:
     # -----------------
 
     # These methods are for interacting with our sqlite database.
+
+
 
 
     # Load the settings file.
@@ -47,8 +55,150 @@ class DbUtils:
             file_location = file_path, 
             keys = derived_keys
         )
+    
 
+
+
+    # Checking whether or not an object exists.
+    def check_object_id_exists(self, p_app_label, p_model_name, p_object_id):
+
+        # Simple existence check.
+        # Source: https://stackoverflow.com/a/9089028
+        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
         
+        if apps.get_model(
+                app_label = p_app_label, 
+                model_name = p_model_name
+            ).objects.filter(
+                object_id = p_object_id
+            ).exists():
+            return None
+        else:
+            return 1
+    
+
+
+
+    # Messages associated with results.
+    def messages(self, parameters, p_content=False):
+        
+        # TODO: Convert this to a messages list, then
+        # create the message, instead of returning
+        # all of them.
+        
+        return {
+            '200_create': {
+                'request_status': 'SUCCESS', 
+                'request_code': '200',
+                'message': 'The object with ID \'' + parameters['object_id'] + '\' was created on table \'' + parameters['table'] + '\'.'
+            },
+            '200_found': {
+                'request_status': 'SUCCESS', 
+                'request_code': '200',
+                'message': 'The object with ID \'' + parameters['object_id'] + '\' was found on table \'' + parameters['table'] + '\'.',
+                'content': p_content
+            },
+            '200_update': {
+                'request_status': 'SUCCESS', 
+                'request_code': '200',
+                'message': 'The object with ID \'' + parameters['object_id'] + '\' was updated on table \'' + parameters['table'] + '\'.'
+            },
+            '404_object_id': {
+                'request_status': 'FAILURE', 
+                'request_code': '404',
+                'message': 'The object ID \'' + parameters['object_id'] + '\' was not found on table \'' + parameters['table'] + '\'.'
+            },
+            '404_table': {
+                'request_status': 'FAILURE', 
+                'request_code': '404',
+                'message': 'The table with name \'' + parameters['table'] + '\' was not found on the server.'
+            }
+        }
+
+
+
+
+    # Write (update) either a draft or a published object to the database.
+    def write_object(self, p_app_label, p_model_name, p_fields, p_data, p_update=False):
+
+        # Source: https://docs.djangoproject.com/en/3.1/topics/db/queries/#topics-db-queries-update
+        
+        # Serialize our data.
+        serializer = getGenericSerializer(
+            incoming_model = apps.get_model(
+                app_label = p_app_label, 
+                model_name = p_model_name), 
+            incoming_fields = p_fields
+        )
+
+        serialized = serializer(
+            data = p_data
+        )
+
+        # Save (update) it.
+        if p_update is False:
+
+            # Write a new object.
+            if(serialized.is_valid()):
+                serialized.save()
+        
+        else:
+
+            # Update an existing object.
+            # TODO: Abstract, because right now only updates contents.
+            apps.get_model(
+                app_label = p_app_label, 
+                model_name = p_model_name
+            ).objects.filter(
+                object_id = p_data['object_id']
+            ).update(
+                contents = p_data['contents']
+            )
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ------------ OLD ----------------#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # Get objects from the database.
     def retrieve_objects(self, object_id_regex='ALL'):
 

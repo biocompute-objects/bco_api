@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import bco_draft, bco_publish
+#from .models import bco_draft, bco_publish
 
 
 # ----- Request Serializers ----- #

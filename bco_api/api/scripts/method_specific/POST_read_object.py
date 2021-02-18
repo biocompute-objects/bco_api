@@ -22,6 +22,9 @@ def POST_read_object(bulk_request):
 
 	print('POST_read_object')
 
+	# Instantiate any necessasary imports.
+	db = DbUtils.DbUtils()
+
 	# Get the available tables.
 	available_tables = settings.MODELS['json_object']
 	print('bulk_request')
@@ -68,40 +71,53 @@ def POST_read_object(bulk_request):
 					id_search = read_object['object_id']
 					#fielded = fielded.filter(object_id__regex = rf'{id_search}').values()
 					#fielded = list(fielded)[0]
+					print('@@@@@@@@')
+					print(id_search)
 					print('########')
 
 					# Serialize the result, if we have any.
 					# Source: https://stackoverflow.com/a/57211081
 					# Source: https://stackoverflow.com/a/47205948
 					try:
-						result = json.loads(serialize('json', table.objects.filter(object_id=id_search)))[0]['fields']['contents']
+						result = json.loads(
+							serialize(
+								'json', 
+								table.objects.filter(
+									object_id = id_search
+								)
+							)
+						)[0]['fields']['contents']
+
+						print('********')
+						print(result)
+						print('#########')
 
 						# Update the request status.
-						returning.append({
-							'request_status': 'SUCCESS', 
-							'request_code': '200', 
-							'message': 'Object with ID \'' + id_search + '\' was found in table \'' + read_object['table'] + '\'.', 
-							'contents': {'object_id': id_search, 'table': read_object['table'], 'object': result}
-						})
+						returning.append(
+							db.messages(
+								p_content = result,
+								parameters = read_object
+							)['200_found']
+						)
 
 					except IndexError as e:
 						
 						# No objects found.
 
 						# Update the request status.
-						returning.append({
-							'request_status': 'FAILURE', 
-							'request_code': '404', 
-							'message': 'Object with ID \'' + id_search + '\' was not found in table \'' + read_object['table'] + '\'.'
-						})
+						returning.append(
+							db.messages(
+								parameters = read_object
+							)['404_object_id']
+						)
 		
 		else:
 
 			# Update the request status.
-			returning.append({
-				'request_status': 'FAILURE', 
-				'request_code': '404', 
-				'message': 'The table with name \'' + read_object['table'] + '\' was not found on the server.'
-			})
+			returning.append(
+				db.messages(
+					parameters = read_object
+				)['404_table']
+			)
 	
 	return(returning)
