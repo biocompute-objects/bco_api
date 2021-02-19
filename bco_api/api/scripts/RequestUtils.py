@@ -105,11 +105,5 @@ class RequestUtils:
         
         return request_result
 
-        # Did we have any errors?
-
-        # Source: https://stackoverflow.com/questions/23177439/python-checking-if-a-dictionary-is-empty-doesnt-seem-to-work
-        #if bool(errors):
-            #return errors
-
 
 
