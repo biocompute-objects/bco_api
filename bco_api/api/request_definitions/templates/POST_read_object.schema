@@ -27,7 +27,6 @@
         },
         "required":
         [
-            "object_id",
             "table"
         ]
     }

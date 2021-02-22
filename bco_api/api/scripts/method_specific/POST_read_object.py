@@ -110,6 +110,47 @@ def POST_read_object(bulk_request):
 								parameters = read_object
 							)['404_object_id']
 						)
+			else:
+
+				# Retrieve all objects in the table.
+				table = apps.get_model(app_label = 'api', model_name = read_object['table'])
+
+				# Serialize the result, if we have any.
+				# Source: https://stackoverflow.com/a/57211081
+				# Source: https://stackoverflow.com/a/47205948
+				try:
+					result = json.loads(
+						serialize(
+							'json', 
+							table.objects.all()
+						)
+					)
+
+					print('********')
+					print(result)
+					print('#########')
+
+					# Update the request status.
+					# TODO: FIX manual return status
+					returning.append(
+						{
+							'request_status': 'SUCCESS', 
+							'request_code': '200',
+							'message': 'The table \'' + read_object['table'] + '\' was found on the server.',
+							'content': result
+						}
+					)
+				
+				except IndexError as e:
+						
+					# No objects found.
+
+					# Update the request status.
+					returning.append(
+						db.messages(
+							parameters = read_object
+						)['404_object_id']
+					)
 		
 		else:
 
