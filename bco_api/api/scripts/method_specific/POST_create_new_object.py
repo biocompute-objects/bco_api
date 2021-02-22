@@ -137,6 +137,9 @@ def POST_create_new_object(bulk_request):
 				
 					# Create a draft ID that is essentially randomized.
 					creation_object['object_id'] =  constructed_name + '_DRAFT_' + rando.uuid4().hex
+					
+					# Make sure to create the object ID field in our draft.
+					creation_object['contents']['object_id'] = creation_object['object_id']
 
 					# Write to the database.
 					db.write_object(

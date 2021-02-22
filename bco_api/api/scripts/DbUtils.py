@@ -90,7 +90,8 @@ class DbUtils:
             '200_create': {
                 'request_status': 'SUCCESS', 
                 'request_code': '200',
-                'message': 'The object with ID \'' + parameters['object_id'] + '\' was created on table \'' + parameters['table'] + '\'.'
+                'message': 'The object with ID \'' + parameters['object_id'] + '\' was created on table \'' + parameters['table'] + '\'.',
+                'object_id': parameters['object_id']
             },
             '200_found': {
                 'request_status': 'SUCCESS', 
