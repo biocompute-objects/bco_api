@@ -263,6 +263,9 @@ def POST_create_new_object(bulk_request):
 
 					# Create a new ID based on latest_n.
 					creation_object['object_id'] =  constructed_name + '_' + str(latest_n) + '/1.0'
+					
+					# Make sure to create the object ID field in our draft.
+					creation_object['contents']['object_id'] = creation_object['object_id']
 
 					# Update the meta table.
 
