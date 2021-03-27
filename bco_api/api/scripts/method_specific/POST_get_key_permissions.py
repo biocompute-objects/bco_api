@@ -51,13 +51,12 @@ def POST_get_key_permissions(bulk_request):
 				# Append the prefixes.
 				for i in selected:
 					p_prefixes.append(i)
-
-			print(p_prefixes)
+					
 			returning.append(
 				{
 					'request_status': 'SUCCESS',
 					'request_code': '200',
-					'message': 'The API key provided was found and its permissions are given in key \'content\'.',
+					'message': 'The API key provided was found and its prefixes are given in key \'content\'.',
 					'content': {
 						'available_prefixes': p_prefixes
 					}
