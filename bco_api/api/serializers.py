@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 
 # Keys model
-from .models import ApiInfo
+# from .models import ApiInfo
 
 
 
@@ -89,25 +89,25 @@ class JsonDeleteSerializer(serializers.ModelSerializer):
 
 
 # API serializer
-class ApiSerializer(serializers.ModelSerializer):
+# class ApiSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = ApiInfo
-        fields = ('hostname', 'human_readable', 'apikey',)
+#     class Meta:
+#         model = ApiInfo
+#         fields = ('hostname', 'human_readable', 'apikey',)
 
 
-class GroupSerializer(serializers.ModelSerializer):    
+# class GroupSerializer(serializers.ModelSerializer):    
     
-    class Meta:
-        model = Group
-        fields = ('name',)
+#     class Meta:
+#         model = Group
+#         fields = ('name',)
 
 
-class UserSerializer(serializers.ModelSerializer):
+# class UserSerializer(serializers.ModelSerializer):
 
-    apiinfo = ApiSerializer(source='custom_user', many=True)
-    groups = GroupSerializer(many=True)
+#     apiinfo = ApiSerializer(source='custom_user', many=True)
+#     groups = GroupSerializer(many=True)
     
-    class Meta:
-        model = User
-        fields = ('username', 'password', 'first_name', 'last_name', 'email', 'groups', 'apiinfo',)
+#     class Meta:
+#         model = User
+#         fields = ('username', 'password', 'first_name', 'last_name', 'email', 'groups', 'apiinfo',)

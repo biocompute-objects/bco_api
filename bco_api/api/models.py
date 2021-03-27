@@ -70,6 +70,45 @@ class meta_table(models.Model):
 		abstract = True
 
 
+# Generic API key model
+class api_keys(models.Model):
+
+
+	# The number of objects in a given table.
+
+	# Field is required.
+	key = models.CharField(max_length = 1000)
+
+	# Each key is tied to certain groups.
+	groups = models.JSONField()
+
+
+	# Make this class a parent.
+	class Meta:
+		abstract = True
+
+
+# Link prefixes to groups
+class prefix_groups(models.Model):
+
+	# Each prefix has exactly one group owner.
+
+	prefix = models.CharField(max_length = 5)
+
+	group_owner = models.CharField(max_length = 1000)
+
+
+# Link prefixes to tables
+class prefix_tables(models.Model):
+
+	# Each prefix can only be tied to one table,
+	# but multiple prefixes can be tied to one table.
+
+	table = models.CharField(max_length = 1000)
+
+	prefixes = models.JSONField()
+
+
 # TODO: put all of this under a flag later so that cloning
 # GitHub does not automatically erase the database...
 
@@ -108,15 +147,4 @@ settings.MODELS = models_dict
 # API Information is kept separate so that we can use it
 # elsewhere easily.
 
-# API Information
-class ApiInfo(models.Model):
-
-	# Set the user.
-	username = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'custom_user')
-	
-	# API Keys
-	# TODO: make this write-only
-	keys = models.CharField(blank = True, max_length = 1000)
-		
-	# Each key has set permissions.
-	permissions = models.JSONField()
+# ... To be put in ...

@@ -104,6 +104,11 @@ class DbUtils:
                 'request_code': '200',
                 'message': 'The object with ID \'' + parameters['object_id'] + '\' was updated on table \'' + parameters['table'] + '\'.'
             },
+            '404_invalid_api_key': {
+                'request_status': 'FAILURE',
+                'request_code': '404',
+                'message': 'The API key provided was not able to be used on this server.'
+            },
             '404_object_id': {
                 'request_status': 'FAILURE', 
                 'request_code': '404',

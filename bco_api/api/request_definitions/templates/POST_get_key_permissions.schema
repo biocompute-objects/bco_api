@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "request_definitions/templates/POST_get_key_permissions.schema",
+    "title": "POST_get_key_permissions",
+    "description": "A POST request for getting the permissions associated with an API key.",
+    "type": "array",
+    "items": {
+        "properties": {
+            "apikey": {
+                "description": "The API key.",
+                "type": "string"
+            }
+        },
+        "required": [
+            "apikey"
+        ]
+    }
+}

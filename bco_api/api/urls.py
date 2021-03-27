@@ -7,6 +7,7 @@ from .views import BcoPostObject, BcoGetObject
 urlpatterns = [
     path('bco/objects/create/', BcoPostObject.as_view()),
     path('bco/objects/read/', BcoPostObject.as_view()),
+    path('api/description/permissions/', BcoPostObject.as_view()),
     path('api/description/validations/schema/', BcoGetObject.as_view()),
     path('<str:object_id_root>/<str:object_id_version>', BcoGetObject.as_view())
 ]
