@@ -1,7 +1,5 @@
 from django.db import models
 
-# Create your models here.
-
 # Explanation of optional fields:  https://stackoverflow.com/questions/16349545/optional-fields-in-django-models
 # TextField is used here because it has no character limit.
 
@@ -11,6 +9,10 @@ from django.db import models
 from django.conf import settings
 # For reading the configuration file.
 from api.scripts import DbUtils
+
+# --- Permissions imports --- #
+
+from django.contrib.auth.models import User
 
 
 # Generic JSON model
@@ -97,3 +99,24 @@ for template, tables in db_settings_from_file.items():
 # Now define the global variable (is this actually used anywhere?
 # some places are using app_info...).
 settings.MODELS = models_dict
+
+
+
+# --- Permissions models --- #
+
+
+# API Information is kept separate so that we can use it
+# elsewhere easily.
+
+# API Information
+class ApiInfo(models.Model):
+
+	# Set the user.
+	username = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'custom_user')
+	
+	# API Keys
+	# TODO: make this write-only
+	keys = models.CharField(blank = True, max_length = 1000)
+		
+	# Each key has set permissions.
+	permissions = models.JSONField()

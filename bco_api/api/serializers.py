@@ -1,6 +1,19 @@
 from rest_framework import serializers
 #from .models import bco_draft, bco_publish
 
+# --- Permissions imports --- #
+
+from django.contrib.auth.models import User
+
+# Groups require special processing.
+# Source: https://stackoverflow.com/questions/33844003/how-to-serialize-groups-of-a-user-with-django-rest-framework/33844179
+from django.contrib.auth.models import Group
+
+# Keys model
+from .models import ApiInfo
+
+
+
 
 # ----- Request Serializers ----- #
 
@@ -71,3 +84,30 @@ class JsonDeleteSerializer(serializers.ModelSerializer):
 
 # Serializer for retrieving objects from the database.
 '''
+
+
+
+
+# API serializer
+class ApiSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ApiInfo
+        fields = ('hostname', 'human_readable', 'apikey',)
+
+
+class GroupSerializer(serializers.ModelSerializer):    
+    
+    class Meta:
+        model = Group
+        fields = ('name',)
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    apiinfo = ApiSerializer(source='custom_user', many=True)
+    groups = GroupSerializer(many=True)
+    
+    class Meta:
+        model = User
+        fields = ('username', 'password', 'first_name', 'last_name', 'email', 'groups', 'apiinfo',)

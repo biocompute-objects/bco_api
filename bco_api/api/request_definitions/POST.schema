@@ -11,6 +11,11 @@
             "description": "The template for creating a new object.",
             "$ref": "request_definitions/templates/POST_create_new_object.schema"
         },
+        "POST_get_key_permissions":
+        {
+            "description": "Return the permissions associated with an API key.",
+            "$ref": "request_definitions/templates/POST_get_key_permissions.schema"
+        },
         "POST_read_object":
         {
             "description": "The template for reading a(n) object(s).",

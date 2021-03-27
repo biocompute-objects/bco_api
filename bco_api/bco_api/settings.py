@@ -36,6 +36,9 @@ DEBUG = True
 # ALTERED.
 ALLOWED_HOSTS = settings_from_file['HOSTNAMES']
 
+# ALTERED - FIX LATER.
+HUMAN_READABLE_HOSTNAME = 'BCO Server (Default)'
+
 
 # Application definition
 #ALTERED

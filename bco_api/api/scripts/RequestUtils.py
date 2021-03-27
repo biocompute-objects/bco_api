@@ -8,6 +8,7 @@ from django.conf import settings
 from .method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
 from .method_specific.POST_create_new_object import POST_create_new_object
 from .method_specific.POST_read_object import POST_read_object
+from .method_specific.POST_get_key_permissions import POST_get_key_permissions
 from .method_specific.GET_retrieve_available_schema import GET_retrieve_available_schema
 
 
@@ -70,9 +71,6 @@ class RequestUtils:
         # Subset the templates to the ones for this request method.
         request_templates = request_templates[method]
 
-        # Define a dictionary to hold errors from individual templates.
-        errors = {}
-
         # Define a dictionary to hold information about processing
         # the request.
         request_result = {}
@@ -96,6 +94,12 @@ class RequestUtils:
 
             # Did the request run?
             request_result['POST_read_object'] = run_request
+        
+        if 'POST_get_key_permissions' in request:
+            run_request = POST_get_key_permissions(request['POST_get_key_permissions'])
+
+            # Did the request run?
+            request_result['POST_get_key_permissions'] = run_request
 
         if 'GET_retrieve_available_schema' in request:
             run_request = GET_retrieve_available_schema(request['GET_retrieve_available_schema'])
