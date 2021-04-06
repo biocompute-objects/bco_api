@@ -4,6 +4,9 @@ from ...models import server_keys, px_groups
 # Response messages
 from .. import DbUtils
 
+# Root server information
+from django.conf import settings
+
 
 def POST_get_key_permissions(bulk_request):
 
@@ -39,18 +42,30 @@ def POST_get_key_permissions(bulk_request):
 			# TODO: Easier way to do this?
 			user_groups = list(server_keys.objects.filter(key = key_info['apikey']).values_list('groups', flat = True))[0]['groups']
 
+			# Create an object which returns information about the server.
+			server_info = {}
+			
+			# The human-readable server name.
+			server_info['human_readable'] = settings.HUMAN_READABLE_HOSTNAME
+			
 			# Now use the groups to get the permitted_prefixes.
-			p_prefixes = []
+			p_prefixes = {}
 
 			# Get the prefixes for each group.
 			for group in user_groups:
 
+				# Create the key for this group.
+				p_prefixes[group] = []
+				
 				# Select the prefixes for this group.
 				selected = list(px_groups.objects.filter(group_owner = group).values_list('prefix', flat = True))
 
 				# Append the prefixes.
 				for i in selected:
-					p_prefixes.append(i)
+					p_prefixes[group].append(i)
+			
+			# Update the server information.
+			server_info['groups'] = p_prefixes
 					
 			returning.append(
 				{
@@ -58,7 +73,7 @@ def POST_get_key_permissions(bulk_request):
 					'request_code': '200',
 					'message': 'The API key provided was found and its prefixes are given in key \'content\'.',
 					'content': {
-						'available_prefixes': p_prefixes
+						'server_information': server_info
 					}
 				}
 			)
