@@ -178,7 +178,7 @@ def associate_user_group(sender, instance, created, **kwargs):
 # 	instance.User.save()
 
 
-# Link API keys to users
+# Link API keys to users.
 class api_users_api_key(AbstractAPIKey):
 	
 	user = models.ForeignKey(
