@@ -65,9 +65,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Note: requires the app name "api".
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework_api_key.permissions.HasAPIKey',
+        'api.permissions.HasUserAPIKey',
     ]
 }
 
@@ -191,4 +192,14 @@ VALIDATION_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_pa
 
 # Make the object naming accessible.
 OBJECT_NAMING = settings_from_file['OBJECT_NAMING']
+
+
+
+
+# --- Permissions --- #
+
+
+
+
+
 

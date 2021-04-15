@@ -2,20 +2,19 @@
 
 # For instructions on calling class methods from other classes, see https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
 
-#from .models import bco_object
-#from .serializers import JsonPostSerializer, JsonGetSerializer, JsonPatchSerializer, JsonDeleteSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
 # For helper functions.
-from .scripts import DbUtils, JsonUtils, RequestUtils, ResponseUtils
+from .scripts import RequestUtils
 
-# For loading schema.
-import json
-
-# For creating BCO IDs.
-from django.conf import settings
+# Request-specific methods
+from .scripts.method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
+from .scripts.method_specific.POST_create_new_object import POST_create_new_object
+from .scripts.method_specific.POST_read_object import POST_read_object
+# from .scripts.method_specific.POST_get_key_permissions import POST_get_key_permissions
+from .scripts.method_specific.GET_retrieve_available_schema import GET_retrieve_available_schema
 
 
 
@@ -25,6 +24,181 @@ from django.conf import settings
 
 # Follow the basic CRUD (create, read, update, delete) paradigm.
 # A good description of each of these can be found at https://www.restapitutorial.com/lessons/httpmethods.html
+
+
+
+
+class BcoObjectsValidate(APIView):
+
+    # Description
+    # -----------
+
+    # Validate an object.
+
+    # POST
+
+    def post(self, request):
+        
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.
+            run_request = POST_validate_payload_against_schema(request['POST_validate_payload_against_schema'])
+
+            # Did the request run?
+            request_result['POST_validate_payload_against_schema'] = run_request
+        
+        else:
+
+            return checked
+
+
+class BcoObjectsCreate(APIView):
+
+    # Description
+    # -----------
+
+    # Create an object.
+
+    # POST
+
+    def post(self, request):
+
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.
+            run_request = POST_create_new_object(request['POST_create_new_object'])
+
+            # Did the request run?
+            request_result['POST_create_new_object'] = run_request
+        
+        else:
+
+            return checked
+
+
+class BcoObjectsRead(APIView):
+
+    # Description
+    # -----------
+
+    # Read an object.
+
+    # POST
+
+    def post(self, request):
+        
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.
+            run_request = POST_read_object(request.data['POST_read_object'])
+
+            # Did the request run?
+            checked = Response(run_request, status = status.HTTP_200_OK)
+        
+        else:
+
+            checked = Response(checked, status = status.HTTP_400_BAD_REQUEST)
+        
+        return checked
+
+
+class ApiDescription(APIView):
+
+    # Description
+    # -----------
+
+    # Describe what's on the API.
+
+    # GET
+
+    def get(self, request):
+
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.
+            run_request = POST_get_api_description(request['POST_get_api_description'])
+
+            # Did the request run?
+            request_result['POST_get_api_description'] = run_request
+        
+        else:
+        
+            return checked
+
+
+# class ApiAccountPermissions(APIView):
+
+#     # Description
+#     # -----------
+
+#     # Read an object.
+
+#     # POST
+
+#     def post(self, request):
+
+#         # Check the request.
+#         checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request)
+
+#         if checked is None:
+        
+#             # Pass the request to the handling function.
+#             run_request = POST_get_key_permissions(request['POST_get_key_permissions'])
+
+#             # Did the request run?
+#             request_result['POST_get_key_permissions'] = run_request
+        
+#         else:
+
+#             return checked
+
+
+class ObjectsById(APIView):
+
+    # Description
+    # -----------
+
+    # Read an object by URI.
+
+    # GET
+
+    def get(self, request):
+
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.
+            run_request = POST_get_key_permissions(request['POST_get_key_permissions'])
+
+            # Did the request run?
+            request_result['POST_get_key_permissions'] = run_request
+        
+        else:
+
+            return checked
+
+
+
+
+
+
+
+
+
 
 
 
