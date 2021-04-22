@@ -55,9 +55,11 @@ INSTALLED_APPS = [
     'reset_migrations'
 ]
 
+# Source: https://dzone.com/articles/how-to-fix-django-cors-error
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -71,6 +73,13 @@ REST_FRAMEWORK = {
         'api.permissions.HasUserAPIKey',
     ]
 }
+
+# Source: https://dzone.com/articles/how-to-fix-django-cors-error
+CORS_ORIGIN_ALL_ALL = False
+CORS_ORIGIN_WHITELIST = (
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
+)
 
 ROOT_URLCONF = 'bco_api.urls'
 
