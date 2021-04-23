@@ -17,11 +17,18 @@ import os
 from api.scripts import SettingsUtils
 
 # ALTERED
-# Load the settings file.
-settings_from_file = SettingsUtils.SettingsUtils().load_settings_file(file_path='./server.conf')
+# For importing configuration files.
+import configparser
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+
+
+# --- SECURITY SETTINGS --- #
+
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -33,15 +40,100 @@ SECRET_KEY = '$vz@#@^q(od&$rf&*6^z!m5nh6qw2*cq*j6fha#^h9(r7$xqy4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALTERED.
-ALLOWED_HOSTS = settings_from_file['HOSTNAMES']
+# Load the server config file.
+server_config = configparser.ConfigParser()
+server_config.read('./server.conf')
 
-# ALTERED - FIX LATER.
-HUMAN_READABLE_HOSTNAME = 'BCO Server (Default)'
+# The human-readable hostname.
+HUMAN_READABLE_HOSTNAME = server_config['HRHOSTNAME']['hrnames']
+
+# Source: https://dzone.com/articles/how-to-fix-django-cors-error
+
+# Check for open (public) access to the API.
+if(server_config['REQUESTS_FROM']['public'].strip() == 'false'):
+
+    # Process the requester groups.
+
+    # configparser automatically strips white space off the
+    # ends of arguments.
+    requesters = [server_config['REQUESTS_FROM'][i].strip() for i in server_config['REQUESTS_FROM']]
+    requesters.remove('false')
+    requesters = [i.split(',') for i in requesters]
+
+    # Flatten the list.
+    # Source: https://stackabuse.com/python-how-to-flatten-list-of-lists/
+    flattened = [item.strip() for sublist in requesters for item in sublist]
+    
+    ALLOWED_HOSTS = [i.strip() for i in server_config['HOSTNAMES']['names'].split(',')]
+    
+    CORS_ORIGIN_ALLOW_ALL = False
+    CORS_ORIGIN_WHITELIST = tuple(flattened)
+    
+elif(server_config['REQUESTS_FROM']['public'].strip() == 'true'):
+
+    ALLOWED_HOSTS = ['*']
+    CORS_ORIGIN_ALLOW_ALL = True
+
+# Note: requires the app name "api".
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'api.permissions.HasUserAPIKey',
+    ]
+}
+
+# Password validation
+# https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+
+
+# --- TABLES --- #
+
+
+
+
+table_config = configparser.ConfigParser()
+table_config.read('./tables.conf')
+
+# Process all the tables.
+
+# First get all the templates, splitting on the commas
+# and stripping the whitespace.
+templates = [i.strip() for i in table_config['MODEL_TEMPLATES']['templates'].split(',')]
+
+# Define a dictionary to hold the tables.
+TABLES = {}
+
+# For each template, get the tables.
+for template in templates:
+
+    # Define this key for tables.
+    TABLES[template.upper()] = [i.strip() for i in table_config[template.upper()]['tables'].split(',')]
+
+
+
+
+# --- APPLICATION --- #
+
+
 
 
 # Application definition
-#ALTERED
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -67,20 +159,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Note: requires the app name "api".
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'api.permissions.HasUserAPIKey',
-    ]
-}
-
-# Source: https://dzone.com/articles/how-to-fix-django-cors-error
-CORS_ORIGIN_ALL_ALL = False
-CORS_ORIGIN_WHITELIST = (
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
-)
-
 ROOT_URLCONF = 'bco_api.urls'
 
 TEMPLATES = [
@@ -101,7 +179,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bco_api.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
@@ -111,26 +188,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
@@ -152,7 +209,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
+
+
 # ----- CUSTOM VARIABLES AND METHODS ----- #
+
+
 
 
 # Load request and validation templates (definitions).
@@ -199,16 +260,8 @@ VALIDATION_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_pa
     'validation_definitions/': '.schema'
 }, mode = 'validations')
 
-# Make the object naming accessible.
-OBJECT_NAMING = settings_from_file['OBJECT_NAMING']
+# Make the object naming accessible as a dictionary.
+OBJECT_NAMING = {}
 
-
-
-
-# --- Permissions --- #
-
-
-
-
-
-
+for i in server_config['OBJECT_NAMING']:
+    OBJECT_NAMING[i] = server_config['OBJECT_NAMING'][i]

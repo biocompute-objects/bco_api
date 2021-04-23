@@ -8,6 +8,9 @@ from django.conf import settings
 # Utilities
 from . import FileUtils
 
+# For importing configuration files.
+import configparser
+
 # For getting the model.
 from django.apps import apps
 
@@ -22,43 +25,10 @@ class DbUtils:
     # -----------------
 
     # These methods are for interacting with our sqlite database.
-
-
-
-
-    # Load the settings file.
-    def load_settings_file(self, file_path):
-
-        # file_path: the file to read for settings.
-
-        # Because we don't know ahead of time how many tables
-        # there are, we read the configuration file TWICE,
-        # the first time to get the models, the second
-        # time to assign tables to the models.
-
-        models = FileUtils.FileUtils().read_conf_file(
-            file_location = file_path, 
-            keys = {
-                'MODEL_TEMPLATES': 'list'
-            }
-        )
-
-        # Make the keys based on these models.
-        derived_keys = {}
-
-        # Uppercase because that's how the sections are
-        # in the configuration file.
-        for i in models['MODEL_TEMPLATES']:
-            derived_keys[i.upper()] = 'list'
-        
-        return FileUtils.FileUtils().read_conf_file(
-            file_location = file_path, 
-            keys = derived_keys
-        )
     
 
 
-
+    
     # Checking whether or not an object exists.
     def check_object_id_exists(self, p_app_label, p_model_name, p_object_id):
 

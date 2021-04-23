@@ -25,9 +25,9 @@ class RequestUtils:
 
         import json
         print('REQUEST')
-        print(json.dumps(request, indent=4, sort_keys=True))
+        #print(json.dumps(request, indent=4, sort_keys=True))
         print('REQUEST_TEMPLATES')
-        print(json.dumps(request_templates, indent=4, sort_keys=True))
+        #print(json.dumps(request_templates, indent=4, sort_keys=True))
         print('========================')
 
         # Validate against the templates.

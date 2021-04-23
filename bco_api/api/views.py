@@ -25,6 +25,8 @@ from .scripts.method_specific.GET_retrieve_available_schema import GET_retrieve_
 # Follow the basic CRUD (create, read, update, delete) paradigm.
 # A good description of each of these can be found at https://www.restapitutorial.com/lessons/httpmethods.html
 
+# TODO: Abstract APIViews to generic viewer?
+
 
 
 
@@ -44,15 +46,22 @@ class BcoObjectsValidate(APIView):
 
         if checked is None:
         
-            # Pass the request to the handling function.
-            run_request = POST_validate_payload_against_schema(request['POST_validate_payload_against_schema'])
-
-            # Did the request run?
-            request_result['POST_validate_payload_against_schema'] = run_request
+            # Pass the request to the handling function.            
+            return(
+                Response(
+                    data = POST_create_new_object(request['POST_validate_payload_against_schema']), 
+                    status=status.HTTP_200_OK
+                )
+            )
         
         else:
 
-            return checked
+            return(
+                Response(
+                    data = checked,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            )
 
 
 class BcoObjectsCreate(APIView):
@@ -71,15 +80,22 @@ class BcoObjectsCreate(APIView):
 
         if checked is None:
         
-            # Pass the request to the handling function.
-            run_request = POST_create_new_object(request['POST_create_new_object'])
-
-            # Did the request run?
-            request_result['POST_create_new_object'] = run_request
+            # Pass the request to the handling function.            
+            return(
+                Response(
+                    data = POST_create_new_object(request['POST_create_new_object']),
+                    status=status.HTTP_200_OK
+                )
+            )
         
         else:
 
-            return checked
+            return(
+                Response(
+                    data = checked,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            )
 
 
 class BcoObjectsRead(APIView):
@@ -98,17 +114,22 @@ class BcoObjectsRead(APIView):
 
         if checked is None:
         
-            # Pass the request to the handling function.
-            run_request = POST_read_object(request.data['POST_read_object'])
-
-            # Did the request run?
-            checked = Response(run_request, status = status.HTTP_200_OK)
+            # Pass the request to the handling function.            
+            return(
+                Response(
+                    data = POST_create_new_object(request['POST_read_object']), 
+                    status=status.HTTP_200_OK
+                )
+            )
         
         else:
 
-            checked = Response(checked, status = status.HTTP_400_BAD_REQUEST)
-        
-        return checked
+            return(
+                Response(
+                    data = checked,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            )
 
 
 class ApiDescription(APIView):
@@ -127,15 +148,22 @@ class ApiDescription(APIView):
 
         if checked is None:
         
-            # Pass the request to the handling function.
-            run_request = POST_get_api_description(request['POST_get_api_description'])
-
-            # Did the request run?
-            request_result['POST_get_api_description'] = run_request
+            # Pass the request to the handling function.            
+            return(
+                Response(
+                    data = GET_create_new_object(request['GET_get_api_description']),
+                    status=status.HTTP_200_OK
+                )
+            )
         
         else:
         
-            return checked
+            return(
+                Response(
+                    data = checked,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            )
 
 
 # class ApiAccountPermissions(APIView):

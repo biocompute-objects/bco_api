@@ -109,11 +109,8 @@ class prefix_groups(models.Model):
 # Create referrable dict.
 models_dict = {}
 
-# Read the configuration file.
-db_settings_from_file = DbUtils.DbUtils().load_settings_file(file_path = './tables.conf')
-
 # Go through each template and create the associated table.
-for template, tables in db_settings_from_file.items():
+for template, tables in settings.TABLES.items():
 
 	# lower because the model names are lowercase.
 	lowered = template.lower()
