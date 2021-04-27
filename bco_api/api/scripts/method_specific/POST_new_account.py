@@ -19,6 +19,9 @@ import uuid
 from rest_framework.response import Response
 from rest_framework import status
 
+# For sending e-mails.
+from django.core.mail import send_mail
+
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
@@ -71,6 +74,17 @@ def POST_new_account(bulk_request):
 				}
 			)
 
+			# Send an e-mail to let the requester know that they
+			# need to follow the activation link.
+			# send_mail(
+			# 	'Test subject',
+			# 	'Here is the message.',
+			# 	'carmstrong1@gwu.edu',
+			# 	['chrisarmstrong151@gmail.com'],
+			# 	fail_silently=False,
+			# )
+
+			# TODO: put timestamp when will expire?
 			return(
 				Response(
 					status = status.HTTP_201_CREATED

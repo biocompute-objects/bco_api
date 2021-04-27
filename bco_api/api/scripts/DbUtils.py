@@ -20,6 +20,12 @@ from django.apps import apps
 # For checking for users.
 from django.contrib.auth.models import User
 
+# For user IDs.
+import random
+
+# For user passwords.
+import uuid
+
 # For writing objects to the database.
 from ..serializers import getGenericSerializer
 
@@ -144,24 +150,48 @@ class DbUtils:
     def activate_account(self, p_email):
 
         # Activation means creating an entry in User.
-        
+
+        # To comply with GDPR, we can't keep an e-mail
+        # directly.  So, split off the username part
+        # of the e-mail and assign a random number.
+        valid_username = False
+
+        while valid_username == False:
+            
+            new_username = p_email.split('@')[0] + str(random.randrange(1, 100))
+
+            # Does this username exist (not likely)?
+            if User.objects.filter(username = new_username):
+                
+                valid_username = False
+            
+            else:
+
+                valid_username = True
+
         # Serialize our data.
         serializer = getGenericSerializer(
             incoming_model = User, 
-            incoming_fields = ['username']
+            incoming_fields = ['username', 'password']
         )
+        
+        # Serialize and write the new username and password
+        # to the user model.
+
+        # The password is also randomly generated.
+        new_password = uuid.uuid4().hex
 
         serialized = serializer(
             data = {
-                'username': p_email
+                'username': new_username,
+                'password': new_password
             }
         )
 
+        print('SERIALIZER VALID')
         print(serialized.is_valid())
         print(serialized.errors)
-
-        print('p_email')
-        print(p_email)
+        print('^^^^^^^^^^^^^^^^^^^^^^')
 
         # Write a new object.
         if(serialized.is_valid()):
@@ -179,6 +209,8 @@ class DbUtils:
             # their account.
 
             # ...
+            # new_username
+            # new_password
             # email has form http://hostname/username/temp_identifier...
         
         else:
