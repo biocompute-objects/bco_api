@@ -16,6 +16,11 @@
             "description": "Return the permissions associated with an API key.",
             "$ref": "request_definitions/templates/POST_get_key_permissions.schema"
         },
+        "POST_new_account":
+        {
+            "description": "Ask for a new account on the API.",
+            "$ref": "request_definitions/templates/POST_new_account.schema"
+        },
         "POST_read_object":
         {
             "description": "The template for reading a(n) object(s).",

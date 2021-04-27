@@ -74,10 +74,18 @@ elif(server_config['REQUESTS_FROM']['public'].strip() == 'true'):
     ALLOWED_HOSTS = ['*']
     CORS_ORIGIN_ALLOW_ALL = True
 
+# Use the built-in REST framework.
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#setting-the-authentication-scheme
+# Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
+
 # Note: requires the app name "api".
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication'
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
         'api.permissions.HasUserAPIKey',
+        'rest_framework.permissions.IsAuthenticated'
     ]
 }
 
@@ -134,6 +142,10 @@ for template in templates:
 
 
 # Application definition
+
+# Token-based authentication.
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -142,6 +154,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_api_key',
     'api',
     'reset_migrations'
@@ -194,7 +207,7 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en-us'
 # ALTERED
-TIME_ZONE = 'EST'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 

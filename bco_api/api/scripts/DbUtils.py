@@ -8,11 +8,17 @@ from django.conf import settings
 # Utilities
 from . import FileUtils
 
+# For checking datetimes
+import datetime
+
 # For importing configuration files.
 import configparser
 
 # For getting the model.
 from django.apps import apps
+
+# For checking for users.
+from django.contrib.auth.models import User
 
 # For writing objects to the database.
 from ..serializers import getGenericSerializer
@@ -28,6 +34,8 @@ class DbUtils:
     
 
 
+    # TODO: collapse checks for existence into one function.
+    
     
     # Checking whether or not an object exists.
     def check_object_id_exists(self, p_app_label, p_model_name, p_object_id):
@@ -47,6 +55,138 @@ class DbUtils:
             return 1
     
 
+
+    # Checking whether or not a user exists.
+    def check_user_exists(self, p_app_label, p_model_name, p_email):
+
+        # Simple existence check.
+        # Source: https://stackoverflow.com/a/9089028
+        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+        
+        if apps.get_model(
+                app_label = p_app_label, 
+                model_name = p_model_name
+            ).objects.filter(
+                email = p_email
+            ).exists():
+
+            return 1
+
+        else:
+
+            return None
+    
+
+
+
+    # Checking whether or not a user exists and their 
+    # temp identifier matches.
+    def check_activation_credentials(self, p_app_label, p_model_name, p_email, p_temp_identifier):
+
+        # Simple existence check.
+        # Source: https://stackoverflow.com/a/9089028
+        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+
+        print('##################################')
+        print('p_email')
+        print(p_email)
+        print('p_temp_identifier')
+        print(p_temp_identifier)
+        
+        user_info = apps.get_model(
+            app_label = p_app_label, 
+            model_name = p_model_name
+        ).objects.filter(
+            email = p_email,
+            temp_identifier = p_temp_identifier
+        )
+
+        print('user_info')
+        print(user_info)
+        print('+++++++++++++++++')
+        
+        if user_info.exists():
+
+            # The credentials exist, but is the request timely?
+            # Source: https://stackoverflow.com/a/7503368
+            
+            # Take the time and add 10 minutes.
+            time_check = list(user_info.values_list('created', flat = True))[0]
+            
+            # Source: https://www.kite.com/python/answers/how-to-add-hours-to-the-current-time-in-python
+            time_check = time_check + datetime.timedelta(minutes = 10)
+
+            # Crappy timezone problems.
+            # Source: https://stackoverflow.com/a/25662061
+
+            # Is the time now less than the time check?
+            if datetime.datetime.now(datetime.timezone.utc) < time_check:
+
+                # We can return that this user is OK to be activated.
+                return 1
+            
+            else:
+
+                # The time stamp has expired, so delete
+                # the entry in new_users.
+                user_info.delete()
+
+                # We can't activate this user.
+                return None
+
+        else:
+
+            return None
+    
+
+
+
+    def activate_account(self, p_email):
+
+        # Activation means creating an entry in User.
+        
+        # Serialize our data.
+        serializer = getGenericSerializer(
+            incoming_model = User, 
+            incoming_fields = ['username']
+        )
+
+        serialized = serializer(
+            data = {
+                'username': p_email
+            }
+        )
+
+        print(serialized.is_valid())
+        print(serialized.errors)
+
+        print('p_email')
+        print(p_email)
+
+        # Write a new object.
+        if(serialized.is_valid()):
+            serialized.save()
+
+            # Delete the record in the temporary table.
+            apps.get_model(
+                app_label = 'api', 
+                model_name = 'new_users'
+            ).objects.filter(
+                email = p_email
+            ).delete()
+            
+            # Send the e-mail to the user so that they can activate
+            # their account.
+
+            # ...
+            # email has form http://hostname/username/temp_identifier...
+        
+        else:
+
+            # Return a false result.
+            return False
+
+    
 
 
     # Messages associated with results.
@@ -99,17 +239,24 @@ class DbUtils:
 
         # Source: https://docs.djangoproject.com/en/3.1/topics/db/queries/#topics-db-queries-update
         
+        print(p_app_label)
+        print(p_model_name)
+        print(p_fields)
+        print(p_data)
         # Serialize our data.
         serializer = getGenericSerializer(
             incoming_model = apps.get_model(
                 app_label = p_app_label, 
-                model_name = p_model_name), 
+                model_name = p_model_name
+            ), 
             incoming_fields = p_fields
         )
 
         serialized = serializer(
             data = p_data
         )
+        print(serialized.is_valid())
+        print(serialized.errors)
 
         # Save (update) it.
         if p_update is False:

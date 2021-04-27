@@ -10,11 +10,21 @@ from rest_framework import status
 from .scripts import RequestUtils
 
 # Request-specific methods
-from .scripts.method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
+from .scripts.method_specific.GET_activate_account import GET_activate_account
 from .scripts.method_specific.POST_create_new_object import POST_create_new_object
+from .scripts.method_specific.POST_new_account import POST_new_account
 from .scripts.method_specific.POST_read_object import POST_read_object
+from .scripts.method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
 # from .scripts.method_specific.POST_get_key_permissions import POST_get_key_permissions
 from .scripts.method_specific.GET_retrieve_available_schema import GET_retrieve_available_schema
+
+# Token-based authentication.
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+
+# By-view permissions.
+from rest_framework.permissions import AllowAny
 
 
 
@@ -26,6 +36,31 @@ from .scripts.method_specific.GET_retrieve_available_schema import GET_retrieve_
 # A good description of each of these can be found at https://www.restapitutorial.com/lessons/httpmethods.html
 
 # TODO: Abstract APIViews to generic viewer?
+
+
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
+class CustomAuthToken(ObtainAuthToken):
+
+    def post(self, request, *args, **kwargs):
+        
+        serializer = self.serializer_class(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.validated_data['user']
+
+        # No token creation as the user has to specifically
+        # confirm their account before a token is created
+        # for them.
+        token, created = Token.objects.get(user=user)
+
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'email': user.email
+        })
 
 
 
@@ -166,6 +201,88 @@ class ApiDescription(APIView):
             )
 
 
+class NewAccount(APIView):
+
+    # Description
+    # -----------
+
+    # Ask for a new account.  Sends an e-mail to
+    # the provided e-mail, which must then be clicked
+    # to activate the account.
+
+    # POST
+
+    # Anyone can ask for a new account.
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+
+        print('+++++')
+        print(request.data)
+        print('+++++')
+
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.            
+            return(
+                POST_new_account(request.data)
+            )
+        
+        else:
+        
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+class ActivateAccount(APIView):
+
+    # Description
+    # -----------
+
+    # Activate an account.
+
+    # GET
+
+    # Anyone can ask to activate an new account.
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, username, temp_identifier):
+
+        print('+++++')
+        print(request.data)
+        print('+++++')
+
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request.data)
+
+        print(checked)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.            
+            return(
+                GET_activate_account(username = username, temp_identifier = temp_identifier)
+            )
+        
+        else:
+        
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
 # class ApiAccountPermissions(APIView):
 
 #     # Description
@@ -192,7 +309,8 @@ class ApiDescription(APIView):
 
 #             return checked
 
-
+# Allow anyone to view published objects.
+# Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 class ObjectsById(APIView):
 
     # Description
@@ -202,22 +320,34 @@ class ObjectsById(APIView):
 
     # GET
 
-    def get(self, request):
+    # Anyone can view a published object.
+    authentication_classes = []
+    permission_classes = []
 
+    def get(self, request, object_id_root, object_id_version):
+        
         # Check the request.
         checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request)
 
         if checked is None:
         
-            # Pass the request to the handling function.
-            run_request = POST_get_key_permissions(request['POST_get_key_permissions'])
+            # TODO: to be implemented...
 
-            # Did the request run?
-            request_result['POST_get_key_permissions'] = run_request
+            return(
+                Response(
+                    data = 'test',
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
         
         else:
 
-            return checked
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
 
 
 
