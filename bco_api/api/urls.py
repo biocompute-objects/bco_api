@@ -7,14 +7,14 @@ from .views import BcoObjectsCreate, BcoObjectsRead, ApiDescription, ObjectsById
 # Validate an object.
 # (POST) bco/objects/validate/
 
+# Describe what's available on this API.
+# (GET) api/description/
+
 # Create an object.
 # (POST) bco/objects/create/
 
 # Read an object.
 # (POST) bco/objects/read/
-
-# Describe what's available on this API.
-# (GET) api/description/
 
 # Describe the permissions associated with an API key.
 # (POST) api/account/permissions/

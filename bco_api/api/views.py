@@ -23,8 +23,16 @@ from .scripts.method_specific.GET_retrieve_available_schema import GET_retrieve_
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
+# For pulling the user ID directly (see below for
+# the note on the documentation error in django-rest-framework).
+from django.contrib.auth.models import User, Group, Permission
+
+# For returning server information.
+from django.conf import settings
+
 # By-view permissions.
-from rest_framework.permissions import AllowAny
+# from rest_framework.permissions import AllowAny
+from rest_framework_api_key.permissions import HasAPIKey
 
 
 
@@ -41,25 +49,68 @@ from rest_framework.permissions import AllowAny
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 class CustomAuthToken(ObtainAuthToken):
 
+    # TODO: Fix
+    permission_classes = [HasAPIKey]
+    # ---------
+    
     def post(self, request, *args, **kwargs):
         
+        # Note that we don't need to do any password processing
+        # in the entirety of this function as this is done by ObtainAuthToken.
+
+        # Note that if we try to use request.user we will get an instance
+        # of AnonymousUser.
+                
         serializer = self.serializer_class(
             data=request.data,
             context={'request': request}
         )
+        
         serializer.is_valid(raise_exception=True)
 
-        user = serializer.validated_data['user']
+        # Slight error the the django-rest-framework documentation
+        # as we need the user id and not the username.
+        # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+        username = serializer.validated_data['username']
+        user_id = User.objects.get(username = username).pk
 
         # No token creation as the user has to specifically
         # confirm their account before a token is created
         # for them.
-        token, created = Token.objects.get(user=user)
+        token = Token.objects.get(user = user_id)
 
+        # Get the other information for this user.
+        # Source: https://stackoverflow.com/a/48592813
+        other_info = {
+            'group_permissions': [],
+            'account_creation': '',
+            'account_expiration': ''
+        }
+
+        # TODO: put in account expiration date, key expiration date etc...
+
+        # First, get the django-native User object.
+        user = User.objects.get(username=username)
+        
+        # Group permissions.
+        # Source: https://docs.djangoproject.com/en/3.0/ref/contrib/auth/#django.contrib.auth.models.User.get_group_permissions
+        group_permissions = User.get_group_permissions(user)
+
+        # Need to process the permissions to be readable.
+        for gp in list(group_permissions):
+            ' '.join(gp.split('.')[1].split('_'))
+            other_info['group_permissions'].append(' '.join(gp.split('.')[1].split('_')))
+        
+        # Account created.
+        other_info['account_created'] = user.date_joined
+            
+        # TODO: Fix hostname settings in settings.py?
         return Response({
+            'hostname': settings.ALLOWED_HOSTS[0],
+            'human_readable_hostname': settings.HUMAN_READABLE_HOSTNAME,
             'token': token.key,
-            'user_id': user.pk,
-            'email': user.email
+            'username': username,
+            'other_info': other_info
         })
 
 
@@ -99,6 +150,8 @@ class BcoObjectsValidate(APIView):
             )
 
 
+
+
 class BcoObjectsCreate(APIView):
 
     # Description
@@ -131,6 +184,8 @@ class BcoObjectsCreate(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             )
+
+
 
 
 class BcoObjectsRead(APIView):
@@ -167,6 +222,8 @@ class BcoObjectsRead(APIView):
             )
 
 
+
+
 class ApiDescription(APIView):
 
     # Description
@@ -199,6 +256,8 @@ class ApiDescription(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             )
+
+
 
 
 class NewAccount(APIView):
@@ -240,6 +299,8 @@ class NewAccount(APIView):
                     status = status.HTTP_400_BAD_REQUEST
                 )
             )
+
+
 
 
 class ActivateAccount(APIView):
@@ -309,6 +370,9 @@ class ActivateAccount(APIView):
 
 #             return checked
 
+
+
+
 # Allow anyone to view published objects.
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 class ObjectsById(APIView):
@@ -355,107 +419,107 @@ class ObjectsById(APIView):
 
 
 
+# ----- OLD ----- #
 
 
 
 
 
+# class BcoPostObject(APIView):
 
-class BcoPostObject(APIView):
 
+#     # Description
+#     # -----------
 
-    # Description
-    # -----------
+#     # This view only allows creating.
 
-    # This view only allows creating.
+#     # -------- CRUD OPERATIONS ------- #
 
-    # -------- CRUD OPERATIONS ------- #
-
-    # For creating.
-    def post(self, request):
+#     # For creating.
+#     def post(self, request):
         
-        # Did we get a request with valid templates?
-        valid_template = RequestUtils.RequestUtils().check_request_templates(
-            method='POST', 
-            request=request.data
-        )
+#         # Did we get a request with valid templates?
+#         valid_template = RequestUtils.RequestUtils().check_request_templates(
+#             method='POST', 
+#             request=request.data
+#         )
 
-        # If we didn't get a request with valid templates, return an error.
-        if valid_template is not None:
-            return Response(
-                'POST request did not consist of valid templates.  See output below...' + valid_template, status=status.HTTP_400_BAD_REQUEST
-            )
-        else:
+#         # If we didn't get a request with valid templates, return an error.
+#         if valid_template is not None:
+#             return Response(
+#                 'POST request did not consist of valid templates.  See output below...' + valid_template, status=status.HTTP_400_BAD_REQUEST
+#             )
+#         else:
 
-            # Pass the request to be processed template-by-template.
-            processed = RequestUtils.RequestUtils().process_request_templates(
-                method='POST', 
-                request=request.data
-            )
-            print(processed)
-            return Response(processed, status = status.HTTP_200_OK)
-
-
+#             # Pass the request to be processed template-by-template.
+#             processed = RequestUtils.RequestUtils().process_request_templates(
+#                 method='POST', 
+#                 request=request.data
+#             )
+#             print(processed)
+#             return Response(processed, status = status.HTTP_200_OK)
 
 
-class BcoGetObject(APIView):
 
 
-    # Description
-    # -----------
-
-    # This view only allows reading.
-
-    # For our server, GET requests are tied to specific, constant things
-    # on the server.  More complex requests and requests of arbitrary
-    # length are treated in the POST section.
-
-    # Instead of writing a bunch of different API views, we just
-    # parse the URI and write actions for each URI.  This somewhat
-    # re-invents the wheel relative to how django works but
-    # allows for more compact code and easier bug tracing.
-
-    # In a sense, GET is used as a "meta" function of the server,
-    # describing what is available on the server for the user
-    # to interact with.
-
-    # There is only one action per GET request, as opposed to
-    # the possiblity of multiple actions with a POST request.
+# class BcoGetObject(APIView):
 
 
-    # -------- CRUD Operations ------- #
+#     # Description
+#     # -----------
 
-    # For creating.
-    def get(self, request):
+#     # This view only allows reading.
 
-        # Define functions based on the uri.
+#     # For our server, GET requests are tied to specific, constant things
+#     # on the server.  More complex requests and requests of arbitrary
+#     # length are treated in the POST section.
 
-        # Source: https://stackoverflow.com/questions/26989078/how-to-get-full-url-from-django-request
+#     # Instead of writing a bunch of different API views, we just
+#     # parse the URI and write actions for each URI.  This somewhat
+#     # re-invents the wheel relative to how django works but
+#     # allows for more compact code and easier bug tracing.
 
-        # We don't need to check templates at all because this same
-        # functionality exists at the level above this where django
-        # checks for valid URIs.  Thus, we can tie URIs directly
-        # to functions.
+#     # In a sense, GET is used as a "meta" function of the server,
+#     # describing what is available on the server for the user
+#     # to interact with.
 
-        uri_actions = {'/api/description/validations/schema': {
-            'GET_retrieve_available_schema': {}
-            }
-        }
-
-        # Pass the request to be processed.
-        processed = RequestUtils.RequestUtils().process_request_templates(
-            method='GET', 
-            request=uri_actions[request.META.get('PATH_INFO', None)]
-        )
-
-        import json
-        print(json.dumps(processed, indent=4))
-        return Response(processed, status=status.HTTP_200_OK)
+#     # There is only one action per GET request, as opposed to
+#     # the possiblity of multiple actions with a POST request.
 
 
-# TODO: Only put a patch method in if requested in a future version.
-# class BcoPatchObject(APIView)
+#     # -------- CRUD Operations ------- #
+
+#     # For creating.
+#     def get(self, request):
+
+#         # Define functions based on the uri.
+
+#         # Source: https://stackoverflow.com/questions/26989078/how-to-get-full-url-from-django-request
+
+#         # We don't need to check templates at all because this same
+#         # functionality exists at the level above this where django
+#         # checks for valid URIs.  Thus, we can tie URIs directly
+#         # to functions.
+
+#         uri_actions = {'/api/description/validations/schema': {
+#             'GET_retrieve_available_schema': {}
+#             }
+#         }
+
+#         # Pass the request to be processed.
+#         processed = RequestUtils.RequestUtils().process_request_templates(
+#             method='GET', 
+#             request=uri_actions[request.META.get('PATH_INFO', None)]
+#         )
+
+#         import json
+#         print(json.dumps(processed, indent=4))
+#         return Response(processed, status=status.HTTP_200_OK)
 
 
-# TODO: Only put in a delete method in if requested in a future version.
-# class BcoDeleteObject(APIView)
+# # TODO: Only put a patch method in if requested in a future version.
+# # class BcoPatchObject(APIView)
+
+
+# # TODO: Only put in a delete method in if requested in a future version.
+# # class BcoDeleteObject(APIView)

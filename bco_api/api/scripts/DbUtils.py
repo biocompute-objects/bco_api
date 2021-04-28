@@ -169,54 +169,47 @@ class DbUtils:
 
                 valid_username = True
 
-        # Serialize our data.
-        serializer = getGenericSerializer(
-            incoming_model = User, 
-            incoming_fields = ['username', 'password']
-        )
-        
-        # Serialize and write the new username and password
-        # to the user model.
+        # We can't use the generic serializer here because of how
+        # django processes passwords.
+        # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#changing-passwords
 
         # The password is also randomly generated.
         new_password = uuid.uuid4().hex
 
-        serialized = serializer(
-            data = {
-                'username': new_username,
-                'password': new_password
-            }
-        )
+        # Save the user.
+        # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#creating-users
 
-        print('SERIALIZER VALID')
-        print(serialized.is_valid())
-        print(serialized.errors)
+        user = User.objects.create_user(new_username)
+
+        # Setting the password has to be done manually in 
+        # order to encrypt it.
+        # Source: https://stackoverflow.com/a/39211961
+        # Source: https://stackoverflow.com/questions/28347200/django-rest-http-400-error-on-getting-token-authentication-view
+        user.set_password(new_password)
+
+        # Save the user.
+        user.save()
+        
+        print('USER INFORMATION')
+        print(new_username)
+        print(new_password)
         print('^^^^^^^^^^^^^^^^^^^^^^')
 
-        # Write a new object.
-        if(serialized.is_valid()):
-            serialized.save()
-
-            # Delete the record in the temporary table.
-            apps.get_model(
-                app_label = 'api', 
-                model_name = 'new_users'
-            ).objects.filter(
-                email = p_email
-            ).delete()
-            
-            # Send the e-mail to the user so that they can activate
-            # their account.
-
-            # ...
-            # new_username
-            # new_password
-            # email has form http://hostname/username/temp_identifier...
+        # Delete the record in the temporary table.
+        apps.get_model(
+            app_label = 'api', 
+            model_name = 'new_users'
+        ).objects.filter(
+            email = p_email
+        ).delete()
         
-        else:
+        # Send the e-mail to the user so that they can activate
+        # their account.
 
-            # Return a false result.
-            return False
+        # ...
+        # new_username
+        # new_password
+        # email has form http://hostname/username/temp_identifier...
 
     
 
