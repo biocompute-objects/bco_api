@@ -1,0 +1,13 @@
+[Unit]
+Description=BCO API gunicorn daemon
+Requires=bco_api.socket
+After=network.target
+
+[Service]
+User=beta_portal_user
+Group=nginx
+WorkingDirectory=/home/beta_portal_user/bco_api/bco_api/
+ExecStart=/home/beta_portal_user/bco_api/env/bin/gunicorn --access-logfile - --workers 3 --bind unix:/var/www/bco_api.sock bco_api.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
