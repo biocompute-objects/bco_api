@@ -1,0 +1,8 @@
+[Unit]
+Description=gunicorn socket
+
+[Socket]
+ListenStream=/var/run/bco_api.sock
+
+[Install]
+WantedBy=sockets.target
