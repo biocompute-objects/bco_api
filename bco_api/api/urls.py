@@ -1,17 +1,20 @@
 from django.urls import path
-from .views import BcoObjectsCreate, BcoObjectsRead, ApiDescription, ObjectsById
+from .views import BcoObjectsCreate, BcoObjectsRead, ApiDescription, ObjectsById, CustomAuthToken, NewAccount, ActivateAccount
+
+# Token-based authentication.
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 
 # Validate an object.
 # (POST) bco/objects/validate/
+
+# Describe what's available on this API.
+# (GET) api/description/
 
 # Create an object.
 # (POST) bco/objects/create/
 
 # Read an object.
 # (POST) bco/objects/read/
-
-# Describe what's available on this API.
-# (GET) api/description/
 
 # Describe the permissions associated with an API key.
 # (POST) api/account/permissions/
@@ -20,9 +23,12 @@ from .views import BcoObjectsCreate, BcoObjectsRead, ApiDescription, ObjectsById
 # (GET) <str:object_id_root>/<str:object_id_version>
 
 urlpatterns = [
+    path('accounts/activate/<str:username>/<str:temp_identifier>', ActivateAccount.as_view()),
+    path('accounts/describe/', CustomAuthToken.as_view()),
+    path('accounts/new/', NewAccount.as_view()),
+    path('api/description/', ApiDescription.as_view()),  
     path('bco/objects/create/', BcoObjectsCreate.as_view()),
     path('bco/objects/read/', BcoObjectsRead.as_view()),
-    path('api/description/', ApiDescription.as_view()),
     path('<str:object_id_root>/<str:object_id_version>', ObjectsById.as_view())
 ]
 

@@ -24,6 +24,14 @@ from django.contrib.auth.models import Group, User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+# For token creation.
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+from rest_framework.authtoken.models import Token
+
+# Issue with timezones.
+# Source: https://stackoverflow.com/a/32411560
+from django.utils import timezone
+
 
 # Generic JSON model
 class json_object(models.Model):
@@ -92,6 +100,26 @@ class prefix_groups(models.Model):
 	group_owner = models.CharField(max_length = 1000)
 
 
+# For registering new users.
+class new_users(models.Model):
+
+	# Instead of using the User model, just use
+	# a crude table to store the temporary information
+	# when someone asks for a new account.
+
+	email = models.EmailField()
+
+	# TODO: hash field in future?
+	temp_identifier = models.TextField(max_length = 100)
+
+	# In case we are writing back to user db.
+	token = models.TextField(blank = True, null = True)
+
+	# Issue with time zone, so implement the fix.
+	# Source: https://stackoverflow.com/a/32411560
+	created = models.DateTimeField(default = timezone.now)
+
+
 # Link prefixes to tables
 # class prefix_tables(models.Model):
 
@@ -109,11 +137,8 @@ class prefix_groups(models.Model):
 # Create referrable dict.
 models_dict = {}
 
-# Read the configuration file.
-db_settings_from_file = DbUtils.DbUtils().load_settings_file(file_path = './tables.conf')
-
 # Go through each template and create the associated table.
-for template, tables in db_settings_from_file.items():
+for template, tables in settings.TABLES.items():
 
 	# lower because the model names are lowercase.
 	lowered = template.lower()
@@ -160,7 +185,7 @@ settings.MODELS = models_dict
 # 		return self.user.username
 
 # Link user creation to groups.
-@receiver(post_save, sender=User)
+@receiver(post_save, sender = User)
 def associate_user_group(sender, instance, created, **kwargs):
 	
 	if created:
@@ -170,6 +195,17 @@ def associate_user_group(sender, instance, created, **kwargs):
 		Group.objects.create(name = instance)
 		group = Group.objects.get(name = instance)
 		group.user_set.add(instance)
+
+# Link user creation to token generation.
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+
+# TODO: user settings.AUTH_USER_MODEL?
+
+@receiver(post_save, sender = User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+
+	if created:
+		Token.objects.create(user=instance)
 
 
 # If we want a separate API users table.

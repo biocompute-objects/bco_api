@@ -8,11 +8,31 @@ from django.conf import settings
 # Utilities
 from . import FileUtils
 
+# For checking datetimes
+import datetime
+
+# For importing configuration files.
+import configparser
+
 # For getting the model.
 from django.apps import apps
 
+# For checking for users.
+from django.contrib.auth.models import User
+
+# For user IDs.
+import random
+
+# For user passwords.
+import uuid
+
 # For writing objects to the database.
 from ..serializers import getGenericSerializer
+
+# (OPTIONAL) For sending user information to userdb.
+from . import UserUtils
+import requests
+import json
 
 
 class DbUtils:
@@ -22,43 +42,12 @@ class DbUtils:
     # -----------------
 
     # These methods are for interacting with our sqlite database.
-
-
-
-
-    # Load the settings file.
-    def load_settings_file(self, file_path):
-
-        # file_path: the file to read for settings.
-
-        # Because we don't know ahead of time how many tables
-        # there are, we read the configuration file TWICE,
-        # the first time to get the models, the second
-        # time to assign tables to the models.
-
-        models = FileUtils.FileUtils().read_conf_file(
-            file_location = file_path, 
-            keys = {
-                'MODEL_TEMPLATES': 'list'
-            }
-        )
-
-        # Make the keys based on these models.
-        derived_keys = {}
-
-        # Uppercase because that's how the sections are
-        # in the configuration file.
-        for i in models['MODEL_TEMPLATES']:
-            derived_keys[i.upper()] = 'list'
-        
-        return FileUtils.FileUtils().read_conf_file(
-            file_location = file_path, 
-            keys = derived_keys
-        )
     
 
 
-
+    # TODO: collapse checks for existence into one function.
+    
+    
     # Checking whether or not an object exists.
     def check_object_id_exists(self, p_app_label, p_model_name, p_object_id):
 
@@ -77,6 +66,203 @@ class DbUtils:
             return 1
     
 
+
+    # Checking whether or not a user exists.
+    def check_user_exists(self, p_app_label, p_model_name, p_email):
+
+        # Simple existence check.
+        # Source: https://stackoverflow.com/a/9089028
+        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+        
+        if apps.get_model(
+                app_label = p_app_label, 
+                model_name = p_model_name
+            ).objects.filter(
+                email = p_email
+            ).exists():
+
+            return 1
+
+        else:
+
+            return None
+    
+
+
+
+    # Checking whether or not a user exists and their 
+    # temp identifier matches.
+    def check_activation_credentials(self, p_app_label, p_model_name, p_email, p_temp_identifier):
+
+        # Simple existence check.
+        # Source: https://stackoverflow.com/a/9089028
+        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+
+        print('##################################')
+        print('p_email')
+        print(p_email)
+        print('p_temp_identifier')
+        print(p_temp_identifier)
+        
+        user_info = apps.get_model(
+            app_label = p_app_label, 
+            model_name = p_model_name
+        ).objects.filter(
+            email = p_email,
+            temp_identifier = p_temp_identifier
+        )
+
+        print('user_info')
+        print(user_info)
+        print('+++++++++++++++++')
+        
+        if user_info.exists():
+
+            # The credentials exist, but is the request timely?
+            # Source: https://stackoverflow.com/a/7503368
+            
+            # Take the time and add 10 minutes.
+            time_check = list(user_info.values_list('created', flat = True))[0]
+            
+            # Source: https://www.kite.com/python/answers/how-to-add-hours-to-the-current-time-in-python
+            time_check = time_check + datetime.timedelta(minutes = 10)
+
+            # Crappy timezone problems.
+            # Source: https://stackoverflow.com/a/25662061
+
+            # Is the time now less than the time check?
+            if datetime.datetime.now(datetime.timezone.utc) < time_check:
+
+                # We can return that this user is OK to be activated.
+                return 1
+            
+            else:
+
+                # The time stamp has expired, so delete
+                # the entry in new_users.
+                user_info.delete()
+
+                # We can't activate this user.
+                return None
+
+        else:
+
+            return None
+    
+
+
+
+    def activate_account(self, p_email):
+
+        # Activation means creating an entry in User.
+
+        # To comply with GDPR, we can't keep an e-mail
+        # directly.  So, split off the username part
+        # of the e-mail and assign a random number.
+        valid_username = False
+
+        while valid_username == False:
+            
+            new_username = p_email.split('@')[0] + str(random.randrange(1, 100))
+
+            # Does this username exist (not likely)?
+            if User.objects.filter(username = new_username):
+                
+                valid_username = False
+            
+            else:
+
+                valid_username = True
+
+        # We can't use the generic serializer here because of how
+        # django processes passwords.
+        # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#changing-passwords
+
+        # The password is also randomly generated.
+        new_password = uuid.uuid4().hex
+
+        # Save the user.
+        # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#creating-users
+
+        user = User.objects.create_user(new_username)
+
+        # Setting the password has to be done manually in 
+        # order to encrypt it.
+        # Source: https://stackoverflow.com/a/39211961
+        # Source: https://stackoverflow.com/questions/28347200/django-rest-http-400-error-on-getting-token-authentication-view
+        user.set_password(new_password)
+
+        # Save the user.
+        user.save()
+        
+        print('USER INFORMATION')
+        print(new_username)
+        print(new_password)
+        print('^^^^^^^^^^^^^^^^^^^^^^')
+
+        # (OPTIONAL) Make a request to userdb on the portal so that
+        # the user's information can be stored there.
+
+        # If a token was provided with the initial request,
+        # use it to make the update call to userdb.
+
+        token = apps.get_model(
+            app_label = 'api', 
+            model_name = 'new_users'
+        ).objects.get(
+            email = p_email
+        ).token
+
+        if token is not None:
+
+            print('++++++++++++++++ TOKEN PROVIDED ++++++++++++++++')
+            
+            # TODO: Update userdb so that the security is stronger here.
+            
+            # Send the new information to userdb.
+
+            # Get the user's information from the database.
+            uu = UserUtils.UserUtils()
+
+            print('$$$$$$$$$$$$$ token_send $$$$$$$$$$$$$$$')
+            print(token)
+
+            # Set the headers.
+            # Source: https://docs.python-requests.org/en/master/user/quickstart/#custom-headers
+            headers = {
+                'Authorization': 'JWT ' + token,
+                'Content-type': 'application/json; charset=UTF-8'
+            }
+
+            print('HEADERS')
+            print(headers)
+            print('DATA')
+            print(json.dumps(uu.get_user_info(username = new_username), default = str))
+
+            # Set the data properly.
+            # Source: https://stackoverflow.com/a/56562567
+            r = requests.post(
+                data = json.dumps(uu.get_user_info(username = new_username), default = str),
+                headers = headers,
+                url = 'http://127.0.0.1:8080/core/add_api/'
+            )
+
+            print('R')
+            print(r)
+        
+        # Delete the record in the temporary table.
+        apps.get_model(
+            app_label = 'api', 
+            model_name = 'new_users'
+        ).objects.filter(
+            email = p_email
+        ).delete()
+
+        # ...
+        # new_username
+        # new_password
+
+    
 
 
     # Messages associated with results.
@@ -129,17 +315,24 @@ class DbUtils:
 
         # Source: https://docs.djangoproject.com/en/3.1/topics/db/queries/#topics-db-queries-update
         
+        print(p_app_label)
+        print(p_model_name)
+        print(p_fields)
+        print(p_data)
         # Serialize our data.
         serializer = getGenericSerializer(
             incoming_model = apps.get_model(
                 app_label = p_app_label, 
-                model_name = p_model_name), 
+                model_name = p_model_name
+            ), 
             incoming_fields = p_fields
         )
 
         serialized = serializer(
             data = p_data
         )
+        print(serialized.is_valid())
+        print(serialized.errors)
 
         # Save (update) it.
         if p_update is False:

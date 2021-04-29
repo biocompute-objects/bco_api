@@ -6,6 +6,11 @@
     "type": "object",
     "properties":
     {
+        "GET_activate_account":
+        {
+            "description": "Activate a previously requested account.",
+            "$ref": "request_definitions/templates/GET_activate_account.schema"
+        },
         "GET_retrieve_available_schema":
         {
             "description": "The template for seeing what schema are available on the server to validate against.",

@@ -16,21 +16,21 @@ class SettingsUtils:
     # These are methods for initializing the program.
 
 
-    # Load the settings file.
-    def load_settings_file(self, file_path):
+    # # Load the settings file.
+    # def load_settings_file(self, file_path):
 
-        # file_path: the file to read for settings.
+    #     # file_path: the file to read for settings.
 
-        return FileUtils.FileUtils().read_conf_file(
-            file_location = file_path, 
-            keys = {
-                'HOSTNAMES': 'list', 
-                'OBJECT_NAMING': 'dict', 
-                'REQUESTS': 'dict', 
-                'VALIDATIONS': 'dict', 
-                'DATA_MODES': 'dict'
-            }
-        )
+    #     # return FileUtils.FileUtils().read_conf_file(
+    #     #     file_location = file_path, 
+    #     #     keys = {
+    #     #         'HOSTNAMES': 'list', 
+    #     #         'OBJECT_NAMING': 'dict', 
+    #     #         'REQUESTS': 'dict', 
+    #     #         'VALIDATIONS': 'dict', 
+    #     #         'DATA_MODES': 'dict'
+    #     #     }
+    #     # )
 
 
     # Load the request templates.

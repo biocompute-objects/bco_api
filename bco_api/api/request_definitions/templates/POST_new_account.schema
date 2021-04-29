@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "request_definitions/templates/POST_new_account.schema",
+    "title": "POST_new_account",
+    "description": "A POST request for creating a new account.",
+    "type": "object",
+    "properties": {
+        "email": {
+            "description": "The email to create a new account for.",
+            "type": "string"
+        }
+    },
+    "required": [
+        "email"
+    ]
+}
