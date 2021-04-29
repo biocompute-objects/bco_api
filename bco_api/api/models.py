@@ -112,6 +112,9 @@ class new_users(models.Model):
 	# TODO: hash field in future?
 	temp_identifier = models.TextField(max_length = 100)
 
+	# In case we are writing back to user db.
+	token = models.TextField(blank = True, null = True)
+
 	# Issue with time zone, so implement the fix.
 	# Source: https://stackoverflow.com/a/32411560
 	created = models.DateTimeField(default = timezone.now)

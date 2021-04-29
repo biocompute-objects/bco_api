@@ -36,7 +36,7 @@ def POST_new_account(bulk_request):
 	db = DbUtils.DbUtils()
 
 	print('===============')
-	print('bulk_request')
+	print('NEW ACCOUNT bulk_request')
 	print(bulk_request)
 	print('===============')
 
@@ -64,14 +64,28 @@ def POST_new_account(bulk_request):
 
 			# Generate a temp ID to use so that the account can
 			# be activated.
-			db.write_object(
-				p_app_label = 'api', 
-				p_model_name = 'new_users',
-				p_fields = ['email', 'temp_identifier'],
+
+			# The data is based on whether or not a token was provided.
+			if 'token' in bulk_request:
+
+				p_data = {
+					'email': bulk_request['email'],
+					'temp_identifier': uuid.uuid4().hex,
+					'token': bulk_request['token']
+				}
+
+			else:
+
 				p_data = {
 					'email': bulk_request['email'],
 					'temp_identifier': uuid.uuid4().hex
 				}
+
+			db.write_object(
+				p_app_label = 'api', 
+				p_model_name = 'new_users',
+				p_fields = ['email', 'temp_identifier', 'token'],
+				p_data = p_data
 			)
 
 			# Send an e-mail to let the requester know that they

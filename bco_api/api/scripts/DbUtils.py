@@ -29,6 +29,11 @@ import uuid
 # For writing objects to the database.
 from ..serializers import getGenericSerializer
 
+# (OPTIONAL) For sending user information to userdb.
+from . import UserUtils
+import requests
+import json
+
 
 class DbUtils:
 
@@ -195,6 +200,56 @@ class DbUtils:
         print(new_password)
         print('^^^^^^^^^^^^^^^^^^^^^^')
 
+        # (OPTIONAL) Make a request to userdb on the portal so that
+        # the user's information can be stored there.
+
+        # If a token was provided with the initial request,
+        # use it to make the update call to userdb.
+
+        token = apps.get_model(
+            app_label = 'api', 
+            model_name = 'new_users'
+        ).objects.get(
+            email = p_email
+        ).token
+
+        if token is not None:
+
+            print('++++++++++++++++ TOKEN PROVIDED ++++++++++++++++')
+            
+            # TODO: Update userdb so that the security is stronger here.
+            
+            # Send the new information to userdb.
+
+            # Get the user's information from the database.
+            uu = UserUtils.UserUtils()
+
+            print('$$$$$$$$$$$$$ token_send $$$$$$$$$$$$$$$')
+            print(token)
+
+            # Set the headers.
+            # Source: https://docs.python-requests.org/en/master/user/quickstart/#custom-headers
+            headers = {
+                'Authorization': 'JWT ' + token,
+                'Content-type': 'application/json; charset=UTF-8'
+            }
+
+            print('HEADERS')
+            print(headers)
+            print('DATA')
+            print(json.dumps(uu.get_user_info(username = new_username), default = str))
+
+            # Set the data properly.
+            # Source: https://stackoverflow.com/a/56562567
+            r = requests.post(
+                data = json.dumps(uu.get_user_info(username = new_username), default = str),
+                headers = headers,
+                url = 'http://127.0.0.1:8080/core/add_api/'
+            )
+
+            print('R')
+            print(r)
+        
         # Delete the record in the temporary table.
         apps.get_model(
             app_label = 'api', 
@@ -202,14 +257,10 @@ class DbUtils:
         ).objects.filter(
             email = p_email
         ).delete()
-        
-        # Send the e-mail to the user so that they can activate
-        # their account.
 
         # ...
         # new_username
         # new_password
-        # email has form http://hostname/username/temp_identifier...
 
     
 

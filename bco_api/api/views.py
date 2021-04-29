@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 # For helper functions.
-from .scripts import RequestUtils
+from .scripts import RequestUtils, UserUtils
 
 # Request-specific methods
 from .scripts.method_specific.GET_activate_account import GET_activate_account
@@ -46,12 +46,102 @@ from rest_framework_api_key.permissions import HasAPIKey
 # TODO: Abstract APIViews to generic viewer?
 
 
+class NewAccount(APIView):
+
+    # Description
+    # -----------
+
+    # Ask for a new account.  Sends an e-mail to
+    # the provided e-mail, which must then be clicked
+    # to activate the account.
+
+    # POST
+
+    # Anyone can ask for a new account.
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+
+        print('+++++')
+        print(request.data)
+        print('+++++')
+
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.            
+            return(
+                POST_new_account(request.data)
+            )
+        
+        else:
+        
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+
+class ActivateAccount(APIView):
+
+    # Description
+    # -----------
+
+    # Activate an account.
+
+    # GET
+
+    # Anyone can ask to activate an new account.
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, username, temp_identifier):
+
+        print('+++++')
+        print(request.data)
+        print('+++++')
+
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request.data)
+
+        print(checked)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.            
+            return(
+                GET_activate_account(
+                    username = username, 
+                    temp_identifier = temp_identifier
+                )
+            )
+        
+        else:
+        
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 class CustomAuthToken(ObtainAuthToken):
 
-    # TODO: Fix
-    permission_classes = [HasAPIKey]
-    # ---------
+    # Inheritances issues with the API key,
+    # so we must expiclitly require it here.
+    # authentication_classes = []
+    # permission_classes = [HasAPIKey]
     
     def post(self, request, *args, **kwargs):
         
@@ -67,51 +157,14 @@ class CustomAuthToken(ObtainAuthToken):
         )
         
         serializer.is_valid(raise_exception=True)
-
-        # Slight error the the django-rest-framework documentation
-        # as we need the user id and not the username.
-        # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
         username = serializer.validated_data['username']
-        user_id = User.objects.get(username = username).pk
 
-        # No token creation as the user has to specifically
-        # confirm their account before a token is created
-        # for them.
-        token = Token.objects.get(user = user_id)
+        # Instantiate UserUtils.
+        uu = UserUtils.UserUtils()
 
-        # Get the other information for this user.
-        # Source: https://stackoverflow.com/a/48592813
-        other_info = {
-            'group_permissions': [],
-            'account_creation': '',
-            'account_expiration': ''
-        }
-
-        # TODO: put in account expiration date, key expiration date etc...
-
-        # First, get the django-native User object.
-        user = User.objects.get(username=username)
-        
-        # Group permissions.
-        # Source: https://docs.djangoproject.com/en/3.0/ref/contrib/auth/#django.contrib.auth.models.User.get_group_permissions
-        group_permissions = User.get_group_permissions(user)
-
-        # Need to process the permissions to be readable.
-        for gp in list(group_permissions):
-            ' '.join(gp.split('.')[1].split('_'))
-            other_info['group_permissions'].append(' '.join(gp.split('.')[1].split('_')))
-        
-        # Account created.
-        other_info['account_created'] = user.date_joined
-            
+        # Get the user's information.        
         # TODO: Fix hostname settings in settings.py?
-        return Response({
-            'hostname': settings.ALLOWED_HOSTS[0],
-            'human_readable_hostname': settings.HUMAN_READABLE_HOSTNAME,
-            'token': token.key,
-            'username': username,
-            'other_info': other_info
-        })
+        return Response(uu.get_user_info(username = username))
 
 
 
@@ -258,90 +311,6 @@ class ApiDescription(APIView):
             )
 
 
-
-
-class NewAccount(APIView):
-
-    # Description
-    # -----------
-
-    # Ask for a new account.  Sends an e-mail to
-    # the provided e-mail, which must then be clicked
-    # to activate the account.
-
-    # POST
-
-    # Anyone can ask for a new account.
-    authentication_classes = []
-    permission_classes = []
-
-    def post(self, request):
-
-        print('+++++')
-        print(request.data)
-        print('+++++')
-
-        # Check the request.
-        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
-
-        if checked is None:
-        
-            # Pass the request to the handling function.            
-            return(
-                POST_new_account(request.data)
-            )
-        
-        else:
-        
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
-            )
-
-
-
-
-class ActivateAccount(APIView):
-
-    # Description
-    # -----------
-
-    # Activate an account.
-
-    # GET
-
-    # Anyone can ask to activate an new account.
-    authentication_classes = []
-    permission_classes = []
-
-    def get(self, request, username, temp_identifier):
-
-        print('+++++')
-        print(request.data)
-        print('+++++')
-
-        # Check the request.
-        checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request.data)
-
-        print(checked)
-
-        if checked is None:
-        
-            # Pass the request to the handling function.            
-            return(
-                GET_activate_account(username = username, temp_identifier = temp_identifier)
-            )
-        
-        else:
-        
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
-            )
 
 
 # class ApiAccountPermissions(APIView):

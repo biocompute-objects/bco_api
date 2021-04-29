@@ -79,12 +79,14 @@ elif(server_config['REQUESTS_FROM']['public'].strip() == 'true'):
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 
 # Note: requires the app name "api".
+
+# TODO: move option of authentication type to server.conf.
+# To use API keys, add 'api.permissions.HasUserAPIKey' under DEFAULT_PERMISSION_CLASSES.
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication'
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'api.permissions.HasUserAPIKey',
         'rest_framework.permissions.IsAuthenticated'
     ]
 }
