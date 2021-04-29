@@ -53,7 +53,7 @@ def GET_activate_account(username, temp_identifier):
 			p_temp_identifier = temp_identifier
 		) is 1:
 		
-			print('--- account activation ---')
+			print('--- account activation ----')
 			
 			# The credentials match, so activate the account.
 			if db.activate_account(p_email = username) is None:
