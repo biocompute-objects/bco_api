@@ -24,7 +24,7 @@ from rest_framework import status
 # Source: https://realpython.com/python-send-email/#sending-fancy-emails
 import urllib.parse
 from django.core.mail import send_mail
-from django.apps import settings
+from django.conf import settings
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
