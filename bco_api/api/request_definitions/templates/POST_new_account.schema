@@ -8,7 +8,11 @@
         "email": {
             "description": "The email to create a new account for.",
             "type": "string"
-        }
+        },
+	"hostname": {
+	    "description": "Which host to activate the account on (send server information back to).",
+	    "type": "string"
+	}
     },
     "required": [
         "email"

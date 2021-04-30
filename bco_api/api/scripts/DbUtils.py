@@ -154,6 +154,8 @@ class DbUtils:
 
     def activate_account(self, p_email):
 
+        # p_email: which e-mail to activate.
+        
         # Activation means creating an entry in User.
 
         # To comply with GDPR, we can't keep an e-mail
@@ -244,7 +246,12 @@ class DbUtils:
             r = requests.post(
                 data = json.dumps(uu.get_user_info(username = new_username), default = str),
                 headers = headers,
-                url = 'http://127.0.0.1:8080/core/add_api/'
+                url = apps.get_model(
+                        app_label = 'api', 
+                        model_name = 'new_users'
+                    ).objects.get(
+                        email = p_email
+                    ).hostname
             )
 
             print('R')
@@ -257,10 +264,6 @@ class DbUtils:
         ).objects.filter(
             email = p_email
         ).delete()
-
-        # ...
-        # new_username
-        # new_password
 
     
 

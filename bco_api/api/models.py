@@ -115,6 +115,9 @@ class new_users(models.Model):
 	# In case we are writing back to user db.
 	token = models.TextField(blank = True, null = True)
 
+	# Which host to send the activation back to.
+	hostname = models.TextField(blank = True, null = True)
+
 	# Issue with time zone, so implement the fix.
 	# Source: https://stackoverflow.com/a/32411560
 	created = models.DateTimeField(default = timezone.now)

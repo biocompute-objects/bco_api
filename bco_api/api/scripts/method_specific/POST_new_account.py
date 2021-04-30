@@ -71,6 +71,7 @@ def POST_new_account(bulk_request):
 				p_data = {
 					'email': bulk_request['email'],
 					'temp_identifier': uuid.uuid4().hex,
+					'hostname': bulk_request['hostname'],
 					'token': bulk_request['token']
 				}
 
@@ -78,13 +79,14 @@ def POST_new_account(bulk_request):
 
 				p_data = {
 					'email': bulk_request['email'],
-					'temp_identifier': uuid.uuid4().hex
+					'temp_identifier': uuid.uuid4().hex,
+					'hostname': bulk_request['hostname']
 				}
 
 			db.write_object(
 				p_app_label = 'api', 
 				p_model_name = 'new_users',
-				p_fields = ['email', 'temp_identifier', 'token'],
+				p_fields = ['email', 'temp_identifier', 'hostname', 'token'],
 				p_data = p_data
 			)
 
