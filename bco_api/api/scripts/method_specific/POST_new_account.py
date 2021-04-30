@@ -20,7 +20,13 @@ from rest_framework.response import Response
 from rest_framework import status
 
 # For sending e-mails.
+# Source: https://www.urlencoder.io/python/
+# Source: https://realpython.com/python-send-email/#sending-fancy-emails
+import urllib.parse
 from django.core.mail import send_mail
+from django.apps import settings
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
@@ -66,11 +72,15 @@ def POST_new_account(bulk_request):
 			# be activated.
 
 			# The data is based on whether or not a token was provided.
+
+			# Create a temporary identifier.
+			temp_identifier = uuid.uuid4().hex
+
 			if 'token' in bulk_request:
 
 				p_data = {
 					'email': bulk_request['email'],
-					'temp_identifier': uuid.uuid4().hex,
+					'temp_identifier': temp_identifier,
 					'hostname': bulk_request['hostname'],
 					'token': bulk_request['token']
 				}
@@ -79,7 +89,7 @@ def POST_new_account(bulk_request):
 
 				p_data = {
 					'email': bulk_request['email'],
-					'temp_identifier': uuid.uuid4().hex,
+					'temp_identifier': temp_identifier,
 					'hostname': bulk_request['hostname']
 				}
 
@@ -91,14 +101,25 @@ def POST_new_account(bulk_request):
 			)
 
 			# Send an e-mail to let the requester know that they
-			# need to follow the activation link.
-			# send_mail(
-			# 	'Test subject',
-			# 	'Here is the message.',
-			# 	'carmstrong1@gwu.edu',
-			# 	['chrisarmstrong151@gmail.com'],
-			# 	fail_silently=False,
-			# )
+			# need to follow the activation link within 10 minutes.
+
+			# Source: https://realpython.com/python-send-email/#sending-fancy-emails
+
+			activation_link = 'https://' + settings['HOSTNAMES'][0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
+			template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(activation_link, activation_link)
+
+			try:
+				send_mail(
+						subject = 'Registration for BioCompute Portal',
+						html_message = template,
+						from_email = 'mail_sender@portal.aws.biochemistry.gwu.edu',
+						recipient_list = bulk_request['email'],
+						fail_silently = False,
+				)
+
+			except Exception as e:
+					print(e)
+					pass
 
 			# TODO: put timestamp when will expire?
 			return(

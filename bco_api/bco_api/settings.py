@@ -280,3 +280,11 @@ OBJECT_NAMING = {}
 
 for i in server_config['OBJECT_NAMING']:
     OBJECT_NAMING[i] = server_config['OBJECT_NAMING'][i]
+
+# emailing notifications
+
+# e-Mail settings are explained at https://stackoverflow.com/questions/46053085/django-gmail-smtp-error-please-run-connect-first
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 25
+
