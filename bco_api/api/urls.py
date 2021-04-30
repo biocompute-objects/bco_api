@@ -23,12 +23,12 @@ from .views import BcoObjectsCreate, BcoObjectsRead, ApiDescription, ObjectsById
 # (GET) <str:object_id_root>/<str:object_id_version>
 
 urlpatterns = [
-    path('/api/accounts/activate/<str:username>/<str:temp_identifier>', ActivateAccount.as_view()),
-    path('/api/accounts/describe/', CustomAuthToken.as_view()),
-    path('/api/accounts/new/', NewAccount.as_view()),
-    path('/api/description/', ApiDescription.as_view()),  
-    path('/api/objects/create/', BcoObjectsCreate.as_view()),
-    path('/api/objects/read/', BcoObjectsRead.as_view()),
+    path('api/accounts/activate/<str:username>/<str:temp_identifier>', ActivateAccount.as_view()),
+    path('api/accounts/describe/', CustomAuthToken.as_view()),
+    path('api/accounts/new/', NewAccount.as_view()),
+    path('api/description/', ApiDescription.as_view()),  
+    path('api/objects/create/', BcoObjectsCreate.as_view()),
+    path('api/objects/read/', BcoObjectsRead.as_view()),
     path('<str:object_id_root>/<str:object_id_version>', ObjectsById.as_view())
 ]
 
