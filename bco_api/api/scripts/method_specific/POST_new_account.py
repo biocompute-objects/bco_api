@@ -113,7 +113,7 @@ def POST_new_account(bulk_request):
 						message = 'Testing.',
 						html_message = template,
 						from_email = 'mail_sender@portal.aws.biochemistry.gwu.edu',
-						recipient_list = bulk_request['email'],
+						recipient_list = [bulk_request['email']],
 						fail_silently = False,
 				)
 
