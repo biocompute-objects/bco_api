@@ -110,6 +110,7 @@ def POST_new_account(bulk_request):
 			try:
 				send_mail(
 						subject = 'Registration for BioCompute Portal',
+						message = 'Testing.',
 						html_message = template,
 						from_email = 'mail_sender@portal.aws.biochemistry.gwu.edu',
 						recipient_list = bulk_request['email'],
