@@ -7,7 +7,7 @@ After=network.target
 User=beta_portal_user
 Group=nginx
 WorkingDirectory=/home/beta_portal_user/bco_api/bco_api/
-ExecStart=/home/beta_portal_user/bco_api/env/bin/gunicorn --access-logfile - --workers 3 --bind unix:/var/www/bco_api.sock bco_api.wsgi:application
+ExecStart=/home/beta_portal_user/bco_api/env/bin/gunicorn --access-logfile - --workers 3 --bind unix:/var/run/bco_api.sock bco_api.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
