@@ -22,11 +22,10 @@ from rest_framework import status
 # For sending e-mails.
 # Source: https://www.urlencoder.io/python/
 # Source: https://realpython.com/python-send-email/#sending-fancy-emails
+# Source: https://docs.djangoproject.com/en/3.2/topics/email/#send-mail
 import urllib.parse
 from django.core.mail import send_mail
 from django.conf import settings
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
@@ -105,7 +104,7 @@ def POST_new_account(bulk_request):
 
 			# Source: https://realpython.com/python-send-email/#sending-fancy-emails
 
-			activation_link = 'https://' + settings['HOSTNAMES'][0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
+			activation_link = 'https://' + settings.ALLOWED_HOSTS[0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
 			template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(activation_link, activation_link)
 
 			try:
