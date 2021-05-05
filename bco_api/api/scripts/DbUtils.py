@@ -246,12 +246,7 @@ class DbUtils:
             r = requests.post(
                 data = json.dumps(uu.get_user_info(username = new_username), default = str),
                 headers = headers,
-                url = apps.get_model(
-                        app_label = 'api', 
-                        model_name = 'new_users'
-                    ).objects.get(
-                        email = p_email
-                    ).hostname
+                url = 'http://127.0.0.1:8080/users/add_api/'
             )
 
             print('R')
