@@ -199,6 +199,16 @@ def associate_user_group(sender, instance, created, **kwargs):
 		group = Group.objects.get(name = instance)
 		group.user_set.add(instance)
 
+		# Automatically add BCO draft and BCO publish permissions.
+
+		# anon does NOT have drafter or publisher permissions.
+		if instance != 'anon':
+
+			User.objects.get(username = instance).groups.add(Group.objects.get(name = 'bco_drafters'))
+			User.objects.get(username = instance).groups.add(Group.objects.get(name = 'bco_publishers'))
+
+			# 
+
 # Link user creation to token generation.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
 
@@ -208,7 +218,7 @@ def associate_user_group(sender, instance, created, **kwargs):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 	if created:
-		Token.objects.create(user=instance)
+		Token.objects.create(user = instance)
 
 
 # If we want a separate API users table.

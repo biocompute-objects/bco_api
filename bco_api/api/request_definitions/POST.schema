@@ -21,6 +21,11 @@
             "description": "Ask for a new account on the API.",
             "$ref": "request_definitions/templates/POST_new_account.schema"
         },
+        "POST_object_listing_by_token":
+        {
+            "description": "Get all available objects for a given token.",
+            "$ref": "request_definitions/templates/POST_object_listing_by_token.schema"
+        },
         "POST_read_object":
         {
             "description": "The template for reading a(n) object(s).",

@@ -5,6 +5,53 @@ def populate_models(sender, **kwargs):
     
 
 
+    # The BCO groups need to be created FIRST because
+    # models.py listens for user creation and automatically
+    # adds any new user to bco_drafters and bco_publishers.
+
+    from django.contrib.auth.models import Group
+
+    # Set permissions for all of the groups.
+    # Source: https://stackoverflow.com/a/18797715/5029459
+    from django.contrib.auth.models import Permission
+    from django.contrib.contenttypes.models import ContentType
+    
+    # BCO is the anon (public) prefix
+    if(Group.objects.filter(name = 'bco_drafters').count() == 0):
+        Group.objects.create(name = 'bco_drafters')
+    
+    if(Group.objects.filter(name = 'bco_publishers').count() == 0):
+        Group.objects.create(name = 'bco_publishers')
+
+    # Set the permissions for BCO drafters and publishers.
+    for g_helper in ['bco_drafters', 'bco_publishers']:
+
+        # Set the right table.
+        if g_helper == 'bco_drafters':
+            m_helper = 'bco_draft'
+        else:
+            m_helper = 'bco_publish'
+
+        for cn in ['add_' + m_helper, 'change_' + m_helper, 'delete_' + m_helper, 'view_' + m_helper]:
+            
+            permission_get = Permission.objects.get(
+                    content_type = ContentType.objects.get(
+                    app_label = 'api',
+                    model = m_helper
+                ),
+                codename = cn
+            )
+
+            group_get = Group.objects.get(
+                name = g_helper
+            )
+
+            group_get.permissions.add(permission_get)
+        
+    
+    
+    
+    
     # Note that user creation is listened for in 
     # models.py by associate_user_group.
     
@@ -41,7 +88,6 @@ def populate_models(sender, **kwargs):
 
         
     # Create the default (non-anon, non-wheel) groups if they don't exist.
-    from django.contrib.auth.models import Group
 
     # Group administrators
     if(Group.objects.filter(name = 'group_admins').count() == 0):
@@ -50,22 +96,10 @@ def populate_models(sender, **kwargs):
     # Prefix administrators
     if(Group.objects.filter(name = 'prefix_admins').count() == 0):
         Group.objects.create(name = 'prefix_admins')
-
-    # BCO is the anon (public) prefix
-    if(Group.objects.filter(name = 'bco_drafters').count() == 0):
-        Group.objects.create(name = 'bco_drafters')
-    
-    # BCO is the anon (public) prefix
-    if(Group.objects.filter(name = 'bco_publishers').count() == 0):
-        Group.objects.create(name = 'bco_publishers')
     
 
 
 
-    # Associate anon with BCO drafters and publishers.
-    User.objects.get(username = 'anon').groups.add(Group.objects.get(name = 'bco_drafters'))
-    User.objects.get(username = 'anon').groups.add(Group.objects.get(name = 'bco_publishers'))
-    
     # Associate wheel with all groups.
     group = Group.objects.all()
 
@@ -74,6 +108,8 @@ def populate_models(sender, **kwargs):
     
 
 
+    
+    # TODO: Some redundancy here?
     
     # Define the models for each group.
     # Source: https://stackoverflow.com/a/49457723/5029459
@@ -87,11 +123,6 @@ def populate_models(sender, **kwargs):
     }
     
     print(models)
-    
-    # Set permissions for all of the groups.
-    # Source: https://stackoverflow.com/a/18797715/5029459
-    from django.contrib.auth.models import Permission
-    from django.contrib.contenttypes.models import ContentType
 
     for group, models in models.items():
         

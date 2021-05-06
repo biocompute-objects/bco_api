@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+
+        #message {
+            width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        #message button {
+            font-size: 35px;
+        }
+        
+        #message button a {
+            text-decoration: none;
+        }
+        
+        #message p {
+            font-size: 35px;
+        }
+
+    </style>
+    <meta charset = 'utf-8'>
+    <title>Portal Account Activation</title>
+  </head>
+  <body>
+        <div id = 'message'>
+        {% if activation_success == True %}
+            <p>Successful activation! You may close this window or open Portal in a new tab.</p>
+        {% else %}
+            <p>Unsuccessful activation!  Please request another activation e-mail on the Portal.</p>
+        {% endif %}
+            <button type = 'button'><a href = 'http://beta.portal.aws.biochemistry.gwu.edu/login/' target = '_blank'>Open Portal in new tab</a></button>
+        </div>
+  </body>
+</html>

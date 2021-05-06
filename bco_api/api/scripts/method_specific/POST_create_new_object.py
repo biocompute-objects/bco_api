@@ -21,9 +21,15 @@ import uuid as rando
 # For updating the meta table.
 from django.db.models import F
 
+# Responses
+from rest_framework.response import Response
+from rest_framework import status
+
 
 # TODO: create meta table with just object IDs
 # so that entire object doesn't need to be pulled out.
+
+# TODO: Weird return stuff here, fix later.
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
@@ -47,7 +53,7 @@ def POST_create_new_object(bulk_request):
 	# Get the available tables.
 	available_tables = settings.MODELS['json_object']
 	print('bulk_request')
-	print(bulk_request)
+	print(json.dumps(bulk_request, indent = 4))
 	print('===============')
 	print(json.dumps(object_naming_info, indent=4))
 	print(json.dumps(available_tables, indent=4))
@@ -85,12 +91,16 @@ def POST_create_new_object(bulk_request):
 			# Create the ID template.
 
 			# Use the root URI and prefix to construct the name.
+
+			# The prefix is given by the request (used to be in server.conf).
+			prefix = creation_object['table'].split('_')[0]
+
 			constructed_name = object_naming_info['uri_regex'].replace('root_uri', object_naming_info['root_uri'])
-			constructed_name = constructed_name.replace('prefix', object_naming_info['prefix'])
+			constructed_name = constructed_name.replace('prefix', prefix)
 
 			# Get rid of the rest of the regex for the name.
-			prefix_location = constructed_name.index(object_naming_info['prefix'])
-			prefix_length = len(object_naming_info['prefix'])
+			prefix_location = constructed_name.index(prefix)
+			prefix_length = len(prefix)
 			constructed_name = constructed_name[0:prefix_location+prefix_length]
 
 			# Draft object.
@@ -297,4 +307,10 @@ def POST_create_new_object(bulk_request):
 				)['404_table']
 			)
 
-	return(returning)
+	# TODO: Weird return stuff here, fix later.
+	return(
+		Response(
+			status = status.HTTP_200_OK,
+			data = returning
+		)
+	)

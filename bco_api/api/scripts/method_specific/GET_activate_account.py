@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
+
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
 def GET_activate_account(username, temp_identifier):
@@ -61,7 +62,10 @@ def GET_activate_account(username, temp_identifier):
 				# Everything went fine.
 				return(
 					Response(
-						status = status.HTTP_201_CREATED
+						{
+							'activation_success': True,
+							'status': status.HTTP_201_CREATED
+						}
 					)
 				)
 			
@@ -70,7 +74,10 @@ def GET_activate_account(username, temp_identifier):
 				# The credentials weren't good.
 				return(
 					Response(
-						status = status.HTTP_403_FORBIDDEN
+						{
+							'activation_success': False,
+							'status': status.HTTP_403_FORBIDDEN
+						}
 					)
 				)
 
@@ -78,6 +85,9 @@ def GET_activate_account(username, temp_identifier):
 		
 			return(
 				Response(
-					status = status.HTTP_403_FORBIDDEN
+					{
+						'activation_success': False,
+						'status': status.HTTP_403_FORBIDDEN
+					}
 				)
 			)

@@ -17,8 +17,8 @@ import configparser
 # For getting the model.
 from django.apps import apps
 
-# For checking for users.
-from django.contrib.auth.models import User
+# For checking for and creating users.
+from django.contrib.auth.models import Group, User
 
 # For user IDs.
 import random
@@ -196,6 +196,10 @@ class DbUtils:
 
         # Save the user.
         user.save()
+
+        # Automatically add the user to the bco_drafters and bco_publishers groups.
+        user.groups.add(Group.objects.get(name = 'bco_drafters'))
+        user.groups.add(Group.objects.get(name = 'bco_publishers'))
         
         print('USER INFORMATION')
         print(new_username)

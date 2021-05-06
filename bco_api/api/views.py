@@ -13,6 +13,7 @@ from .scripts import RequestUtils, UserUtils
 from .scripts.method_specific.GET_activate_account import GET_activate_account
 from .scripts.method_specific.POST_create_new_object import POST_create_new_object
 from .scripts.method_specific.POST_new_account import POST_new_account
+from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
 from .scripts.method_specific.POST_read_object import POST_read_object
 from .scripts.method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
 # from .scripts.method_specific.POST_get_key_permissions import POST_get_key_permissions
@@ -33,6 +34,10 @@ from django.conf import settings
 # By-view permissions.
 # from rest_framework.permissions import AllowAny
 from rest_framework_api_key.permissions import HasAPIKey
+
+# Message page
+# Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
+from rest_framework.renderers import TemplateHTMLRenderer
 
 
 
@@ -101,6 +106,10 @@ class ActivateAccount(APIView):
     # Anyone can ask to activate an new account.
     authentication_classes = []
     permission_classes = []
+
+    # For the success and error messages.
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'api/account_activation_message.html'
 
     def get(self, request, username, temp_identifier):
 
@@ -217,31 +226,26 @@ class BcoObjectsCreate(APIView):
     def post(self, request):
 
         # Check the request.
-        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request)
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
 
         if checked is None:
         
             # Pass the request to the handling function.            
-            return(
-                Response(
-                    data = POST_create_new_object(request['POST_create_new_object']),
-                    status=status.HTTP_200_OK
-                )
-            )
+            return(POST_create_new_object(request.data['POST_create_new_object']))
         
         else:
 
             return(
                 Response(
                     data = checked,
-                    status=status.HTTP_400_BAD_REQUEST
+                    status = status.HTTP_400_BAD_REQUEST
                 )
             )
 
 
 
 
-class BcoObjectsRead(APIView):
+class BcoObjectsByToken(APIView):
 
     # Description
     # -----------
@@ -259,10 +263,7 @@ class BcoObjectsRead(APIView):
         
             # Pass the request to the handling function.            
             return(
-                Response(
-                    data = POST_create_new_object(request['POST_read_object']), 
-                    status=status.HTTP_200_OK
-                )
+                POST_object_listing_by_token(request.data)
             )
         
         else:
@@ -270,7 +271,7 @@ class BcoObjectsRead(APIView):
             return(
                 Response(
                     data = checked,
-                    status=status.HTTP_400_BAD_REQUEST
+                    status = status.HTTP_400_BAD_REQUEST
                 )
             )
 
