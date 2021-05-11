@@ -34,19 +34,27 @@ def populate_models(sender, **kwargs):
 
         for cn in ['add_' + m_helper, 'change_' + m_helper, 'delete_' + m_helper, 'view_' + m_helper]:
             
-            permission_get = Permission.objects.get(
-                    content_type = ContentType.objects.get(
-                    app_label = 'api',
-                    model = m_helper
-                ),
-                codename = cn
-            )
+            # We don't allow publishers to delete objects.
+            if g_helper == 'bco_publishers' and (cn == 'delete_' + m_helper or cn == 'change_' + m_helper):
 
-            group_get = Group.objects.get(
-                name = g_helper
-            )
+                # dummy block
+                pass
 
-            group_get.permissions.add(permission_get)
+            else:
+            
+                permission_get = Permission.objects.get(
+                        content_type = ContentType.objects.get(
+                        app_label = 'api',
+                        model = m_helper
+                    ),
+                    codename = cn
+                )
+
+                group_get = Group.objects.get(
+                    name = g_helper
+                )
+
+                group_get.permissions.add(permission_get)
         
     
     
@@ -71,19 +79,19 @@ def populate_models(sender, **kwargs):
     # Create anon and administrator keys.
     # Source: https://florimondmanca.github.io/djangorestframework-api-key/guide/#creating-and-managing-api-keys
     
-    from .models import api_users_api_key
+    # from .models import api_users_api_key
     
-    # Create and write the anon key to file.
-    api_key, key = api_users_api_key.objects.create_key(name = 'anon_key', user = User.objects.get(username = 'anon'))
+    # # Create and write the anon key to file.
+    # api_key, key = api_users_api_key.objects.create_key(name = 'anon_key', user = User.objects.get(username = 'anon'))
     
-    with open('anon_key.txt', 'w') as f:
-        f.write(key)
+    # with open('anon_key.txt', 'w') as f:
+    #     f.write(key)
     
-    # Create and write the admin key to file.
-    api_key, key = api_users_api_key.objects.create_key(name = 'wheel_key', user = User.objects.get(username = 'wheel'))
+    # # Create and write the admin key to file.
+    # api_key, key = api_users_api_key.objects.create_key(name = 'wheel_key', user = User.objects.get(username = 'wheel'))
     
-    with open('wheel_key.txt', 'w') as f:
-        f.write(key)
+    # with open('wheel_key.txt', 'w') as f:
+    #     f.write(key)
 
 
         

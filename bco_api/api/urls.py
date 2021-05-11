@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import BcoObjectsCreate, BcoObjectsByToken, ApiDescription, ObjectsById, CustomAuthToken, NewAccount, ActivateAccount
+from .views import BcoObjectsCreate, BcoObjectsByToken, ApiDescription, DraftObjectById, PublishedObjectById, CustomAuthToken, NewAccount, ActivateAccount
 
 # Token-based authentication.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
@@ -22,6 +22,9 @@ from .views import BcoObjectsCreate, BcoObjectsByToken, ApiDescription, ObjectsB
 # Retrieve an object directly by its URI.
 # (GET) <str:object_id_root>/<str:object_id_version>
 
+# TODO: put in re_path for all of these, especially user
+# activation and object retrieval.
+
 urlpatterns = [
     path('api/accounts/activate/<str:username>/<str:temp_identifier>', ActivateAccount.as_view()),
     path('api/accounts/describe/', CustomAuthToken.as_view()),
@@ -29,7 +32,8 @@ urlpatterns = [
     path('api/description/', ApiDescription.as_view()),  
     path('api/objects/create/', BcoObjectsCreate.as_view()),
     path('api/objects/token/', BcoObjectsByToken.as_view()),
-    path('<str:object_id_root>/<str:object_id_version>', ObjectsById.as_view())
+    path('<str:object_id_root>/<str:object_id_version>', PublishedObjectById.as_view()),
+    path('<str:draft_object_id>', DraftObjectById.as_view())
 ]
 
 # path('bco/objects/validate/', BcoObjectsValidate.as_view()),

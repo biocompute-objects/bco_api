@@ -62,7 +62,7 @@ def POST_object_listing_by_token(bulk_request):
 
 				# Trim the first part to see if we can view.
 				split_up = g.codename.split('_')
-
+				
 				if split_up[0] == 'view':
 					
 					# We can view, so get all the objects for this

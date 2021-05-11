@@ -34,6 +34,11 @@
                 "description": "Either 'DRAFT' or 'PUBLISHED'.",
                 "type": "string",
                 "pattern": "^DRAFT$|^PUBLISHED$"
+            },
+            "owner_group":
+            {
+                "description": "Which group should own the object",
+                "type": "string"
             }
         },
         "required":
@@ -41,7 +46,8 @@
             "table",
             "schema",
             "contents",
-            "state"
+            "state",
+            "owner_group"
         ]
     }
 }

@@ -15,7 +15,7 @@ from api.scripts import DbUtils
 
 # Linking API keys to users.
 # Source: https://florimondmanca.github.io/djangorestframework-api-key/guide/#api-key-models
-from rest_framework_api_key.models import AbstractAPIKey
+# from rest_framework_api_key.models import AbstractAPIKey
 
 # Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
 
@@ -33,8 +33,20 @@ from rest_framework.authtoken.models import Token
 from django.utils import timezone
 
 
+# Ownership models
+# Source: https://stackoverflow.com/a/47268403
+class owned_model(models.Model):
+
+
+	# The object owner (should be a group).
+	owner_group = models.ForeignKey(Group, on_delete = models.CASCADE)
+
+	class Meta:
+		abstract = True
+
+
 # Generic JSON model
-class json_object(models.Model):
+class json_object(owned_model):
 
 
 	# The unique object ID.
@@ -202,12 +214,14 @@ def associate_user_group(sender, instance, created, **kwargs):
 		# Automatically add BCO draft and BCO publish permissions.
 
 		# anon does NOT have drafter or publisher permissions.
-		if instance != 'anon':
-
+		print('+++++ ANON CHECK +++++')
+		print(type(instance))
+		if instance.username != 'anon':
+			print('NOT ANON')
+			print(instance)
 			User.objects.get(username = instance).groups.add(Group.objects.get(name = 'bco_drafters'))
 			User.objects.get(username = instance).groups.add(Group.objects.get(name = 'bco_publishers'))
 
-			# 
 
 # Link user creation to token generation.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
@@ -228,10 +242,10 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 
 # Link API keys to users.
-class api_users_api_key(AbstractAPIKey):
+# class api_users_api_key(AbstractAPIKey):
 	
-	user = models.ForeignKey(
-		User,
-		on_delete = models.CASCADE,
-		related_name = 'api_keys'
-	)
+# 	user = models.ForeignKey(
+# 		User,
+# 		on_delete = models.CASCADE,
+# 		related_name = 'api_keys'
+# 	)

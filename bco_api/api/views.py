@@ -5,12 +5,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.core import serializers
+from django.apps import apps
 
 # For helper functions.
 from .scripts import RequestUtils, UserUtils
 
 # Request-specific methods
 from .scripts.method_specific.GET_activate_account import GET_activate_account
+from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
 from .scripts.method_specific.POST_create_new_object import POST_create_new_object
 from .scripts.method_specific.POST_new_account import POST_new_account
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
@@ -33,7 +36,9 @@ from django.conf import settings
 
 # By-view permissions.
 # from rest_framework.permissions import AllowAny
-from rest_framework_api_key.permissions import HasAPIKey
+# from rest_framework_api_key.permissions import HasAPIKey
+from rest_framework.permissions import IsAuthenticated
+from .permissions import RequestorInOwnerGroup, HasObjectGenericPermission, HasTableWritePermission
 
 # Message page
 # Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
@@ -178,42 +183,6 @@ class CustomAuthToken(ObtainAuthToken):
 
 
 
-class BcoObjectsValidate(APIView):
-
-    # Description
-    # -----------
-
-    # Validate an object.
-
-    # POST
-
-    def post(self, request):
-        
-        # Check the request.
-        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request)
-
-        if checked is None:
-        
-            # Pass the request to the handling function.            
-            return(
-                Response(
-                    data = POST_create_new_object(request['POST_validate_payload_against_schema']), 
-                    status=status.HTTP_200_OK
-                )
-            )
-        
-        else:
-
-            return(
-                Response(
-                    data = checked,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            )
-
-
-
-
 class BcoObjectsCreate(APIView):
 
     # Description
@@ -223,13 +192,24 @@ class BcoObjectsCreate(APIView):
 
     # POST
 
+    # Permissions
+
+    # Note: We can't use the examples given in
+    # https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
+    # because our permissions system is not tied to
+    # the request type (DELETE, GET, PATCH, POST).
+    permission_classes = [IsAuthenticated, HasTableWritePermission]
+
+    # TODO: fix checking for request info, in particular 
+    # when a field is missing...abstract into own function?
+
     def post(self, request):
 
         # Check the request.
         checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
 
         if checked is None:
-        
+            
             # Pass the request to the handling function.            
             return(POST_create_new_object(request.data['POST_create_new_object']))
         
@@ -239,6 +219,87 @@ class BcoObjectsCreate(APIView):
                 Response(
                     data = checked,
                     status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+
+# Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
+class DraftObjectById(APIView):
+
+    # Description
+    # -----------
+
+    # Read an object by URI.
+
+    # GET
+
+    # Permissions
+    permission_classes = [IsAuthenticated, HasObjectGenericPermission]
+    
+    def get(self, request, draft_object_id):
+        
+        # No need to check the request (unnecessary for GET as it's checked
+        # by the url parser?).
+
+        # We can't serialize the object in GET_draft_object_by_id because
+        # we need the object "raw" to have its permissions checked.
+
+        # Get the object and check its permissions.
+        objected = GET_draft_object_by_id(request.build_absolute_uri())
+
+        if objected is not None:
+
+            # Append the table and permission type to check for.
+            request.data['table_name'] = '_'.join(request.build_absolute_uri().split('/')[-1].split('_')[0:2]).lower()
+            request.data['perm_type'] = 'view'
+            
+            # Check for object-level permissions.
+            self.check_object_permissions(request, objected)
+
+            # Return JSON.
+            # Source: https://stackoverflow.com/a/3289057/5029459
+            return(
+                Response(
+                    data = serializers.serialize('json', [ objected, ]),
+                    status = status.HTTP_200_OK
+                )
+            )
+
+        else:
+
+            return(
+                Response(
+                    data = None,
+                    status = status.HTTP_403_FORBIDDEN
+                )
+            )
+
+
+
+
+# Allow anyone to view published objects.
+# Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
+class PublishedObjectById(APIView):
+
+    # Description
+    # -----------
+
+    # Read an object by URI.
+
+    # GET
+
+    # Anyone can view a published object.
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, object_id_root, object_id_version):
+
+        return(
+                Response(
+                    data = GET_published_object_by_id(object_id_root, object_id_version),
+                    status = status.HTTP_200_OK
                 )
             )
 
@@ -298,12 +359,48 @@ class ApiDescription(APIView):
             return(
                 Response(
                     data = GET_create_new_object(request['GET_get_api_description']),
-                    status=status.HTTP_200_OK
+                    status = status.HTTP_200_OK
                 )
             )
         
         else:
         
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+
+class BcoObjectsValidate(APIView):
+
+    # Description
+    # -----------
+
+    # Validate an object.
+
+    # POST
+
+    def post(self, request):
+        
+        # Check the request.
+        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request)
+
+        if checked is None:
+        
+            # Pass the request to the handling function.            
+            return(
+                Response(
+                    data = POST_create_new_object(request['POST_validate_payload_against_schema']), 
+                    status=status.HTTP_200_OK
+                )
+            )
+        
+        else:
+
             return(
                 Response(
                     data = checked,
@@ -339,52 +436,6 @@ class ApiDescription(APIView):
 #         else:
 
 #             return checked
-
-
-
-
-# Allow anyone to view published objects.
-# Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
-class ObjectsById(APIView):
-
-    # Description
-    # -----------
-
-    # Read an object by URI.
-
-    # GET
-
-    # Anyone can view a published object.
-    authentication_classes = []
-    permission_classes = []
-
-    def get(self, request, object_id_root, object_id_version):
-        
-        # Check the request.
-        checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request)
-
-        if checked is None:
-        
-            # TODO: to be implemented...
-
-            return(
-                Response(
-                    data = 'test',
-                    status = status.HTTP_400_BAD_REQUEST
-                )
-            )
-        
-        else:
-
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
-            )
-
-
-
 
 
 

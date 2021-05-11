@@ -11,6 +11,7 @@ from django.apps import apps
 from .. import DbUtils
 
 # For writing objects to the database.
+from django.contrib.auth.models import Group
 from ...serializers import getGenericSerializer
 
 # For generating a random DRAFT ID.
@@ -93,7 +94,7 @@ def POST_create_new_object(bulk_request):
 			# Use the root URI and prefix to construct the name.
 
 			# The prefix is given by the request (used to be in server.conf).
-			prefix = creation_object['table'].split('_')[0]
+			prefix = creation_object['table'].split('_')[0].upper()
 
 			constructed_name = object_naming_info['uri_regex'].replace('root_uri', object_naming_info['root_uri'])
 			constructed_name = constructed_name.replace('prefix', prefix)
@@ -102,6 +103,9 @@ def POST_create_new_object(bulk_request):
 			prefix_location = constructed_name.index(prefix)
 			prefix_length = len(prefix)
 			constructed_name = constructed_name[0:prefix_location+prefix_length]
+
+			# Get the owner_group.
+			owner_group = Group.objects.get(name = creation_object['owner_group'])
 
 			# Draft object.
 			if state == 'draft':
@@ -117,12 +121,15 @@ def POST_create_new_object(bulk_request):
 						p_model_name = creation_object['table'],
 						p_object_id = creation_object['object_id']
 					) is None:
+
+						# Django wants a primary key for the Group...
+						creation_object['owner_group'] = owner_group.pk
 						
 						# The object ID exists, so just overwrite the contents.
 						db.write_object(
 							p_app_label = 'api', 
 							p_model_name = creation_object['table'],
-							p_fields = ['object_id', 'schema', 'contents', 'state'],
+							p_fields = ['object_id', 'schema', 'contents', 'state', 'owner_group'],
 							p_data = creation_object,
 							p_update = True
 						)
@@ -151,11 +158,14 @@ def POST_create_new_object(bulk_request):
 					# Make sure to create the object ID field in our draft.
 					creation_object['contents']['object_id'] = creation_object['object_id']
 
+					# Django wants a primary key for the Group...
+					creation_object['owner_group'] = owner_group.pk
+
 					# Write to the database.
 					db.write_object(
 						p_app_label = 'api', 
 						p_model_name = creation_object['table'],
-						p_fields = ['object_id', 'schema', 'contents', 'state'],
+						p_fields = ['object_id', 'schema', 'contents', 'state', 'owner_group'],
 						p_data = creation_object
 					)
 					
@@ -229,11 +239,14 @@ def POST_create_new_object(bulk_request):
 						# Create a new ID based on the updated version.
 						creation_object['object_id'] =  '/'.join(object_name_split[:-1]) + '/1.' + str(max_v)
 
+						# Django wants a primary key for the Group...
+						creation_object['owner_group'] = owner_group.pk
+
 						# Write the new object ID.
 						db.write_object(
 							p_app_label = 'api', 
 							p_model_name = creation_object['table'],
-							p_fields = ['object_id', 'schema', 'contents', 'state'],
+							p_fields = ['object_id', 'schema', 'contents', 'state', 'owner_group'],
 							p_data = creation_object
 						)
 						
@@ -282,12 +295,15 @@ def POST_create_new_object(bulk_request):
 					# Source: https://docs.djangoproject.com/en/3.1/ref/models/instances/#updating-attributes-based-on-existing-fields
 					meta_info.n_objects = F('n_objects') + 1
 					meta_info.save()
+
+					# Django wants a primary key for the Group...
+					creation_object['owner_group'] = owner_group.pk
 					
 					# Write the new object ID.
 					db.write_object(
 						p_app_label = 'api', 
 						p_model_name = creation_object['table'],
-						p_fields = ['object_id', 'schema', 'contents', 'state'],
+						p_fields = ['object_id', 'schema', 'contents', 'state', 'owner_group'],
 						p_data = creation_object
 					)
 

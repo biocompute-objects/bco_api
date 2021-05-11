@@ -109,6 +109,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Object-level permissions with django-guardian
+# Source: https://github.com/django-guardian/django-guardian#configuration
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
+]
+
 
 
 
@@ -148,6 +155,8 @@ for template in templates:
 # Token-based authentication.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
 
+# API keys: 'rest_framework_api_key'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -157,9 +166,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_framework_api_key',
     'api',
-    'reset_migrations'
+    'reset_migrations',
+    'guardian'
 ]
 
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error
