@@ -15,6 +15,18 @@ def populate_models(sender, **kwargs):
     # Source: https://stackoverflow.com/a/18797715/5029459
     from django.contrib.auth.models import Permission
     from django.contrib.contenttypes.models import ContentType
+
+    # Custom publishing permissions which use the model name.
+    # Source: https://stackoverflow.com/a/9940053/5029459
+
+    # # Publishing permissions only make sense on draft tables.
+    # for content_type in ContentType.objects.all():
+
+    #     Permission.objects.create(
+    #         content_type = content_type, 
+    #         codename = 'publish_%s' % content_type.model, 
+    #         name = 'Can publish %s' % content_type.name
+    #     )
     
     # BCO is the anon (public) prefix
     if(Group.objects.filter(name = 'bco_drafters').count() == 0):

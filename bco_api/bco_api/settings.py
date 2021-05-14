@@ -47,6 +47,9 @@ server_config.read('./server.conf')
 # The human-readable hostname.
 HUMAN_READABLE_HOSTNAME = server_config['HRHOSTNAME']['hrnames']
 
+# The publicly accessible hostname.
+PUBLIC_HOSTNAME = server_config['PUBLICHOSTNAME']['name']
+
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error
 
 # Check for open (public) access to the API.

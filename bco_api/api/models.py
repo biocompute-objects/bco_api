@@ -32,6 +32,7 @@ from rest_framework.authtoken.models import Token
 # Source: https://stackoverflow.com/a/32411560
 from django.utils import timezone
 
+# owner_group field is optional since we're using django-guardian?
 
 # Ownership models
 # Source: https://stackoverflow.com/a/47268403
@@ -83,6 +84,14 @@ class json_object(owned_model):
 	# Make this class a parent.
 	class Meta:
 		abstract = True
+
+		# TO-DO: abstract this out when the draft and publish
+		# tables are abstracted out...
+
+		# # Source: https://django-guardian.readthedocs.io/en/stable/userguide/assign.html#prepare-permissions
+		# permissions = (
+        #     ('can_publish', 'Can publish {something}'.format(something = self.verbose_name)),
+        # )
 
 
 # Generic meta data model
@@ -249,3 +258,19 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 # 		on_delete = models.CASCADE,
 # 		related_name = 'api_keys'
 # 	)
+
+
+
+
+# Custom publishing permissions which use the model name.
+# Source: https://stackoverflow.com/a/9940053/5029459
+
+# from django.contrib.auth.models import Permission
+# from django.contrib.contenttypes.models import ContentType
+
+# for content_type in ContentType.objects.all():
+#      Permission.objects.create(
+#          content_type = content_type, 
+#          codename = 'publish_%s' % content_type.model, 
+#          name = 'Can publish %s' % content_type.name
+#     )

@@ -8,6 +8,9 @@ from rest_framework.authtoken.models import Token
 # For returning server information.
 from django.conf import settings
 
+# Permissions
+from django.contrib.auth.models import Permission
+
 
 class UserUtils:
 
@@ -15,6 +18,21 @@ class UserUtils:
     # -----------------
 
     # These are methods for interacting with user information.
+
+    def user_info_by_token(self, token):
+
+        # Arguments
+        # ---------
+
+        # token: the token to get the information for.
+
+        # Returns
+        # -------
+
+        # Something...
+        
+        # Get the user info.
+        return User.objects.get(id = Token.objects.get(key = token).user_id)
 
     # Get 
     def get_user_info(self, username):
@@ -42,7 +60,7 @@ class UserUtils:
         # Get the other information for this user.
         # Source: https://stackoverflow.com/a/48592813
         other_info = {
-            'group_permissions': [],
+            'group_permissions': {},
             'account_creation': '',
             'account_expiration': ''
         }
@@ -50,24 +68,42 @@ class UserUtils:
         # TODO: put in account expiration date, key expiration date etc...
 
         # First, get the django-native User object.
-        user = User.objects.get(username=username)
+        user = User.objects.get(username = username)
         
-        # Group permissions.
-        # Source: https://docs.djangoproject.com/en/3.0/ref/contrib/auth/#django.contrib.auth.models.User.get_group_permissions
-        group_permissions = User.get_group_permissions(user)
+        # Group permissions
+
+        # Get each group's permissions separately,
+        # then append them to other_info.
+        
+        # Source: https://stackoverflow.com/a/27538767/5029459
+        # Couldn't get the comment answer to work...
 
         # Need to process the permissions to be readable.
-        for gp in list(group_permissions):
-            ' '.join(gp.split('.')[1].split('_'))
-            other_info['group_permissions'].append(' '.join(gp.split('.')[1].split('_')))
+
+        # TODO: possible to do without a loop?
+        for group in user.groups.all():
+            
+            # Get the group name.
+            g_name = group.name
+
+            # Get the permissions.
+            g_permissions = group.permissions.all()
+            
+            # ' '.join(gp.split('.')[1].split('_'))
+            # other_info['group_permissions'].append(' '.join(gp.split('.')[1].split('_')))
+            other_info['group_permissions'][g_name] = [i.name for i in g_permissions]
         
         # Account created.
         other_info['account_creation'] = user.date_joined
+
+        print('@@@@@ USERNAME CHECK @@@@')
+        print(username)
             
         # TODO: Fix hostname settings in settings.py?
         return {
             'hostname': settings.ALLOWED_HOSTS[0],
             'human_readable_hostname': settings.HUMAN_READABLE_HOSTNAME,
+            'public_hostname': settings.PUBLIC_HOSTNAME,
             'token': token.key,
             'username': username,
             'other_info': other_info

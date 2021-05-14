@@ -10,9 +10,16 @@ from django.apps import apps
 # For getting objects out of the database.
 from .. import DbUtils
 
+# User information
+from .. import UserUtils
+
 # For writing objects to the database.
 from django.contrib.auth.models import Group
 from ...serializers import getGenericSerializer
+
+# Permissions
+# Source: https://django-guardian.readthedocs.io/en/stable/api/guardian.shortcuts.html#assign-perm
+from guardian.shortcuts import assign_perm
 
 # For generating a random DRAFT ID.
 
@@ -34,7 +41,7 @@ from rest_framework import status
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_create_new_object(bulk_request):
+def POST_create_new_object(incoming):
 
 	# Take the bulk request and create object from it.
 
@@ -45,8 +52,12 @@ def POST_create_new_object(bulk_request):
 
 	print('POST_create_new_object')
 
+	# Define the bulk request.
+	bulk_request = incoming.data['POST_create_new_object']
+	
 	# Instantiate any necessasary imports.
 	db = DbUtils.DbUtils()
+	ui = UserUtils.UserUtils()
 	
 	# Get the object naming information.
 	object_naming_info = settings.OBJECT_NAMING
@@ -157,7 +168,7 @@ def POST_create_new_object(bulk_request):
 					
 					# Make sure to create the object ID field in our draft.
 					creation_object['contents']['object_id'] = creation_object['object_id']
-
+										
 					# Django wants a primary key for the Group...
 					creation_object['owner_group'] = owner_group.pk
 
@@ -167,6 +178,22 @@ def POST_create_new_object(bulk_request):
 						p_model_name = creation_object['table'],
 						p_fields = ['object_id', 'schema', 'contents', 'state', 'owner_group'],
 						p_data = creation_object
+					)
+
+					# Object creator automatically has full permissions
+					# on the object.
+
+					# The existence of the provided group is already checked upstream
+					# from here.
+					assign_perm(
+						'view_' + creation_object['table'],
+						Group.objects.get(name = owner_group),
+						apps.get_model(
+							app_label = 'api', 
+							model_name = creation_object['table']
+						).objects.filter(
+							object_id = creation_object['object_id']
+						)
 					)
 					
 					# Update the request status.

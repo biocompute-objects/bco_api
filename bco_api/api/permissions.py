@@ -19,6 +19,9 @@ from guardian.shortcuts import get_group_perms
 # Available tables
 from django.conf import settings
 
+# Apps
+from django.apps import apps
+
 
 
 
@@ -41,7 +44,9 @@ class RequestorInOwnerGroup(permissions.BasePermission):
 
         # This means getting the user ID for the token,
         # then the username.
-        user_id = Token.objects.get(key = request.headers['Token']).user_id
+        print('Request headers...')
+        print(request.headers['Authorization'])
+        user_id = Token.objects.get(key = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
         username = User.objects.get(id = user_id)
 
         print('--- token username ---')
@@ -61,8 +66,8 @@ class RequestorInOwnerGroup(permissions.BasePermission):
         # object.
         owner_group = apps.get_model(
                 app_label = 'api', 
-                model_name = table_name
-        ).objects.get(object_id = do_id).owner_group
+                model_name = request.data['table_name']
+        ).objects.get(object_id = request.data['object_id']).owner_group
 
         # Note: could use https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#custom-permissions
         # to set these, but group membership confers all read
@@ -77,7 +82,7 @@ class RequestorInOwnerGroup(permissions.BasePermission):
 # ----- Object Permissions ----- #
 
 
-
+# TODO: is HasObjectGenericPermission redundant?
 
 # Generic object-level permissions checker.
 class HasObjectGenericPermission(permissions.BasePermission):
@@ -97,10 +102,15 @@ class HasObjectGenericPermission(permissions.BasePermission):
         # then the username.
         # Source: https://stackoverflow.com/questions/31813572/access-token-from-view
         # TODO: better way to get the token?
+        print('here')
         user_id = Token.objects.get(key = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
         username = User.objects.get(id = user_id)
+        print('username')
+        print(username)
+        print(username.groups.all())
+        print(get_group_perms(username, obj))
         
-        # See if the group can change this object.
+        # See if the group can do something with this object.
         # Source: https://django-guardian.readthedocs.io/en/stable/userguide/check.html#get-perms
 
         # Get the group object first, then check.
@@ -112,6 +122,83 @@ class HasObjectGenericPermission(permissions.BasePermission):
 
             # User doesn't have the right permissions for this object.
             return False
+
+
+
+
+# Specific permissions (necessary to use logical operators
+# when checking permissions).
+
+# These are all just specific cases of HasObjectGenericPermission
+
+class HasObjectAddPermission(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        
+        user_id = Token.objects.get(key = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
+        username = User.objects.get(id = user_id)
+
+        # Get the group object first, then check.
+        if 'add_' + request.data['table_name'] in get_group_perms(username, obj):
+            
+            return True
+
+        else:
+
+            # User doesn't have the right permissions for this object.
+            return False
+    
+class HasObjectChangePermission(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        
+        user_id = Token.objects.get(key = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
+        username = User.objects.get(id = user_id)
+
+        # Get the group object first, then check.
+        if 'change_' + request.data['table_name'] in get_group_perms(username, obj):
+            
+            return True
+
+        else:
+
+            # User doesn't have the right permissions for this object.
+            return False
+
+class HasObjectDeletePermission(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        
+        user_id = Token.objects.get(key = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
+        username = User.objects.get(id = user_id)
+
+        # Get the group object first, then check.
+        if 'delete_' + request.data['table_name'] in get_group_perms(username, obj):
+            
+            return True
+
+        else:
+
+            # User doesn't have the right permissions for this object.
+            return False
+
+class HasObjectViewPermission(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        
+        user_id = Token.objects.get(key = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
+        username = User.objects.get(id = user_id)
+
+        # Get the group object first, then check.
+        if 'view_' + request.data['table_name'] in get_group_perms(username, obj):
+            
+            return True
+
+        else:
+
+            # User doesn't have the right permissions for this object.
+            return False
+
 
 
 # OLD

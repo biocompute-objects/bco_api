@@ -14,10 +14,12 @@ from .scripts import RequestUtils, UserUtils
 # Request-specific methods
 from .scripts.method_specific.GET_activate_account import GET_activate_account
 from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
+from .scripts.method_specific.POST_check_object_permissions import POST_check_object_permissions
 from .scripts.method_specific.POST_create_new_object import POST_create_new_object
 from .scripts.method_specific.POST_new_account import POST_new_account
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
 from .scripts.method_specific.POST_read_object import POST_read_object
+from .scripts.method_specific.POST_set_object_permission import POST_set_object_permission
 from .scripts.method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
 # from .scripts.method_specific.POST_get_key_permissions import POST_get_key_permissions
 from .scripts.method_specific.GET_retrieve_available_schema import GET_retrieve_available_schema
@@ -38,11 +40,15 @@ from django.conf import settings
 # from rest_framework.permissions import AllowAny
 # from rest_framework_api_key.permissions import HasAPIKey
 from rest_framework.permissions import IsAuthenticated
-from .permissions import RequestorInOwnerGroup, HasObjectGenericPermission, HasTableWritePermission
+from .permissions import RequestorInOwnerGroup, HasObjectGenericPermission, HasObjectAddPermission, HasObjectChangePermission, HasObjectDeletePermission, HasObjectViewPermission, HasTableWritePermission
 
 # Message page
 # Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
 from rest_framework.renderers import TemplateHTMLRenderer
+
+# Simple JSON print
+import json
+from django.http import JsonResponse
 
 
 
@@ -183,7 +189,7 @@ class CustomAuthToken(ObtainAuthToken):
 
 
 
-class BcoObjectsCreate(APIView):
+class ApiObjectsCreate(APIView):
 
     # Description
     # -----------
@@ -206,12 +212,156 @@ class BcoObjectsCreate(APIView):
     def post(self, request):
 
         # Check the request.
-        checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
+        # checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
+        checked = None
 
         if checked is None:
             
             # Pass the request to the handling function.            
-            return(POST_create_new_object(request.data['POST_create_new_object']))
+            return(
+                POST_create_new_object(request)
+            )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+
+class ApiObjectsPermissions(APIView):
+
+    # Description
+    # -----------
+
+    # Get the permissions for an object.
+    # Requestor MUST have change, delete, or view 
+    # permissions on the object in order to get permissions for
+    # their groups.
+
+    # POST
+
+    # Permissions
+    permission_classes = [IsAuthenticated & (HasObjectChangePermission | HasObjectDeletePermission | HasObjectViewPermission)]
+
+    # TODO: fix checking for request info, in particular 
+    # when a field is missing...abstract into own function?
+
+    def post(self, request):
+
+        # TODO: fix later.
+        # Check the request.
+        # checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
+        checked = None
+
+        if checked is None:
+            
+            # Get the object and check its permissions.
+
+            # Note: re-using GET method here...
+            objected = GET_draft_object_by_id(request.data['object_id'])
+
+            if objected is not None:
+            
+                # Assumes prefixes and table names are linked...
+                request.data['table_name'] = '_'.join(request.data['object_id'].split('/')[-1].split('_')[0:2]).lower()
+
+                # Check for object-level permissions.
+                self.check_object_permissions(request, objected)
+                
+                # Pass the request to the handling function.            
+                return(
+                    POST_check_object_permissions(request, objected)
+                )
+                                    
+            else:
+
+                return(
+                    Response(
+                        data = None,
+                        status = status.HTTP_403_FORBIDDEN
+                    )
+                )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+
+class ApiObjectsPermissionsSet(APIView):
+
+    # Description
+    # -----------
+
+    # Set the permissions for an object.
+    # Requestor MUST have change, delete, or view 
+    # permissions on the object in order to get permissions for
+    # their groups.
+
+    # POST
+    
+    # Permissions - same as requesting permissions.
+    # permission_classes = [IsAuthenticated & (HasObjectChangePermission | HasObjectDeletePermission | HasObjectViewPermission)]
+
+    # Permissions - object owner only.
+    permission_classes = [RequestorInOwnerGroup]
+
+    # TODO: fix checking for request info, in particular 
+    # when a field is missing...abstract into own function?
+
+    def post(self, request):
+
+        # TODO: fix later.
+        # Check the request.
+        # checked = RequestUtils.RequestUtils().check_request_templates(method = 'POST', request = request.data)
+        checked = None
+
+        if checked is None:
+            
+            # Get the object and check its permissions.
+
+            # Note: re-using GET method here...
+            objected = GET_draft_object_by_id(request.data['object_id'])
+
+            if objected is not None:
+            
+                # Assumes prefixes and table names are linked...
+                request.data['table_name'] = '_'.join(request.data['object_id'].split('/')[-1].split('_')[0:2]).lower()
+                print('request.data')
+                print(request.data)
+
+                # Check for object-level permissions.
+                self.check_object_permissions(request, objected)
+
+                # Set the permissions, then return the full permissions list.
+                # TODO: probably better to return only relevant permission...
+                POST_set_object_permission(request, objected)
+                
+                # Pass the request to the handling function.
+                return(
+                    POST_check_object_permissions(request, objected)
+                )
+                                    
+            else:
+
+                return(
+                    Response(
+                        data = None,
+                        status = status.HTTP_403_FORBIDDEN
+                    )
+                )
         
         else:
 
@@ -238,7 +388,7 @@ class DraftObjectById(APIView):
     # Permissions
     permission_classes = [IsAuthenticated, HasObjectGenericPermission]
     
-    def get(self, request, draft_object_id):
+    def get(self, request):
         
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).
@@ -252,6 +402,8 @@ class DraftObjectById(APIView):
         if objected is not None:
 
             # Append the table and permission type to check for.
+
+            # Assumes prefixes and table names are linked...
             request.data['table_name'] = '_'.join(request.build_absolute_uri().split('/')[-1].split('_')[0:2]).lower()
             request.data['perm_type'] = 'view'
             
@@ -275,6 +427,97 @@ class DraftObjectById(APIView):
                     status = status.HTTP_403_FORBIDDEN
                 )
             )
+
+
+
+
+class LinkedDraftObjectById(APIView):
+
+    # Description
+    # -----------
+
+    # Read an object by URI which was linked to.
+
+    # GET
+
+    # Permissions
+    authentication_classes = []
+    permission_classes = [HasObjectGenericPermission]
+    
+    def get(self, request, draft_object_id, token):
+        
+        # Authentication must be checked manually because
+        # of how the URL is passed without headers.
+        
+        # Check the authentication.
+        if Token.objects.filter(key = token).exists():
+
+            # Get the object and check its permissions.
+
+            # Remove 'linked' and the token from the absolute URI.
+            split_up = '/'.join(request.build_absolute_uri().split('/')[0:-2])
+            print('test')
+            print(split_up)
+            objected = GET_draft_object_by_id(split_up)
+
+            if objected is not None:
+
+                # "Cheat" by setting
+                
+                # Append the table and permission type to check for.
+                request.data['table_name'] = '_'.join(split_up.split('/')[-1].split('_')[0:2]).lower()
+                request.data['perm_type'] = 'view'
+
+                print('#############')
+                print('table_name')
+                print(request.data['table_name'])
+
+                # "Cheat" by adding the token to the headers so that 
+                # we can check the object permissions.
+                print('token')
+                print(token)
+                request.META['HTTP_AUTHORIZATION'] = 'Token ' + token
+                
+                # Check for object-level permissions.
+                self.check_object_permissions(request, objected)
+
+                print('LOOK RIGHT HERE')
+                print(serializers.serialize('json', [ objected, ]))
+                print(type(serializers.serialize('json', [ objected, ])))
+
+                # TODO: put all this in a serializer later...
+                returnable = json.loads(serializers.serialize('json', [ objected, ]))
+                returnable[0]['fields']['public_hostname'] = settings.PUBLIC_HOSTNAME
+                returnable[0]['fields']['human_readable_hostname'] = settings.HUMAN_READABLE_HOSTNAME
+                returnable[0]['fields']['owner_group'] = str(objected.owner_group)
+
+                # Return JSON.
+                # Source: https://docs.djangoproject.com/en/3.2/ref/request-response/#jsonresponse-objects
+                return(
+                    JsonResponse(
+                        data = json.dumps(returnable),
+                        safe = False,
+                        json_dumps_params={'indent': 2}
+                    )
+                )
+
+            else:
+
+                return(
+                    Response(
+                        data = None,
+                        status = status.HTTP_403_FORBIDDEN
+                    )
+                )
+        
+        else:
+
+            return(
+                    Response(
+                        data = None,
+                        status = status.HTTP_403_FORBIDDEN
+                    )
+                )
 
 
 
