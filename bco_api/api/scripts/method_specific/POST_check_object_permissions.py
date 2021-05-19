@@ -30,7 +30,7 @@ def POST_check_object_permissions(incoming, objct):
 	# Create a dictionary to hold the return information
 	# which includes the server information.
 	returnable = {
-		'hostname': settings.ALLOWED_HOSTS[0],
+		'hostname': settings.PUBLIC_HOSTNAME,
         'human_readable_hostname': settings.HUMAN_READABLE_HOSTNAME,
 		'groups': {}
 	}
