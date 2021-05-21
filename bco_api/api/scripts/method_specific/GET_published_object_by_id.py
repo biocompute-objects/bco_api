@@ -4,25 +4,16 @@ from django.apps import apps
 # For interacting with the database
 from .. import DbUtils
 
-# For users and groups
-from django.contrib.auth.models import User, Group
-
-# Permissions
-from ..permissions import 
+# Tables
+from django.conf import settings
 
 # Responses
 from rest_framework.response import Response
 from rest_framework import status
-from django.core.serializers import serialize
+from django.core import serializers
 import json
 
-# TODO: Integrate this into one function with POST_read_object.
 # TODO: Put in embargo logic later.
-
-# Permissions.
-
-
-# Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
 def GET_published_object_by_id(oi_root, oi_version):
 
@@ -34,33 +25,41 @@ def GET_published_object_by_id(oi_root, oi_version):
 	db = DbUtils.DbUtils()
 
 	# First, get the table based on the requested published object.
-	table = '_'.join(do_id.split('_')[0]).lower()
+	table_name = (oi_root.split('_')[0] + '_publish').lower()
 
 	# Does the table exist?
+	# TODO: replace with better table call...
 	available_tables = settings.MODELS['json_object']
 
-	if table in available_tables:
+	if table_name in available_tables:
 
+		# Construct the object ID.
+		constructed = object_id = settings.PUBLIC_HOSTNAME + '/' + oi_root + '/' + oi_version
+		print('CONSTRUCTED')
+		print(constructed)
+		
 		# Does the object exist in the table?
 		if apps.get_model(
 				app_label = 'api', 
 				model_name = table_name
-		).objects.get(object_id = do_id).exists():
+		).objects.filter(object_id = constructed).exists():
 
 			# Get the object, then check the permissions.
 			objected = apps.get_model(
 					app_label = 'api', 
 					model_name = table_name
-			).objects.get(object_id = do_id)
-
-			# Now check the permissions.
-			return objected		
+			).objects.get(object_id = constructed)
+			
+			return Response(
+				data = serializers.serialize('json', [ objected, ]),
+				status = status.HTTP_200_OK
+			)
 		
 		else:
 
 			return(
 				Response(
-					status = status.HTTP_403_FORBIDDEN
+					status = status.HTTP_400_BAD_REQUEST
 				)
 			)
 	
@@ -68,6 +67,6 @@ def GET_published_object_by_id(oi_root, oi_version):
 
 		return(
 			Response(
-				status = status.HTTP_403_FORBIDDEN
+				status = status.HTTP_400_BAD_REQUEST
 			)
 		)

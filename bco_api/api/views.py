@@ -14,6 +14,7 @@ from .scripts import RequestUtils, UserUtils
 # Request-specific methods
 from .scripts.method_specific.GET_activate_account import GET_activate_account
 from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
+from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from .scripts.method_specific.POST_check_object_permissions import POST_check_object_permissions
 from .scripts.method_specific.POST_create_new_object import POST_create_new_object
 from .scripts.method_specific.POST_new_account import POST_new_account
@@ -388,7 +389,7 @@ class DraftObjectById(APIView):
     # Permissions
     permission_classes = [IsAuthenticated, HasObjectGenericPermission]
     
-    def get(self, request):
+    def get(self, request, draft_object_id):
         
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).
@@ -410,11 +411,23 @@ class DraftObjectById(APIView):
             # Check for object-level permissions.
             self.check_object_permissions(request, objected)
 
+            # Serialize, then add some fields.
+            serialized = json.loads(
+					serializers.serialize('json', [ objected, ]
+				)
+			)
+			
+            serialized[0]['fields']['public_hostname'] = settings.PUBLIC_HOSTNAME
+            serialized[0]['fields']['human_readable_hostname'] = settings.HUMAN_READABLE_HOSTNAME
+
+            # Fix the owner group.
+            serialized[0]['fields']['owner_group'] = Group.objects.get(id = serialized[0]['fields']['owner_group']).name
+
             # Return JSON.
             # Source: https://stackoverflow.com/a/3289057/5029459
             return(
                 Response(
-                    data = serializers.serialize('json', [ objected, ]),
+                    data = json.dumps(serialized),
                     status = status.HTTP_200_OK
                 )
             )
@@ -540,11 +553,8 @@ class PublishedObjectById(APIView):
     def get(self, request, object_id_root, object_id_version):
 
         return(
-                Response(
-                    data = GET_published_object_by_id(object_id_root, object_id_version),
-                    status = status.HTTP_200_OK
-                )
-            )
+            GET_published_object_by_id(object_id_root, object_id_version)
+        )
 
 
 
