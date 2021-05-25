@@ -75,6 +75,7 @@ class NewAccount(APIView):
     # POST
 
     # Anyone can ask for a new account.
+    # TODO: authentication_classes not necessary?
     authentication_classes = []
     permission_classes = []
 
@@ -116,6 +117,7 @@ class ActivateAccount(APIView):
     # GET
 
     # Anyone can ask to activate an new account.
+    # TODO: authentication_classes not necessary?
     authentication_classes = []
     permission_classes = []
 

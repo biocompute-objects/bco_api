@@ -131,6 +131,7 @@ class HasObjectGenericPermission(permissions.BasePermission):
 
 # These are all just specific cases of HasObjectGenericPermission
 
+# TODO: Needed?  Same as writing to table?
 class HasObjectAddPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):

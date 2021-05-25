@@ -9,25 +9,36 @@
         "type": "object",
         "properties":
         {
+            
+            "contents":
+            {
+                "description": "The JSON contents to be stored.",
+                "type": "object"
+            },
+            "from_draft":
+            {
+                "description": "The draft ID to use to publish the object.",
+                "type": "string"
+            },
             "object_id":
             {
                 "description": "The object ID to create a new version for.",
                 "type": "string"
             },
-            "table":
+            "owner_group":
             {
-                "description": "The table to write the new object to.",
+                "description": "Which group should own the object",
                 "type": "string"
+            },
+            "retain_draft":
+            {
+            	"description": "Retain the draft after publishing?",
+            	"type": "string"
             },
             "schema":
             {
                 "description": "The schema under which the POSTed JSON falls.",
                 "type": "string"
-            },
-            "contents":
-            {
-                "description": "The JSON contents to be stored",
-                "type": "object"
             },
             "state":
             {
@@ -35,19 +46,20 @@
                 "type": "string",
                 "pattern": "^DRAFT$|^PUBLISHED$"
             },
-            "owner_group":
+            "table":
             {
-                "description": "Which group should own the object",
+                "description": "The table to write the new object to.",
                 "type": "string"
             }
         },
         "required":
         [
-            "table",
+            "from_draft",
+            "owner_group",
+            "retain_draft",
             "schema",
-            "contents",
             "state",
-            "owner_group"
+            "table"
         ]
     }
 }

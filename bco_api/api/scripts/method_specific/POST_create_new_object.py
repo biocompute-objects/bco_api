@@ -311,12 +311,6 @@ def POST_create_new_object(incoming):
 					meta_info = meta_table.objects.get(pk=1)
 					latest_n = getattr(meta_info, 'n_objects')
 
-					# Create a new ID based on latest_n.
-					creation_object['object_id'] =  constructed_name + '_' + str(latest_n) + '/1.0'
-					
-					# Make sure to create the object ID field in our draft.
-					creation_object['contents']['object_id'] = creation_object['object_id']
-
 					# Update the meta table.
 
 					# Source: https://docs.djangoproject.com/en/3.1/ref/models/instances/#updating-attributes-based-on-existing-fields
@@ -325,6 +319,12 @@ def POST_create_new_object(incoming):
 
 					# Django wants a primary key for the Group...
 					creation_object['owner_group'] = owner_group.pk
+
+					# Create a new ID based on latest_n.
+					creation_object['object_id'] =  constructed_name + '_' + str(latest_n) + '/1.0'
+					
+					# Make sure to create the object ID field in our draft.
+					creation_object['contents']['object_id'] = creation_object['object_id']
 					
 					# Write the new object ID.
 					db.write_object(
