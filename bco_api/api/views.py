@@ -128,17 +128,22 @@ class ActivateAccount(APIView):
     def get(self, request, username, temp_identifier):
 
         print('+++++')
+
         print(request.data)
         print('+++++')
 
         # Check the request.
         checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request.data)
 
+   
         print(checked)
+
+
 
         if checked is None:
         
-            # Pass the request to the handling function.            
+            # Pass the request to the handling function. 
+            print("going to activate....")           
             return(
                 GET_activate_account(
                     username = username, 
@@ -147,6 +152,7 @@ class ActivateAccount(APIView):
             )
         
         else:
+            print("not going to activate....")
         
             return(
                 Response(

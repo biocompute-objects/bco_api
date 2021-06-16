@@ -1,6 +1,7 @@
 # Source: https://stackoverflow.com/a/42744626/5029459
 
 def populate_models(sender, **kwargs):
+    print("running signals!!")
     
     
 
@@ -174,7 +175,7 @@ def populate_models(sender, **kwargs):
                 )
 
             elif group == 'wheel':
-                print('here')
+             
                 # wheel gets all permissions.
                 # Source: https://stackoverflow.com/a/7503368/5029459
                 for cn in ['add_' + m, 'change_' + m, 'delete_' + m, 'view_' + m]:

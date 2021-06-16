@@ -23,6 +23,7 @@ def GET_activate_account(username, temp_identifier):
 
 	# Instantiate any necessasary imports.
 	db = DbUtils.DbUtils()
+	print(db)
 
 	print('===============')
 	print('username')
@@ -35,6 +36,7 @@ def GET_activate_account(username, temp_identifier):
 	# exist in either a temporary or a permanent user profile?
 
 	if User.objects.filter(email = username).exists():
+		print("user exists!!!!")
 
 		# Account has already been activated.
 		return(
@@ -52,7 +54,7 @@ def GET_activate_account(username, temp_identifier):
 			p_model_name = 'new_users',
 			p_email = username,
 			p_temp_identifier = temp_identifier
-		) is 1:
+		) == 1:
 		
 			print('--- account activation ----')
 			
