@@ -1,7 +1,6 @@
 # Source: https://stackoverflow.com/a/42744626/5029459
 
 def populate_models(sender, **kwargs):
-    print("running signals!!")
     
     
 
