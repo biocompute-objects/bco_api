@@ -143,7 +143,7 @@ class ActivateAccount(APIView):
         if checked is None:
         
             # Pass the request to the handling function. 
-            print("going to activate....")           
+                      
             return(
                 GET_activate_account(
                     username = username, 
@@ -152,7 +152,6 @@ class ActivateAccount(APIView):
             )
         
         else:
-            print("not going to activate....")
         
             return(
                 Response(

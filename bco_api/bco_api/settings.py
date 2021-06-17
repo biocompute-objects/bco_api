@@ -170,7 +170,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'api.apps.ApiConfig',
-    'api.apps',
     'reset_migrations',
     'guardian'
 ]
