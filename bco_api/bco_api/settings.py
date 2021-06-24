@@ -48,7 +48,10 @@ server_config.read('./server.conf')
 HUMAN_READABLE_HOSTNAME = server_config['HRHOSTNAME']['hrnames']
 
 # The publicly accessible hostname.
-PUBLIC_HOSTNAME = server_config['PUBLICHOSTNAME']['name']
+if server_config['PRODUCTION']['production'] == 'true':
+    PUBLIC_HOSTNAME = server_config['PUBLICHOSTNAME']['prod_name']
+elif server_config['PRODUCTION']['production'] == 'false':
+    PUBLIC_HOSTNAME = server_config['PUBLICHOSTNAME']['name']
 
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error
 
@@ -67,7 +70,10 @@ if(server_config['REQUESTS_FROM']['public'].strip() == 'false'):
     # Source: https://stackabuse.com/python-how-to-flatten-list-of-lists/
     flattened = [item.strip() for sublist in requesters for item in sublist]
     
-    ALLOWED_HOSTS = [i.strip() for i in server_config['HOSTNAMES']['names'].split(',')]
+    if server_config['PRODUCTION']['production'] == 'true':
+        ALLOWED_HOSTS = [i.strip() for i in server_config['HOSTNAMES']['prod_names'].split(',')]
+    elif server_config['PRODUCTION']['production'] == 'false':
+        ALLOWED_HOSTS = [i.strip() for i in server_config['HOSTNAMES']['names'].split(',')]
     
     CORS_ORIGIN_ALLOW_ALL = False
     CORS_ORIGIN_WHITELIST = tuple(flattened)
@@ -290,8 +296,21 @@ VALIDATION_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_pa
 # Make the object naming accessible as a dictionary.
 OBJECT_NAMING = {}
 
-for i in server_config['OBJECT_NAMING']:
-    OBJECT_NAMING[i] = server_config['OBJECT_NAMING'][i]
+if server_config['PRODUCTION']['production'] == 'true':
+    
+    for i in server_config['OBJECT_NAMING']:
+        if i.split('_')[0] == 'prod':
+            
+            # Strip out the production flag.
+            stripped = '_'.join(i.split('_')[1:])
+            
+            OBJECT_NAMING[stripped] = server_config['OBJECT_NAMING'][i]
+
+elif server_config['PRODUCTION']['production'] == 'false':
+
+    for i in server_config['OBJECT_NAMING']:
+        if i.split('_')[0] != 'prod':
+            OBJECT_NAMING[i] = server_config['OBJECT_NAMING'][i]
 
 # emailing notifications
 
