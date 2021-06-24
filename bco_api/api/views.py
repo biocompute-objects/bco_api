@@ -128,17 +128,22 @@ class ActivateAccount(APIView):
     def get(self, request, username, temp_identifier):
 
         print('+++++')
+
         print(request.data)
         print('+++++')
 
         # Check the request.
         checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request.data)
 
+   
         print(checked)
+
+
 
         if checked is None:
         
-            # Pass the request to the handling function.            
+            # Pass the request to the handling function. 
+                      
             return(
                 GET_activate_account(
                     username = username, 
@@ -594,38 +599,31 @@ class BcoObjectsByToken(APIView):
 
 
 
-class ApiDescription(APIView):
+class ApiPublicDescribe(APIView):
 
     # Description
     # -----------
 
     # Describe what's on the API.
+    # *** DOES NOT REQUIRE A TOKEN ***.
+
+    # TODO: make use the public token eventually?
 
     # GET
 
+    # Anyone can ask for an API description.
+    authentication_classes = []
+    permission_classes = []
+
     def get(self, request):
 
-        # Check the request.
-        checked = RequestUtils.RequestUtils().check_request_templates(method = 'GET', request = request)
-
-        if checked is None:
+        # Instantiate UserUtils.
+        uu = UserUtils.UserUtils()
         
-            # Pass the request to the handling function.            
-            return(
-                Response(
-                    data = GET_create_new_object(request['GET_get_api_description']),
-                    status = status.HTTP_200_OK
-                )
-            )
-        
-        else:
-        
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
-            )
+        # Pass the request to the handling function.
+        return Response(
+            uu.get_user_info(username = 'anon')
+        )
 
 
 

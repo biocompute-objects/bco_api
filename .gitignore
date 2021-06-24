@@ -135,3 +135,6 @@ dmypy.json
 
 # The server configuration file.
 # bco_api/bco_api/server.conf
+
+# The migrations folder.
+bco_api/api/migrations/
