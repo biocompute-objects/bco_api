@@ -5,6 +5,9 @@
 
 
 
+# Deactivate the virtual environment.
+deactivate
+
 clear
 
 # Make sure the script is being run as the correct user (beta_portal_user).
@@ -57,7 +60,8 @@ then
 				cd bco_api
 
 				# Create the virtual environment and activate it.
-				virtualenv env
+				# ~/opt/bin/virtualenv env
+				/home/beta_portal_user/.local/bin/virtualenv env
 				source env/bin/activate
 
 				# Install requirements.
@@ -105,8 +109,6 @@ then
 
 		# TODO: no need to copy settings.py either way
 		# because everything for settings.py is set in server.conf.
-		
-		deactivate
 		
 		# No confirmation necessary for keeping the db.
 		
@@ -159,9 +161,9 @@ then
 			zcat ~/temp/db.sqlite3.bak.gz | sqlite3 ~/bco_api/bco_api/db.sqlite3
 
 			# Enter the project directory and migrate.
-			cd bco_api
-			python3.9 manage.py makemigrations
-			python3.9 manage.py migrate
+			# cd bco_api
+			# python3.9 manage.py makemigrations
+			# python3.9 manage.py migrate
 			
 			# Remove the temp folder.
 			rm ~/temp -rf
@@ -173,7 +175,7 @@ then
 		else
 		
 			# Couldn't make the sqlite backup.
-			echo './temp/db.sqlite3.bak.gz was not found, leaving script...'
+			echo '~/temp/db.sqlite3.bak.gz was not found, leaving script...'
 			exit 1
 		
 		fi	
