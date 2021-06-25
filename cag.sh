@@ -126,7 +126,7 @@ then
 		
 		# Only proceed if the backup was successful (i.e. the backup db exists).
 		# Source: https://linuxize.com/post/bash-check-if-file-exists/
-		if test -f "~/temp/db.sqlite3.bak.gz"
+		if [ -e ~/temp/db.sqlite3.bak.gz ]
 		then
 		
 			# The backup db exists, so proceed.
@@ -149,7 +149,7 @@ then
 			cd bco_api
 
 			# Create the virtual environment and activate it.
-			virtualenv env
+			/home/beta_portal_user/.local/bin/virtualenv env
 			source env/bin/activate
 
 			# Install requirements.
@@ -200,7 +200,7 @@ then
 	chown beta_portal_user:nginx * -R
 
 	# Restart the service.
-	systemctl restart beta_gunicorn	
+	systemctl restart bco_api	
 
 else
 
