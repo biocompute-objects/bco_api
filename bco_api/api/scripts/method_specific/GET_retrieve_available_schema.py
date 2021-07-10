@@ -1,19 +1,23 @@
-import json
-from .. import JsonUtils
-
 # For the folder search.
-from .. import FileUtils
+from ..utilities import FileUtils
+
+from ..utilities import JsonUtils
+import json
 
 # Put try catch in later to indicate failure to load schema...
 
-def GET_retrieve_available_schema(bulk_request):
+def GET_retrieve_available_schema(
+	bulk_request
+):
 
 	# We don't use settings.VALIDATION_TEMPLATES because
 	# that contains paths on the server which we don't
 	# want to reveal.
 
 	# Get the schema from the validation_definitions folder.
-	folder_schema = FileUtils.FileUtils().get_folder_tree(search_folder='validation_definitions/')['paths']
+	folder_schema = FileUtils.FileUtils().get_folder_tree(
+		search_folder = 'validation_definitions/'
+	)['paths']
 
 	# Define a list to hold the processed paths.
 	processed_paths = []
@@ -25,14 +29,19 @@ def GET_retrieve_available_schema(bulk_request):
 		file_name_split = path.split('/')
 
 		# Where is the 'validation_definitions/' item?
-		vd_index = file_name_split.index('validation_definitions')
+		vd_index = file_name_split.index(
+			'validation_definitions'
+		)
 
 		# Collapse everything after this index.
-		collapsed = '/'.join(file_name_split[vd_index+1:])
+		collapsed = '/'.join(
+			file_name_split[vd_index+1:]
+		)
 
 		# Set the name.
-		processed_paths.append(collapsed)
-
+		processed_paths.append(
+			collapsed
+		)
 	
 	# Create a usable structure.
 
@@ -42,8 +51,13 @@ def GET_retrieve_available_schema(bulk_request):
 	for item in processed_paths:
 		p = dct
 		for x in item.split('/'):
-			p = p.setdefault(x, {})
+			p = p.setdefault(
+				x, {}
+			)
 
-	# Add request_status: warn later?
-
-	return({'request_status': 'success', 'contents': dct})
+	return(
+		{
+			'request_status': 'success', 
+			'contents': dct
+		}
+	)

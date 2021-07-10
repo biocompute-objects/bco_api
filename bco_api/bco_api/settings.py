@@ -12,12 +12,10 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
-# ALTERED
-# For importing schema.
-from api.scripts import SettingsUtils
+# For importing schema
+from api.scripts.utilities import SettingsUtils
 
-# ALTERED
-# For importing configuration files.
+# For importing configuration files
 import configparser
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -31,26 +29,29 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 
+# Load the server config file.
+server_config = configparser.ConfigParser()
+server_config.read('./server.conf')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
+
+# Is this a production server?
+PRODUCTION = server_config['PRODUCTION']['production']
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '$vz@#@^q(od&$rf&*6^z!m5nh6qw2*cq*j6fha#^h9(r7$xqy4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-# Load the server config file.
-server_config = configparser.ConfigParser()
-server_config.read('./server.conf')
+DEBUG = PRODUCTION
 
 # The human-readable hostname.
 HUMAN_READABLE_HOSTNAME = server_config['HRHOSTNAME']['hrnames']
 
 # The publicly accessible hostname.
-if server_config['PRODUCTION']['production'] == 'true':
+if server_config['PRODUCTION']['production'] == 'True':
     PUBLIC_HOSTNAME = server_config['PUBLICHOSTNAME']['prod_name']
-elif server_config['PRODUCTION']['production'] == 'false':
+elif server_config['PRODUCTION']['production'] == 'False':
     PUBLIC_HOSTNAME = server_config['PUBLICHOSTNAME']['name']
 
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error
@@ -70,9 +71,9 @@ if(server_config['REQUESTS_FROM']['public'].strip() == 'false'):
     # Source: https://stackabuse.com/python-how-to-flatten-list-of-lists/
     flattened = [item.strip() for sublist in requesters for item in sublist]
     
-    if server_config['PRODUCTION']['production'] == 'true':
+    if server_config['PRODUCTION']['production'] == 'True':
         ALLOWED_HOSTS = [i.strip() for i in server_config['HOSTNAMES']['prod_names'].split(',')]
-    elif server_config['PRODUCTION']['production'] == 'false':
+    elif server_config['PRODUCTION']['production'] == 'False':
         ALLOWED_HOSTS = [i.strip() for i in server_config['HOSTNAMES']['names'].split(',')]
     
     CORS_ORIGIN_ALLOW_ALL = False
@@ -83,14 +84,9 @@ elif(server_config['REQUESTS_FROM']['public'].strip() == 'true'):
     ALLOWED_HOSTS = ['*']
     CORS_ORIGIN_ALLOW_ALL = True
 
-# Use the built-in REST framework.
+# Use the REST framework
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#setting-the-authentication-scheme
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
-
-# Note: requires the app name "api".
-
-# TODO: move option of authentication type to server.conf.
-# To use API keys, add 'api.permissions.HasUserAPIKey' under DEFAULT_PERMISSION_CLASSES.
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication'
@@ -163,9 +159,6 @@ for template in templates:
 
 # Token-based authentication.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
-
-# API keys: 'rest_framework_api_key'
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -226,7 +219,7 @@ DATABASES = {
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-# ALTERED
+
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
@@ -255,28 +248,6 @@ STATIC_URL = '/static/'
 
 # There is only set of definitions for requests, but for validations, we may have sub-folders.
 
-
-'''
-# FIX LATER
-
-# First, the request definitions.
-REQUEST_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_parameters={
-    settings_from_file['REQUESTS']['folder']: '.schema'
-}, mode = 'requests')
-
-# Define the schema for each request type.
-REQUEST_TEMPLATES = SettingsUtils.SettingsUtils().define_request_schema(schema=REQUEST_TEMPLATES['request_definitions/'])
-
-
-# The validation situation is more complex.
-
-# First, we need to get all of the folders under validation_definitions.
-VALIDATION_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_parameters={
-    settings_from_file['VALIDATIONS']['folder']: '.schema'
-}, mode = 'validations')
-'''
-
-
 # First, the request definitions.
 REQUEST_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_parameters={
     'request_definitions/': '.schema'
@@ -296,7 +267,7 @@ VALIDATION_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_pa
 # Make the object naming accessible as a dictionary.
 OBJECT_NAMING = {}
 
-if server_config['PRODUCTION']['production'] == 'true':
+if server_config['PRODUCTION']['production'] == 'True':
     
     for i in server_config['OBJECT_NAMING']:
         if i.split('_')[0] == 'prod':
@@ -306,7 +277,7 @@ if server_config['PRODUCTION']['production'] == 'true':
             
             OBJECT_NAMING[stripped] = server_config['OBJECT_NAMING'][i]
 
-elif server_config['PRODUCTION']['production'] == 'false':
+elif server_config['PRODUCTION']['production'] == 'False':
 
     for i in server_config['OBJECT_NAMING']:
         if i.split('_')[0] != 'prod':

@@ -1,49 +1,50 @@
+# For interacting with the database
+from ..utilities import DbUtils
+
+# For the timestamp to nullify the request
+from datetime import datetime
+
 # For getting the model
 from django.apps import apps
-
-# For interacting with the database
-from .. import DbUtils
 
 # For the user lookup
 from django.contrib.auth.models import User
 
-# For the timestamp to nullify the request
-from datetime import datetime
+# For sending e-mails.
+# Source: https://www.urlencoder.io/python/
+# Source: https://realpython.com/python-send-email/#sending-fancy-emails
+# Source: https://docs.djangoproject.com/en/3.2/topics/email/#send-mail
+from django.core.mail import send_mail
+from django.conf import settings
+import urllib.parse
+
+# Development account activation
+from .GET_activate_account import GET_activate_account
+
+# Responses
+from rest_framework import status
+from rest_framework.response import Response
+
+# For getting user tokens
+from rest_framework.authtoken.models import Token
 
 # For generating a random temp identifier
 
 # Source: https://stackoverflow.com/questions/976577/random-hash-in-python
 import uuid
 
-# Responses
-from rest_framework.response import Response
-from rest_framework import status
-
-# For sending e-mails.
-# Source: https://www.urlencoder.io/python/
-# Source: https://realpython.com/python-send-email/#sending-fancy-emails
-# Source: https://docs.djangoproject.com/en/3.2/topics/email/#send-mail
-import urllib.parse
-from django.core.mail import send_mail
-from django.conf import settings
-
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_new_account(bulk_request):
+def POST_new_account(
+	bulk_request
+):
 
 	# An e-mail is provided, and if the e-mail already exists
 	# as an account, then return 403.
-
-	print('POST_new_account')
-
+	
 	# Instantiate any necessasary imports.
 	db = DbUtils.DbUtils()
-
-	print('===============')
-	print('NEW ACCOUNT bulk_request')
-	print(bulk_request)
-	print('===============')
 
 	# Does the account associated with this e-mail already
 	# exist in either a temporary or a permanent user profile?
@@ -53,7 +54,9 @@ def POST_new_account(bulk_request):
 		p_email = bulk_request['email']
 	) is None:
 
-		if User.objects.filter(email = bulk_request['email']).exists():
+		if User.objects.filter(
+			email = bulk_request['email']
+		).exists():
 
 			# Account has already been activated.
 			return(
@@ -75,7 +78,7 @@ def POST_new_account(bulk_request):
 			# Create a temporary identifier.
 			temp_identifier = uuid.uuid4().hex
 
-			if 'token' in bulk_request:
+			if 'token' in bulk_request and 'hostname' in bulk_request:
 
 				p_data = {
 					'email': bulk_request['email'],
@@ -88,8 +91,7 @@ def POST_new_account(bulk_request):
 
 				p_data = {
 					'email': bulk_request['email'],
-					'temp_identifier': temp_identifier,
-					'hostname': bulk_request['hostname']
+					'temp_identifier': temp_identifier
 				}
 
 			db.write_object(
@@ -99,34 +101,64 @@ def POST_new_account(bulk_request):
 				p_data = p_data
 			)
 
-			# Send an e-mail to let the requester know that they
+			# Send an e-mail to let the requestor know that they
 			# need to follow the activation link within 10 minutes.
 
 			# Source: https://realpython.com/python-send-email/#sending-fancy-emails
 
-			activation_link = 'https://' + settings.ALLOWED_HOSTS[0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
-			template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(activation_link, activation_link)
+			activation_link = ''
+			template = ''
 
-			try:
-				send_mail(
-						subject = 'Registration for BioCompute Portal',
-						message = 'Testing.',
-						html_message = template,
-						from_email = 'mail_sender@portal.aws.biochemistry.gwu.edu',
-						recipient_list = [bulk_request['email']],
-						fail_silently = False,
+			if settings.PRODUCTION == 'True':
+			
+				activation_link = 'https://' + settings.ALLOWED_HOSTS[0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
+
+				template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(activation_link, activation_link)
+
+				try:
+					send_mail(
+							subject = 'Registration for BioCompute Portal',
+							message = 'Testing.',
+							html_message = template,
+							from_email = 'mail_sender@portal.aws.biochemistry.gwu.edu',
+							recipient_list = [
+								bulk_request['email']
+							],
+							fail_silently = False,
+					)
+
+				except Exception as e:
+						pass
+				
+				return(
+					Response(
+						status = status.HTTP_201_CREATED
+					)
 				)
+			
+			elif settings.PRODUCTION == 'False':
 
-			except Exception as e:
-					print(e)
-					pass
+				# Go straight to account activation.
+				straight_activated = GET_activate_account(
+					username = bulk_request['email'],
+					temp_identifier = temp_identifier
+				)
+				
+				# Get the user's token via the user ID.
+				user_token = Token.objects.get(
+					user_id = User.objects.get(
+						username = straight_activated.data['data']['username']
+					)
+				).key
 
-			# TODO: put timestamp when will expire?
-			return(
-				Response(
+				return Response(
+					data = {
+						'message': 'New account succesfully created on development server ' + settings.PUBLIC_HOSTNAME + '.  Parse the \'token\' key for your new token.',
+						'token': user_token,
+						'username': straight_activated.data['data']['username']
+					},
 					status = status.HTTP_201_CREATED
 				)
-			)
 			
 	else:
 

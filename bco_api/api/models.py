@@ -4,18 +4,20 @@
 # Create a base model, then inherit for each table.
 # See the 4th example under "Model Inheritance" at https://docs.djangoproject.com/en/3.1/topics/db/models/#model-inheritance
 
+from api.scripts.utilities import DbUtils
+
 from django.db import models
 
+# For reading the configuration file.
 from django.conf import settings
 
-# For reading the configuration file.
-from api.scripts import DbUtils
+
+
 
 # --- Permissions imports --- #
 
-# Linking API keys to users.
-# Source: https://florimondmanca.github.io/djangorestframework-api-key/guide/#api-key-models
-# from rest_framework_api_key.models import AbstractAPIKey
+
+
 
 # Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
 
@@ -24,32 +26,47 @@ from django.contrib.auth.models import Group, User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-# For token creation.
-# Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
-from rest_framework.authtoken.models import Token
-
 # Issue with timezones.
 # Source: https://stackoverflow.com/a/32411560
 from django.utils import timezone
 
-# owner_group field is optional since we're using django-guardian?
+# For token creation.
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+from rest_framework.authtoken.models import Token
+
+
+
 
 # Ownership models
 # Source: https://stackoverflow.com/a/47268403
-class owned_model(models.Model):
+class owned_model(
+	models.Model
+):
 
 
 	# The object owner (should be a group).
-	owner_group = models.ForeignKey(Group, on_delete = models.CASCADE)
+	owner_group = models.ForeignKey(
+		Group, 
+		on_delete = models.CASCADE
+	)
+
 
 	class Meta:
 		abstract = True
 
 
 # Generic JSON model
-class json_object(owned_model):
+class json_object(
+	owned_model
+):
 
 
+	# The entirety of the object.
+
+	# Field is required.
+	contents = models.JSONField()
+
+	
 	# The unique object ID.
 
 	# Field is required.
@@ -68,34 +85,25 @@ class json_object(owned_model):
 	state = models.TextField()
 
 
-	# The entirety of the object.
-
-	# Field is required.
-	contents = models.JSONField()
-
-
 	# What is the class of the object (typically used to describe overall
 	# purpose of the object)?
 
 	# Field is optional.
-	object_class = models.TextField(blank=True, null=True)
+	object_class = models.TextField(
+		blank = True, 
+		null = True
+	)
 
 
 	# Make this class a parent.
 	class Meta:
 		abstract = True
 
-		# TO-DO: abstract this out when the draft and publish
-		# tables are abstracted out...
-
-		# # Source: https://django-guardian.readthedocs.io/en/stable/userguide/assign.html#prepare-permissions
-		# permissions = (
-        #     ('can_publish', 'Can publish {something}'.format(something = self.verbose_name)),
-        # )
-
 
 # Generic meta data model
-class meta_table(models.Model):
+class meta_table(
+	models.Model
+):
 
 
 	# The number of objects in a given table.
@@ -110,53 +118,55 @@ class meta_table(models.Model):
 
 
 # Link prefixes to groups
-class prefix_groups(models.Model):
+class prefix_groups(
+	models.Model
+):
 
 	# Each prefix has exactly one group owner.
 
 	# The choices of group are taken directly from the table.
 
-	prefix = models.CharField(max_length = 5)
-
-	group_owner = models.CharField(max_length = 1000)
+	group_owner = models.CharField(
+		max_length = 1000
+	)
+	
+	prefix = models.CharField(
+		max_length = 5
+	)
 
 
 # For registering new users.
-class new_users(models.Model):
+class new_users(
+	models.Model
+):
 
 	# Instead of using the User model, just use
 	# a crude table to store the temporary information
 	# when someone asks for a new account.
 
 	email = models.EmailField()
-
-	# TODO: hash field in future?
-	temp_identifier = models.TextField(max_length = 100)
+	
+	temp_identifier = models.TextField(
+		max_length = 100
+	)
 
 	# In case we are writing back to user db.
-	token = models.TextField(blank = True, null = True)
+	token = models.TextField(
+		blank = True, 
+		null = True
+	)
 
 	# Which host to send the activation back to.
-	hostname = models.TextField(blank = True, null = True)
+	hostname = models.TextField(
+		blank = True, 
+		null = True
+	)
 
 	# Issue with time zone, so implement the fix.
 	# Source: https://stackoverflow.com/a/32411560
-	created = models.DateTimeField(default = timezone.now)
-
-
-# Link prefixes to tables
-# class prefix_tables(models.Model):
-
-# 	# Each prefix can only be tied to one table,
-# 	# but multiple prefixes can be tied to one table.
-
-# 	table = models.CharField(max_length = 1000)
-
-# 	prefixes = models.JSONField()
-
-
-# TODO: put all of this under a flag later so that cloning
-# GitHub does not automatically erase the database...
+	created = models.DateTimeField(
+		default = timezone.now
+	)
 
 # Create referrable dict.
 models_dict = {}
@@ -168,7 +178,9 @@ for template, tables in settings.TABLES.items():
 	lowered = template.lower()
 
 	# Register the template with the "global" dict.
-	models_dict[lowered] = []
+	models_dict[
+		lowered
+	] = []
 
 	for table in tables:
 
@@ -176,7 +188,11 @@ for template, tables in settings.TABLES.items():
 		exec('class ' + table + '(' + lowered + '):\n\tpass')
 
 		# Register the table with the "global" variable.
-		models_dict[lowered].append(table)
+		models_dict[
+			lowered
+		].append(
+			table
+		)
 
 # Now define the global variable (is this actually used anywhere?
 # some places are using app_info...).
@@ -184,7 +200,10 @@ settings.MODELS = models_dict
 
 
 
-# --- Permissions models --- #
+
+# --- Permissions receivers --- #
+
+
 
 
 # User and API Information is kept separate so that we can use it
@@ -193,84 +212,67 @@ settings.MODELS = models_dict
 # Source: https://florimondmanca.github.io/djangorestframework-api-key/guide/#api-key-models
 # Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
 
-
-
-
-# If we want a separate API users table.
-# # All users for the API.
-# class api_users(models.Model):
-	
-# 	user = models.OneToOneField(User, on_delete = models.CASCADE)
-# 	group = models.ForeignKey(Group, on_delete = models.CASCADE)
-
-# 	# Display the username properly in the admin.
-# 	# Source: https://stackoverflow.com/a/61991068/5029459	
-# 	def __str__(self):
-# 		return self.user.username
-
 # Link user creation to groups.
-@receiver(post_save, sender = User)
-def associate_user_group(sender, instance, created, **kwargs):
+@receiver(
+	post_save, 
+	sender = User
+)
+def associate_user_group(
+	sender, 
+	instance, 
+	created, 
+	**kwargs
+):
 	
 	if created:
 		
 		# Create a group for this user.
 		# Source: https://stackoverflow.com/a/55206382/5029459
-		Group.objects.create(name = instance)
-		group = Group.objects.get(name = instance)
-		group.user_set.add(instance)
+		Group.objects.create(
+			name = instance
+		)
+		group = Group.objects.get(
+			name = instance
+		)
+		group.user_set.add(
+			instance
+		)
 
 		# Automatically add BCO draft and BCO publish permissions.
 
 		# anon does NOT have drafter or publisher permissions.
-		print('+++++ ANON CHECK +++++')
-		print(type(instance))
 		if instance.username != 'anon':
-			print('NOT ANON')
-			print(instance)
-			User.objects.get(username = instance).groups.add(Group.objects.get(name = 'bco_drafters'))
-			User.objects.get(username = instance).groups.add(Group.objects.get(name = 'bco_publishers'))
+			User.objects.get(
+				username = instance
+			).groups.add(
+				Group.objects.get(
+					name = 'bco_drafters'
+				)
+			)
+			User.objects.get(
+				username = instance
+			).groups.add(
+				Group.objects.get(
+					name = 'bco_publishers'
+				)
+			)
 
 
 # Link user creation to token generation.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
 
-# TODO: user settings.AUTH_USER_MODEL?
-
-@receiver(post_save, sender = User)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
+@receiver(
+	post_save, 
+	sender = User
+)
+def create_auth_token(
+	sender, 
+	instance = None, 
+	created = False, 
+	**kwargs
+):
 
 	if created:
-		Token.objects.create(user = instance)
-
-
-# If we want a separate API users table.
-# @receiver(post_save, sender=User)
-# def save_user_profile(sender, instance, **kwargs):
-# 	instance.User.save()
-
-
-# Link API keys to users.
-# class api_users_api_key(AbstractAPIKey):
-	
-# 	user = models.ForeignKey(
-# 		User,
-# 		on_delete = models.CASCADE,
-# 		related_name = 'api_keys'
-# 	)
-
-
-
-
-# Custom publishing permissions which use the model name.
-# Source: https://stackoverflow.com/a/9940053/5029459
-
-# from django.contrib.auth.models import Permission
-# from django.contrib.contenttypes.models import ContentType
-
-# for content_type in ContentType.objects.all():
-#      Permission.objects.create(
-#          content_type = content_type, 
-#          codename = 'publish_%s' % content_type.model, 
-#          name = 'Can publish %s' % content_type.name
-#     )
+		Token.objects.create(
+			user = instance
+		)

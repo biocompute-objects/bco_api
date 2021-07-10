@@ -5,10 +5,13 @@ def populate_models(sender, **kwargs):
     
 
 
+    # Define the models for each group.
+    # Source: https://stackoverflow.com/a/49457723/5029459
+    from django.apps import apps
+    
     # The BCO groups need to be created FIRST because
     # models.py listens for user creation and automatically
     # adds any new user to bco_drafters and bco_publishers.
-
     from django.contrib.auth.models import Group
 
     # Set permissions for all of the groups.
@@ -18,21 +21,15 @@ def populate_models(sender, **kwargs):
 
     # Custom publishing permissions which use the model name.
     # Source: https://stackoverflow.com/a/9940053/5029459
-
-    # # Publishing permissions only make sense on draft tables.
-    # for content_type in ContentType.objects.all():
-
-    #     Permission.objects.create(
-    #         content_type = content_type, 
-    #         codename = 'publish_%s' % content_type.model, 
-    #         name = 'Can publish %s' % content_type.name
-    #     )
     
+
+
+
     # BCO is the anon (public) prefix
-    if(Group.objects.filter(name = 'bco_drafters').count() == 0):
+    if Group.objects.filter(name = 'bco_drafters').count() == 0:
         Group.objects.create(name = 'bco_drafters')
     
-    if(Group.objects.filter(name = 'bco_publishers').count() == 0):
+    if Group.objects.filter(name = 'bco_publishers').count() == 0:
         Group.objects.create(name = 'bco_publishers')
 
     # Set the permissions for BCO drafters and publishers.
@@ -66,56 +63,47 @@ def populate_models(sender, **kwargs):
                     name = g_helper
                 )
 
-                group_get.permissions.add(permission_get)
+                group_get.permissions.add(
+                    permission_get
+                )
         
     
     
-    
-    
+        
     # Note that user creation is listened for in 
     # models.py by associate_user_group.
     
     # Create the anonymous user if they don't exist.    
     from django.contrib.auth.models import User
     
-    if(User.objects.filter(username = 'anon').count() == 0):
-        User.objects.create_user(username = 'anon')
+    if User.objects.filter(username = 'anon').count() == 0:
+        User.objects.create_user(
+            username = 'anon'
+        )
     
     # Create an administrator if they don't exist.
-    if(User.objects.filter(username = 'wheel').count() == 0):
-        User.objects.create_superuser(username = 'wheel', password = 'wheel')
+    if User.objects.filter(username = 'wheel').count() == 0:
+        User.objects.create_superuser(
+            username = 'wheel', 
+            password = 'wheel'
+        )
 
-
-
-
-    # Create anon and administrator keys.
-    # Source: https://florimondmanca.github.io/djangorestframework-api-key/guide/#creating-and-managing-api-keys
-    
-    # from .models import api_users_api_key
-    
-    # # Create and write the anon key to file.
-    # api_key, key = api_users_api_key.objects.create_key(name = 'anon_key', user = User.objects.get(username = 'anon'))
-    
-    # with open('anon_key.txt', 'w') as f:
-    #     f.write(key)
-    
-    # # Create and write the admin key to file.
-    # api_key, key = api_users_api_key.objects.create_key(name = 'wheel_key', user = User.objects.get(username = 'wheel'))
-    
-    # with open('wheel_key.txt', 'w') as f:
-    #     f.write(key)
 
 
         
     # Create the default (non-anon, non-wheel) groups if they don't exist.
 
     # Group administrators
-    if(Group.objects.filter(name = 'group_admins').count() == 0):
-        Group.objects.create(name = 'group_admins')
+    if Group.objects.filter(name = 'group_admins').count() == 0:
+        Group.objects.create(
+            name = 'group_admins'
+        )
     
     # Prefix administrators
-    if(Group.objects.filter(name = 'prefix_admins').count() == 0):
-        Group.objects.create(name = 'prefix_admins')
+    if Group.objects.filter(name = 'prefix_admins').count() == 0:
+        Group.objects.create(
+            name = 'prefix_admins'
+        )
     
 
 
@@ -124,31 +112,25 @@ def populate_models(sender, **kwargs):
     group = Group.objects.all()
 
     for g in group:
-        User.objects.get(username = 'wheel').groups.add(g)
+        User.objects.get(
+            username = 'wheel'
+        ).groups.add(g)
+    
     
 
 
-    
-    # TODO: Some redundancy here?
-    
-    # Define the models for each group.
-    # Source: https://stackoverflow.com/a/49457723/5029459
-    from django.apps import apps
-    
     models = {
         'anon': [
             'bco_publish'
         ],
-        'wheel': list(apps.all_models['api'].keys())
+        'wheel': list(
+            apps.all_models['api'].keys()
+        )
     }
-    
-    print(models)
 
     for group, models in models.items():
         
         for m in models:
-            print(group)
-            print(m)
             content_type = ContentType.objects.get(
                 app_label = 'api',
                 model = m
@@ -174,7 +156,7 @@ def populate_models(sender, **kwargs):
                 )
 
             elif group == 'wheel':
-                print('here')
+                
                 # wheel gets all permissions.
                 # Source: https://stackoverflow.com/a/7503368/5029459
                 for cn in ['add_' + m, 'change_' + m, 'delete_' + m, 'view_' + m]:
@@ -185,13 +167,13 @@ def populate_models(sender, **kwargs):
                             codename = cn
                         )
                     )
-            print('permission_set---')
-            print(permission_set)
-            print('---------------------')
+            
             for permission in permission_set:
 
                 group_get = Group.objects.get(
                     name = group
                 )
 
-                group_get.permissions.add(permission)
+                group_get.permissions.add(
+                    permission
+                )

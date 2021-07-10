@@ -1,36 +1,30 @@
-import json
-from .. import JsonUtils
+# For getting objects out of the database.
+from ..utilities import DbUtils
 
-# For getting object naming information.
-from django.conf import settings
+import json
+from ..utilities import JsonUtils
 
 # For getting the model.
 from django.apps import apps 
 
-# For getting objects out of the database.
-from .. import DbUtils
-
-# TODO: push most of these operations to DbUtils later?
+# For getting object naming information.
+from django.conf import settings
 
 from django.core.serializers import serialize
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_read_object(bulk_request):
+def POST_read_object(
+	bulk_request
+):
 
 	# Take the bulk request and read objects from it.
-
-	print('POST_read_object')
 
 	# Instantiate any necessasary imports.
 	db = DbUtils.DbUtils()
 
 	# Get the available tables.
 	available_tables = settings.MODELS['json_object']
-	print('bulk_request')
-	print(bulk_request)
-	print('===============')
-	print(json.dumps(available_tables, indent=4))
 
 	# Construct an array to return the objects.
 	returning = []
@@ -43,14 +37,13 @@ def POST_read_object(bulk_request):
 		# a table that exists.
 		if read_object['table'] in available_tables:
 
-			print('+++++++++++++++')
-			print(json.dumps(read_object, indent=4))
-			print('+++++++++++++++')
-
 			if 'object_id' in read_object:
 
 					# Get the objects for the given table.
-					table = apps.get_model(app_label = 'api', model_name = read_object['table'])
+					table = apps.get_model(
+						app_label = 'api', 
+						model_name = read_object['table']
+					)
 
 					# We can't use get() here because the object ID
 					# is stored within a sub-field?
@@ -65,15 +58,8 @@ def POST_read_object(bulk_request):
 					# Source: https://stackoverflow.com/questions/6930982/how-to-use-a-variable-inside-a-regular-expression
 
 					# Source: https://stackoverflow.com/questions/7503241/django-models-selecting-single-field
-
-					# TODO: Put in regex search later...
-					#fielded = table.objects.values_list('contents')
+					
 					id_search = read_object['object_id']
-					#fielded = fielded.filter(object_id__regex = rf'{id_search}').values()
-					#fielded = list(fielded)[0]
-					print('@@@@@@@@')
-					print(id_search)
-					print('########')
 
 					# Serialize the result, if we have any.
 					# Source: https://stackoverflow.com/a/57211081
@@ -87,10 +73,6 @@ def POST_read_object(bulk_request):
 								)
 							)
 						)[0]['fields']['contents']
-
-						print('********')
-						print(result)
-						print('#########')
 
 						# Update the request status.
 						returning.append(
@@ -113,7 +95,10 @@ def POST_read_object(bulk_request):
 			else:
 
 				# Retrieve all objects in the table.
-				table = apps.get_model(app_label = 'api', model_name = read_object['table'])
+				table = apps.get_model(
+					app_label = 'api', 
+					model_name = read_object['table']
+				)
 
 				# Serialize the result, if we have any.
 				# Source: https://stackoverflow.com/a/57211081
@@ -126,12 +111,7 @@ def POST_read_object(bulk_request):
 						)
 					)
 
-					print('********')
-					print(result)
-					print('#########')
-
 					# Update the request status.
-					# TODO: FIX manual return status
 					returning.append(
 						{
 							'request_status': 'SUCCESS', 
@@ -161,4 +141,4 @@ def POST_read_object(bulk_request):
 				)['404_table']
 			)
 	
-	return(returning)
+	return returning

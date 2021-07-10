@@ -1,57 +1,81 @@
 from django.urls import path
-from .views import ApiObjectsCreate, BcoObjectsByToken, ApiPublicDescribe, DraftObjectById, LinkedDraftObjectById, ApiObjectsPermissions, ApiObjectsPermissionsSet, PublishedObjectById, CustomAuthToken, NewAccount, ActivateAccount
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
-# Token-based authentication.
+# Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 
-# Validate an object.
-# (POST) bco/objects/validate/
-
-# Describe what's available on this API.
-# (GET) api/description/
-
-# Create an object.
-# (POST) bco/objects/create/
-
-# Read an object.
-# (POST) bco/objects/read/
-
-# Describe the permissions associated with an API key.
-# (POST) api/account/permissions/
-
-# Retrieve an object directly by its URI.
+# Retrieve a published object directly by its URI
 # (GET) <str:object_id_root>/<str:object_id_version>
 
-# TODO: put in re_path for all of these, especially user
-# activation and object retrieval.
+# Retrieve a draft object directly by its URI
+# (GET) <str:draft_object_id>
 
-# TODO: draft links open in new tab, a bit unsafe.
-# could do as same tab with POST, which would be safer...
+# Step 2 of 2 of new account creation (step 1 of 2 is api/accounts/new/)
+# (GET) api/accounts/activate/<str:username>/<str:temp_identifier>
 
-# 
-#    path('api/groups/add/', ApiDescription.as_view()),
-#    path('api/groups/modify/', ApiDescription.as_view()),
-#    path('api/groups/permissions/', ApiDescription.as_view()),
+# Describe an API user's account
+# (POST) api/accounts/describe/
+
+# Step 1 of 2 of new account creation (step 2 of 2 is api/accounts/activate/<str:username>/<str:temp_identifier>)
+# (POST) api/accounts/new/
+
+# Create a BCO
+# (POST) api/objects/create/
+
+# Get the permissions for a given BCO
+# (POST) api/objects/permissions/
+
+# Set the permissions for a given BCO
+# (POST) api/objects/permissions/set/
+
+# Get all objects for a given token
+# (POST) api/objects/token/
+
+# Describe the server's attributes
+# (GET) api/public/describe/
 
 urlpatterns = [
-    path('api/accounts/activate/<str:username>/<str:temp_identifier>', ActivateAccount.as_view()),
-    path('api/accounts/describe/', CustomAuthToken.as_view()),
-    path('api/accounts/new/', NewAccount.as_view()),
-    path('api/objects/create/', ApiObjectsCreate.as_view()),
-    path('api/objects/permissions/', ApiObjectsPermissions.as_view()),
-    path('api/objects/permissions/set/', ApiObjectsPermissionsSet.as_view()),
-    path('api/objects/token/', BcoObjectsByToken.as_view()),
-    path('api/public/describe/', ApiPublicDescribe.as_view()),
-    path('<str:object_id_root>/<str:object_id_version>', PublishedObjectById.as_view()),
-    path('<str:draft_object_id>/linked/<str:token>', LinkedDraftObjectById.as_view()),
-    path('<str:draft_object_id>', DraftObjectById.as_view())
+    path(
+        '<str:draft_object_id>', 
+        DraftObjectId.as_view()
+    ),
+    path(
+        '<str:object_id_root>/<str:object_id_version>', 
+        ObjectIdRootObjectIdVersion.as_view()
+    ),
+    path(
+        'api/accounts/activate/<str:username>/<str:temp_identifier>', ApiAccountsActivateUsernameTempIdentifier.as_view()
+    ),
+    path(
+        'api/accounts/describe/', 
+        ApiAccountsDescribe.as_view()
+    ),
+    path(
+        'api/accounts/new/', 
+        ApiAccountsNew.as_view()
+    ),
+    path(
+        'api/objects/draft/', 
+        ApiObjectsDraft.as_view()
+    ),
+    path(
+        'api/objects/permissions/', 
+        ApiObjectsPermissions.as_view()
+    ),
+    path(
+        'api/objects/permissions/set/', 
+        ApiObjectsPermissionsSet.as_view()
+    ),
+    path(
+        'api/objects/publish/', 
+        ApiObjectsPublish.as_view()
+    ),
+    path(
+        'api/objects/token/', 
+        ApiObjectsToken.as_view()
+    ),
+    path(
+        'api/public/describe/', 
+        ApiPublicDescribe.as_view()
+    )
 ]
-
-# path('bco/objects/validate/', BcoObjectsValidate.as_view()),
-# path('api/account/permissions/', ApiAccountPermissions.as_view()),
-
-# Future URLs:  account/services -> which services are available for your account?
-# split bco/objects/create into multiple URLs?
-# api/description/databases -> describe the available databases
-# api/description/validations/schema -> what are the available templates for this API?
-# path('api/description/validations/schema/', BcoGetObject.as_view()),
