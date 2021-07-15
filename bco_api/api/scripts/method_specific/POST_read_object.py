@@ -20,7 +20,7 @@ def POST_read_object(
 
 	# Take the bulk request and read objects from it.
 
-	# Instantiate any necessasary imports.
+	# Instantiate any necessary imports.
 	db = DbUtils.DbUtils()
 
 	# Get the available tables.

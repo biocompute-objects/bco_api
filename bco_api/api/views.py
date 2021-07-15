@@ -9,24 +9,18 @@ from django.conf import settings
 # the note on the documentation error in django-rest-framework)
 from django.contrib.auth.models import Group
 
-from django.apps import apps
 from django.core import serializers
 
 # Simple JSON print
-from django.http import JsonResponse
 import json
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-# Token-based authentication
-# Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
-from rest_framework.authtoken.models import Token
-
 # By-view permissions
 from rest_framework.permissions import IsAuthenticated
-from .permissions import RequestorInOwnerGroup, HasObjectGenericPermission, HasObjectAddPermission, HasObjectChangePermission, HasObjectDeletePermission, HasObjectViewPermission, HasTableWritePermission
+from .permissions import RequestorInOwnerGroup, RequestorInPrefixAdminsGroup, HasObjectGenericPermission, HasObjectChangePermission, HasObjectDeletePermission, HasObjectViewPermission, HasTableWritePermission
 
 # Message page
 # Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
@@ -47,8 +41,6 @@ from .scripts.method_specific.POST_new_account import POST_new_account
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
 from .scripts.method_specific.POST_read_object import POST_read_object
 from .scripts.method_specific.POST_set_object_permission import POST_set_object_permission
-from .scripts.method_specific.POST_validate_payload_against_schema import POST_validate_payload_against_schema
-from .scripts.method_specific.GET_retrieve_available_schema import GET_retrieve_available_schema
 
 
 
@@ -337,7 +329,9 @@ class ApiObjectsPermissions(
             # Get the object and check its permissions
 
             # Note: re-using GET method here...
-            objected = GET_draft_object_by_id(request.data['object_id'])
+            objected = GET_draft_object_by_id(
+                request.data['object_id']
+            )
 
             if objected is not None:
             
@@ -453,6 +447,63 @@ class ApiObjectsPermissionsSet(
                         status = status.HTTP_403_FORBIDDEN
                     )
                 )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+class ApiObjectsPrefixesCreate(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Create a prefix.
+
+    # POST
+
+    # Permissions - prefix admins only
+    permission_classes = [RequestorInPrefixAdminsGroup]
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+                
+            # Pass the request to the handling function
+            # return(
+            #     POST_create_new_prefix(
+            #         request, 
+            #         objected
+            #     )
+            # )
+
+            return(
+                Response(
+                    data = 'test',
+                    status = status.HTTP_200_OK
+                )
+            )
         
         else:
 

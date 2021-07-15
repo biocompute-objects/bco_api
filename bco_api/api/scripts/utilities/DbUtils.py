@@ -363,6 +363,11 @@ class DbUtils:
                 'request_status': 'FAILURE', 
                 'request_code': '404',
                 'message': 'The table with name \'' + parameters['table'] + '\' was not found on the server.'
+            },
+            '409_conflict': {
+                'request_status': 'FAILURE', 
+                'request_code': '409',
+                'message': 'The provided prefix \'' + parameters['prefix'] + '\' has already been created on this server.'
             }
         }
 

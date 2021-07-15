@@ -10,6 +10,8 @@ import requests
 # This only tests for non-existent tokens, but additional tests should be tried
 # with other valid tokens.
 
+# The wheel token must be provided to test certain parts of the script.
+
 # Untested methods
 
 # api/accounts/activate/<str:username>/<str:temp_identifier>
@@ -913,6 +915,73 @@ def tests(
 
     # Try to publish a draft object with destroying
     # the draft.
+
+
+
+
+    # ----- non-object tests ----- #
+
+
+
+    # Try to create a prefix using a bad token.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            "POST_create_new_prefix": [
+                {
+                    "prefix": "GLY",
+                }
+            ]
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Try to create a prefix using a bad token.',
+            'expected_response_code': '400 Bad Request',
+            'test_number': '19'
+        },
+        token = 'this_token_should_not_exist',
+        url = '/api/objects/prefixes/create/'
+    )
+    
+    # Create a malformed prefix using the wheel token.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            "POST_create_new_prefix": [
+                {
+                    "prefix": "this_prefix_doesnt_follow_the_regex",
+                }
+            ]
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Create a malformed prefix using the wheel token.',
+            'expected_response_code': '400 Bad Request',
+            'test_number': '19'
+        },
+        token = 'ff41cf8dee1adba1fb50a1fadacaff1426d40eea',
+        url = '/api/objects/prefixes/create/'
+    )
+
+    # # Create a new prefix.
+    # pretty_output(
+    #     hostname = hostname,
+    #     json_send = {
+    #         "POST_create_new_prefix": [
+    #             {
+    #                 "prefix": "GLY",
+    #             }
+    #         ]
+    #     },
+    #     method = 'POST',
+    #     test_info = {
+    #         'description': 'Create a new prefix.',
+    #         'expected_response_code': '200 OK',
+    #         'test_number': '17'
+    #     },
+    #     token = r_token_username['token'],
+    #     url = '/api/objects/publish/'
+    # )
 
 
 # Test the hostname.

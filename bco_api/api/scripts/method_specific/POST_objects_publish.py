@@ -34,7 +34,7 @@ def POST_objects_publish(
 
 	# Take the bulk request and create objects from it.
 	
-	# Instantiate any necessasary imports.
+	# Instantiate any necessary imports.
 	db = DbUtils.DbUtils()
 	uu = UserUtils.UserUtils()
 	
@@ -97,8 +97,7 @@ def POST_objects_publish(
 					name = creation_object['owner_group']
 				)
 
-				# Filter the AND condition (note the
-				# str typecast).
+				# Filter the AND condition.
 				if Permission.objects.filter(
 					codename = 'add_' + standardized,
 					group = owner_group

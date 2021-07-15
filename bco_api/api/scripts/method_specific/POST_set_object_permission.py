@@ -1,20 +1,8 @@
-from typing import DefaultDict
-import json
-from ..utilities import JsonUtils
-
-# For server information.
-from django.conf import settings
-
 # User info
 from django.contrib.auth.models import Group
-from rest_framework.authtoken.models import Token
 
 # Permissions
-from guardian.shortcuts import assign_perm, get_groups_with_perms, remove_perm
-
-# Responses
-from rest_framework import status
-from rest_framework.response import Response
+from guardian.shortcuts import assign_perm, remove_perm
 
 
 def POST_set_object_permission(

@@ -34,7 +34,7 @@ def POST_objects_draft(
 
 	# Take the bulk request and create a draft object from it.
 
-	# Instantiate any necessasary imports.
+	# Instantiate any necessary imports.
 	db = DbUtils.DbUtils()
 	uu = UserUtils.UserUtils()
 	

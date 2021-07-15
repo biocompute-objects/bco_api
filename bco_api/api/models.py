@@ -4,8 +4,6 @@
 # Create a base model, then inherit for each table.
 # See the 4th example under "Model Inheritance" at https://docs.djangoproject.com/en/3.1/topics/db/models/#model-inheritance
 
-from api.scripts.utilities import DbUtils
-
 from django.db import models
 
 # For reading the configuration file.

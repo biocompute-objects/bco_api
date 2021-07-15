@@ -79,6 +79,42 @@ class RequestorInOwnerGroup(
 
 
 
+class RequestorInPrefixAdminsGroup(
+    permissions.BasePermission
+):
+
+    def has_permission(
+        self, 
+        request,
+        view
+    ):
+
+        # Check to see if the requester is in the prefix admins group.
+        
+        # Get the groups for this token (user).
+
+        # This means getting the user ID for the token,
+        # then the username.
+        user_id = Token.objects.get(
+            key = request.META.get(
+                'HTTP_AUTHORIZATION'
+            ).split(' ')[1]
+        ).user_id
+        username = User.objects.get(
+            id = user_id
+        )
+        
+        # Get the prefix admins.
+        prefix_admins = Group.objects.filter(
+            user = username,
+            name = 'prefix_admins'
+        )
+        
+        return len(prefix_admins) > 0
+
+
+
+
 # ----- Object Permissions ----- #
 
 
@@ -278,11 +314,11 @@ class HasTableWritePermission(
 
     def has_permission(
         self, 
-        request, 
+        request,
         view
     ):
 
-        # Instantiate any necessasary imports.
+        # Instantiate any necessary imports.
         db = DbUtils.DbUtils()
         
         # Check to see if the requester (group) has write permissions on the given table.

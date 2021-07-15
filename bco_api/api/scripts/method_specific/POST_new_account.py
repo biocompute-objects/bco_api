@@ -43,7 +43,7 @@ def POST_new_account(
 	# An e-mail is provided, and if the e-mail already exists
 	# as an account, then return 403.
 	
-	# Instantiate any necessasary imports.
+	# Instantiate any necessary imports.
 	db = DbUtils.DbUtils()
 
 	# Does the account associated with this e-mail already

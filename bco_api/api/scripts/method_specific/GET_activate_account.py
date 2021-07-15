@@ -22,7 +22,7 @@ def GET_activate_account(
 
 	# Activate an account that is stored in the temporary table.
 
-	# Instantiate any necessasary imports.
+	# Instantiate any necessary imports.
 	db = DbUtils.DbUtils()
 
 	# Does the account associated with this e-mail already

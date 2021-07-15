@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiObjectsPrefixesCreate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
@@ -27,6 +27,9 @@ from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescrib
 
 # Set the permissions for a given BCO
 # (POST) api/objects/permissions/set/
+
+# Create a prefix
+# (POST) api/objects/prefixes/create/
 
 # Get all objects for a given token
 # (POST) api/objects/token/
@@ -65,6 +68,10 @@ urlpatterns = [
     path(
         'api/objects/permissions/set/', 
         ApiObjectsPermissionsSet.as_view()
+    ),
+    path(
+        'api/objects/prefixes/create/',
+        ApiObjectsPrefixesCreate.as_view()
     ),
     path(
         'api/objects/publish/', 
