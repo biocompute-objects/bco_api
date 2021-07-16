@@ -35,6 +35,7 @@ from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_
 from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from .scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
 from .scripts.method_specific.POST_check_object_permissions import POST_check_object_permissions
+from .scripts.method_specific.POST_create_new_prefix import POST_create_new_prefix
 from .scripts.method_specific.POST_objects_draft import POST_objects_draft
 from .scripts.method_specific.POST_objects_publish import POST_objects_publish
 from .scripts.method_specific.POST_new_account import POST_new_account
@@ -491,17 +492,9 @@ class ApiObjectsPrefixesCreate(
         if checked is None:
                 
             # Pass the request to the handling function
-            # return(
-            #     POST_create_new_prefix(
-            #         request, 
-            #         objected
-            #     )
-            # )
-
             return(
-                Response(
-                    data = 'test',
-                    status = status.HTTP_200_OK
+                POST_create_new_prefix(
+                    request
                 )
             )
         

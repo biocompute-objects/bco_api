@@ -459,6 +459,43 @@ def sub_test_update_id_does_exist(
     return None
 
 
+def sub_test_good_wheel_token_bad_prefix(
+    testable
+):
+
+    print('--- Sub-test A ---')
+    print('\n')
+    print('Description: Check that the provided prefix was unable to be created.')
+    print('\n')
+
+    # Create a flag to indicate failure.
+    failed = False
+
+    print(f"{WARNING}Request status")
+    print(f"------------{ENDC}")
+    
+    # Any items?
+    if testable[0]['request_code'] == '409':
+        print(f"{OKGREEN}{testable[0]['request_code']}{ENDC}")
+    else:
+
+        # Failure.
+        failed = True
+        print(f"{FAIL}{testable[0]['request_code']}{ENDC}")
+    
+    print('\n')
+
+    # Give back the status.
+    if failed == False:
+        print(f"{OKGREEN}Test Status - PASS{ENDC}")
+    else:
+        print(f"{FAIL}Test Status - FAILED{ENDC}")
+    
+    print('\n')
+    
+    return None
+
+
 # Source: https://stackoverflow.com/a/287944
 def tests(
     hostname
@@ -936,30 +973,57 @@ def tests(
         method = 'POST',
         test_info = {
             'description': 'Try to create a prefix using a bad token.',
-            'expected_response_code': '400 Bad Request',
+            'expected_response_code': '401 Unauthorized',
             'test_number': '19'
         },
         token = 'this_token_should_not_exist',
         url = '/api/objects/prefixes/create/'
     )
     
-    # Create a malformed prefix using the wheel token.
-    pretty_output(
+    # --- works --- #
+    
+    # # Create a malformed prefix using the wheel token.
+    # prefixed = pretty_output(
+    #     hostname = hostname,
+    #     json_send = {
+    #         "POST_create_new_prefix": [
+    #             {
+    #                 "prefix": "this_prefix_should_not_work",
+    #             }
+    #         ]
+    #     },
+    #     method = 'POST',
+    #     test_info = {
+    #         'description': 'Create a malformed prefix using the wheel token.',
+    #         'expected_response_code': '200 OK',
+    #         'test_number': '19'
+    #     },
+    #     token = 'db36da5a582701a7cb6131c64cde3439c189e220',
+    #     url = '/api/objects/prefixes/create/'
+    # )
+
+    # # Conduct the sub-test.
+    # sub_test_good_wheel_token_bad_prefix(
+    #     prefixed
+    # )
+
+    # Create a valid prefix using the wheel token.
+    prefixed = pretty_output(
         hostname = hostname,
         json_send = {
             "POST_create_new_prefix": [
                 {
-                    "prefix": "this_prefix_doesnt_follow_the_regex",
+                    "prefix": "TEST",
                 }
             ]
         },
         method = 'POST',
         test_info = {
-            'description': 'Create a malformed prefix using the wheel token.',
-            'expected_response_code': '400 Bad Request',
+            'description': 'Create a valid prefix using the wheel token.',
+            'expected_response_code': '200 OK',
             'test_number': '19'
         },
-        token = 'ff41cf8dee1adba1fb50a1fadacaff1426d40eea',
+        token = 'db36da5a582701a7cb6131c64cde3439c189e220',
         url = '/api/objects/prefixes/create/'
     )
 

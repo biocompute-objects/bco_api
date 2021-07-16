@@ -320,7 +320,7 @@ class DbUtils:
         
         # Define the return messages, if they don't
         # come in defined.
-        definable = ['object_id', 'table']
+        definable = ['object_id', 'prefix', 'table']
 
         for i in definable:
             if i not in parameters:

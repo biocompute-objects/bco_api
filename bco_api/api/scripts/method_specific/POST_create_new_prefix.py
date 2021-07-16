@@ -1,11 +1,18 @@
 # For getting objects out of the database.
 from ..utilities import DbUtils
 
-# User information
-from ..utilities import UserUtils
+# Create new models
+# Source: https://docs.djangoproject.com/en/3.2/ref/migration-operations/#module-django.db.migrations.operations
+from django.db.migrations.operations import CreateModel
 
-# For getting the model.
-from django.apps import apps
+# Migrations
+from django.core.management import call_command
+
+# Model fields
+from django.db import models
+
+# Checking prefixes
+import re
 
 # Responses
 from rest_framework import status
@@ -16,13 +23,8 @@ def POST_create_new_prefix(
 	incoming
 ):
 
-	# Take the bulk request and create a draft object from it.
-
 	# Instantiate any necessary imports.
 	db = DbUtils.DbUtils()
-	
-	# The token has already been validated,
-	# so the user is guaranteed to exist.
 
 	# Define the bulk request.
 	bulk_request = incoming.data['POST_create_new_prefix']
@@ -37,24 +39,51 @@ def POST_create_new_prefix(
 	# item in the array.
 	for creation_object in bulk_request:
 		
-		# Standardize the table name.
+		# Standardize the prefix name.
 		standardized = creation_object['prefix'].lower()
 
-		if standardized + '_draft' not in available_tables and standardized + '_publish' not in available_tables:
+		# Does the prefix follow the regex for prefixes?
+		if re.match(
+			r"^[a-z]{3,5}$", 
+			standardized
+		):
 
-			# The tables are available to create,
-			# so create them.
-			print('table is available...')
+			print('passed')
+			if standardized + '_draft' not in available_tables and standardized + '_publish' not in available_tables:
+
+				# The tables are available to create,
+				# so create them.
+				
+				# Source: https://docs.djangoproject.com/en/3.2/ref/migration-operations/#createmodel
+				CreateModel(
+					fields = [
+						('test_field', models.CharField())
+					],
+					name = standardized + '_draft',
+					
+				)
+
+				call_command('makemigrations')
+				call_command('migrate')
 			
+			else:
+			
+				# Update the request status.
+				returning.append(
+					db.messages(
+						parameters = {
+							'prefix': prefix
+						}
+					)['409_conflict']
+				)
+		
 		else:
-			
-			# Update the request status.
+
+			# Bad request.
 			returning.append(
 				db.messages(
-					parameters = {
-						'prefix': prefix
-					}
-				)['409_conflict']
+					parameters = {}
+				)['400_bad_request']
 			)
 	
 	# As this view is for a bulk operation, status 200
