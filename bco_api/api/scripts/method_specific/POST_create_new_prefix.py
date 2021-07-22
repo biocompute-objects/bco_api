@@ -1,15 +1,11 @@
 # For getting objects out of the database.
 from ..utilities import DbUtils
 
-# Create new models
-# Source: https://docs.djangoproject.com/en/3.2/ref/migration-operations/#module-django.db.migrations.operations
-from django.db.migrations.operations import CreateModel
-
-# Migrations
-from django.core.management import call_command
+# Checking that a user is in a group.
+from ..utilities import UserUtils
 
 # Model fields
-from django.db import models
+from ...models import prefix_groups
 
 # Checking prefixes
 import re
@@ -25,14 +21,21 @@ def POST_create_new_prefix(
 
 	# Instantiate any necessary imports.
 	db = DbUtils.DbUtils()
+	uu = UserUtils.UserUtils()
 
 	# Define the bulk request.
-	bulk_request = incoming.data['POST_create_new_prefix']
+	bulk_request = incoming.data['POST_create_new_prefix']['prefixes']
 
-	# Get the available tables.
-	available_tables = db.get_api_models()
+	# Get all existing prefixes.
+	available_prefixes = list(
+		prefix_groups.objects.all().values_list(
+				'prefix', 
+				flat = True
+			)
+		)
 
-	# Construct an array to return the objects.
+	# Construct an array to return information about processing
+	# the request.
 	returning = []
 
 	# Since bulk_request is an array, go over each
@@ -40,31 +43,58 @@ def POST_create_new_prefix(
 	for creation_object in bulk_request:
 		
 		# Standardize the prefix name.
-		standardized = creation_object['prefix'].lower()
+		standardized = creation_object['prefix'].upper()
 
 		# Does the prefix follow the regex for prefixes?
 		if re.match(
-			r"^[a-z]{3,5}$", 
+			r"^[A-Z]{3,5}$", 
 			standardized
 		):
 
-			print('passed')
-			if standardized + '_draft' not in available_tables and standardized + '_publish' not in available_tables:
+			if standardized not in available_prefixes:
 
-				# The tables are available to create,
-				# so create them.
-				
-				# Source: https://docs.djangoproject.com/en/3.2/ref/migration-operations/#createmodel
-				CreateModel(
-					fields = [
-						('test_field', models.CharField())
-					],
-					name = standardized + '_draft',
-					
+				# The prefix has not been created, so create it.
+
+				# Is the user in the group provided?
+				user_info = uu.check_user_in_group(
+					un = creation_object[
+						'owner_user'
+					], 
+					gn = creation_object[
+						'owner_group'
+					]
 				)
 
-				call_command('makemigrations')
-				call_command('migrate')
+				if user_info != False:
+					
+					DbUtils.DbUtils().write_object(
+						p_app_label = 'api',
+						p_model_name = 'prefix_groups',
+						p_fields = ['owner_group', 'owner_user', 'prefix'],
+						p_data = {
+							'owner_group': user_info['group_pk'],
+							'owner_user': user_info['user_pk'],
+							'prefix': standardized
+						}
+					)
+
+					# Created the prefix.
+					returning.append(
+						db.messages(
+							parameters = {
+								'prefix': standardized
+							}
+						)['201_prefix_create']
+					)
+				
+				else:
+
+					# Bad request.
+					returning.append(
+						db.messages(
+							parameters = {}
+						)['400_bad_request']
+					)
 			
 			else:
 			
@@ -72,7 +102,7 @@ def POST_create_new_prefix(
 				returning.append(
 					db.messages(
 						parameters = {
-							'prefix': prefix
+							'prefix': standardized.upper()
 						}
 					)['409_conflict']
 				)

@@ -124,32 +124,6 @@ AUTHENTICATION_BACKENDS = [
 
 
 
-# --- TABLES --- #
-
-
-
-
-table_config = configparser.ConfigParser()
-table_config.read('./tables.conf')
-
-# Process all the tables.
-
-# First get all the templates, splitting on the commas
-# and stripping the whitespace.
-templates = [i.strip() for i in table_config['MODEL_TEMPLATES']['templates'].split(',')]
-
-# Define a dictionary to hold the tables.
-TABLES = {}
-
-# For each template, get the tables.
-for template in templates:
-
-    # Define this key for tables.
-    TABLES[template.upper()] = [i.strip() for i in table_config[template.upper()]['tables'].split(',')]
-
-
-
-
 # --- APPLICATION --- #
 
 

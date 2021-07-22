@@ -520,6 +520,100 @@ def tests(
         url = '/api/public/describe/'
     )
 
+    # Admin checks first (using the wheel key)
+    wheel_key = 'd37da69418bae0ca08b6d2214735e9d8050d4648'
+    
+    # Try to create a prefix.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_create_new_prefix': {
+                'prefixes': [
+                    {
+                        'description': 'Generic glygen prefix.',
+                        'owner_group': 'bco_publisher',
+                        'owner_user': 'wheel',
+                        'prefix': 'khyy',
+                    }
+                ]
+            }
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Create a test prefix.',
+            'expected_response_code': '200 OK',
+            'test_number': '1'
+        },
+        token = wheel_key,
+        url = '/api/prefixes/create/'
+    )
+
+    # Update a prefix.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_update_existing_prefix': {
+                'prefixes': [
+                    {
+                        'description': 'Generic glygen prefix.',
+                        'owner_group': 'bco_drafter',
+                        'owner_user': 'wheel',
+                        'prefix': 'khyy',
+                    }
+                ]
+            }
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Update an existing prefix.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = wheel_key,
+        url = '/api/prefixes/update/'
+    )
+
+    # Delete a prefix.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_delete_existing_prefix': {
+                'prefixes': [
+                    {
+                        'prefix': 'khyy',
+                    }
+                ]
+            }
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Delete an existing prefix.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = wheel_key,
+        url = '/api/prefixes/delete/'
+    )
+
+    print(x)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # Pull the token.
     r_token_username = pretty_output(
         json_send = {
@@ -977,7 +1071,7 @@ def tests(
             'test_number': '19'
         },
         token = 'this_token_should_not_exist',
-        url = '/api/objects/prefixes/create/'
+        url = '/api/prefixes/create/'
     )
     
     # --- works --- #
@@ -999,7 +1093,7 @@ def tests(
     #         'test_number': '19'
     #     },
     #     token = 'db36da5a582701a7cb6131c64cde3439c189e220',
-    #     url = '/api/objects/prefixes/create/'
+    #     url = '/api/prefixes/create/'
     # )
 
     # # Conduct the sub-test.
@@ -1024,7 +1118,7 @@ def tests(
             'test_number': '19'
         },
         token = 'db36da5a582701a7cb6131c64cde3439c189e220',
-        url = '/api/objects/prefixes/create/'
+        url = '/api/prefixes/create/'
     )
 
     # # Create a new prefix.

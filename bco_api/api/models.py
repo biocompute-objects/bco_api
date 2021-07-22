@@ -6,9 +6,6 @@
 
 from django.db import models
 
-# For reading the configuration file.
-from django.conf import settings
-
 
 
 
@@ -35,27 +32,9 @@ from rest_framework.authtoken.models import Token
 
 
 
-# Ownership models
-# Source: https://stackoverflow.com/a/47268403
-class owned_model(
+# Generic BCO model
+class bco(
 	models.Model
-):
-
-
-	# The object owner (should be a group).
-	owner_group = models.ForeignKey(
-		Group, 
-		on_delete = models.CASCADE
-	)
-
-
-	class Meta:
-		abstract = True
-
-
-# Generic JSON model
-class json_object(
-	owned_model
 ):
 
 
@@ -63,24 +42,6 @@ class json_object(
 
 	# Field is required.
 	contents = models.JSONField()
-
-	
-	# The unique object ID.
-
-	# Field is required.
-	object_id = models.TextField()
-
-
-	# The schema under which the object falls.
-
-	# Field is required.
-	schema = models.TextField()
-
-
-	# The state of the object, is it a draft or is it published?
-
-	# Field is required.
-	state = models.TextField()
 
 
 	# What is the class of the object (typically used to describe overall
@@ -93,9 +54,43 @@ class json_object(
 	)
 
 
-	# Make this class a parent.
-	class Meta:
-		abstract = True
+	# The unique object ID.
+
+	# Field is required.
+	object_id = models.TextField()
+
+
+	# The object owner (should be a group).
+	owner_group = models.ForeignKey(
+		Group, 
+		on_delete = models.CASCADE
+	)
+
+	# The object owner (should be a user).
+	owner_user = models.ForeignKey(
+		User,
+		on_delete = models.CASCADE
+	)
+
+
+	# Which prefix the object falls under.
+
+	# Field is required.
+	prefix = models.CharField(
+		max_length = 5
+	)
+	
+	
+	# The schema under which the object falls.
+
+	# Field is required.
+	schema = models.TextField()
+
+
+	# The state of the object, is it a draft, embargoed, or published?
+
+	# Field is required.
+	state = models.TextField()
 
 
 # Generic meta data model
@@ -104,30 +99,15 @@ class meta_table(
 ):
 
 
-	# The number of objects in a given table.
+	# The number of objects for a given prefix.
 
 	# Field is required.
 	n_objects = models.IntegerField()
 
 
-	# Make this class a parent.
-	class Meta:
-		abstract = True
+	# Which prefix the object falls under.
 
-
-# Link prefixes to groups
-class prefix_groups(
-	models.Model
-):
-
-	# Each prefix has exactly one group owner.
-
-	# The choices of group are taken directly from the table.
-
-	group_owner = models.CharField(
-		max_length = 1000
-	)
-	
+	# Field is required.
 	prefix = models.CharField(
 		max_length = 5
 	)
@@ -137,6 +117,7 @@ class prefix_groups(
 class new_users(
 	models.Model
 ):
+
 
 	# Instead of using the User model, just use
 	# a crude table to store the temporary information
@@ -166,35 +147,28 @@ class new_users(
 		default = timezone.now
 	)
 
-# Create referrable dict.
-models_dict = {}
 
-# Go through each template and create the associated table.
-for template, tables in settings.TABLES.items():
+# Link prefixes to groups
+class prefix_groups(
+	models.Model
+):
 
-	# lower because the model names are lowercase.
-	lowered = template.lower()
 
-	# Register the template with the "global" dict.
-	models_dict[
-		lowered
-	] = []
+	# Each prefix has exactly one group owner.
+	owner_group = models.ForeignKey(
+		Group, 
+		on_delete = models.CASCADE
+	)
 
-	for table in tables:
-
-		# Replace later with model registration...
-		exec('class ' + table + '(' + lowered + '):\n\tpass')
-
-		# Register the table with the "global" variable.
-		models_dict[
-			lowered
-		].append(
-			table
-		)
-
-# Now define the global variable (is this actually used anywhere?
-# some places are using app_info...).
-settings.MODELS = models_dict
+	# Each prefix has exactly one user owner.
+	owner_user = models.ForeignKey(
+		User, 
+		on_delete = models.CASCADE
+	)
+	
+	prefix = models.CharField(
+		max_length = 5
+	)
 
 
 
@@ -236,22 +210,22 @@ def associate_user_group(
 			instance
 		)
 
-		# Automatically add BCO draft and BCO publish permissions.
-
-		# anon does NOT have drafter or publisher permissions.
-		if instance.username != 'anon':
+		# Automatically add the user to the BCO drafters and publishers groups,
+		# if the user isn't anon or the already existent bco_drafter or bco_publisher.
+		if instance.username not in ['anon', 'bco_drafter', 'bco_publisher']:
+			
 			User.objects.get(
 				username = instance
 			).groups.add(
 				Group.objects.get(
-					name = 'bco_drafters'
+					name = 'bco_drafter'
 				)
 			)
 			User.objects.get(
 				username = instance
 			).groups.add(
 				Group.objects.get(
-					name = 'bco_publishers'
+					name = 'bco_publisher'
 				)
 			)
 

@@ -22,7 +22,59 @@ class UserUtils:
 
 
 
-    def get_user_groups(
+    def check_user_in_group(
+        self,
+        un,
+        gn
+    ):
+
+        # Check if a user is in a group.
+
+        # First check that the user exists.
+        # Then check that the groups exists.
+        # Finally, check that the user is in
+        # the group.
+
+        # Try/except is preferred because
+        # the query is only run one time.
+        
+        try:
+
+            # Django wants a primary key for the User...
+            user_pk = User.objects.get(username = un).pk
+            
+            try:
+            
+                # Django wants a primary key for the Group...
+                group_pk = Group.objects.get(name = gn).pk
+
+                # Finally, check that the user is in the group.
+                if gn in list(User.objects.get(username = un).groups.values_list('name', flat = True)):
+                    
+                    # Kick back the user and group pks.
+                    return {
+                        'user_pk': user_pk,
+                        'group_pk': group_pk
+                    }
+                
+                else:
+
+                    return False
+            
+            except Group.DoesNotExist:
+
+                # Bad group.
+                return False
+        
+        except User.DoesNotExist:
+
+            # Bad user.
+            return False
+    
+    
+    
+
+    def get_user_groups_by_token(
         self,
         token
     ):
@@ -45,6 +97,24 @@ class UserUtils:
         # group created when the account was created should show up).
         return Group.objects.filter(
             user = username
+        )
+    
+
+
+
+    def get_user_groups_by_username(
+        self,
+        un
+    ):
+
+        # Takes usernames to give groups.
+
+        # Get the groups for this username (at a minimum the user
+        # group created when the account was created should show up).
+        return Group.objects.filter(
+            user = User.objects.get(
+                username = un
+            )
         )
 
 

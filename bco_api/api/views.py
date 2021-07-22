@@ -20,7 +20,7 @@ from rest_framework import status
 
 # By-view permissions
 from rest_framework.permissions import IsAuthenticated
-from .permissions import RequestorInOwnerGroup, RequestorInPrefixAdminsGroup, HasObjectGenericPermission, HasObjectChangePermission, HasObjectDeletePermission, HasObjectViewPermission, HasTableWritePermission
+from .permissions import RequestorInObjectOwnerGroup, RequestorInPrefixAdminsGroup, HasObjectGenericPermission, HasObjectChangePermission, HasObjectDeletePermission, HasObjectViewPermission, HasTableWritePermission
 
 # Message page
 # Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
@@ -36,12 +36,14 @@ from .scripts.method_specific.GET_published_object_by_id import GET_published_ob
 from .scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
 from .scripts.method_specific.POST_check_object_permissions import POST_check_object_permissions
 from .scripts.method_specific.POST_create_new_prefix import POST_create_new_prefix
+from .scripts.method_specific.POST_delete_existing_prefix import POST_delete_existing_prefix
 from .scripts.method_specific.POST_objects_draft import POST_objects_draft
 from .scripts.method_specific.POST_objects_publish import POST_objects_publish
 from .scripts.method_specific.POST_new_account import POST_new_account
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
 from .scripts.method_specific.POST_read_object import POST_read_object
 from .scripts.method_specific.POST_set_object_permission import POST_set_object_permission
+from .scripts.method_specific.POST_update_existing_prefix import POST_update_existing_prefix, POST_update_existing_prefix
 
 
 
@@ -389,7 +391,7 @@ class ApiObjectsPermissionsSet(
     # POST
 
     # Permissions - object owner only
-    permission_classes = [RequestorInOwnerGroup]
+    permission_classes = [RequestorInObjectOwnerGroup]
 
     def post(
         self, 
@@ -494,6 +496,106 @@ class ApiObjectsPrefixesCreate(
             # Pass the request to the handling function
             return(
                 POST_create_new_prefix(
+                    request
+                )
+            )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+
+class ApiObjectsPrefixesDelete(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Delete a prefix.
+
+    # POST
+
+    # Permissions - prefix admins only
+    permission_classes = [RequestorInPrefixAdminsGroup]
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+                
+            # Pass the request to the handling function
+            return(
+                POST_delete_existing_prefix(
+                    request
+                )
+            )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+            
+
+
+
+class ApiObjectsPrefixesUpdate(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Update a prefix.
+
+    # POST
+
+    # Permissions - prefix admins only
+    permission_classes = [RequestorInPrefixAdminsGroup]
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+                
+            # Pass the request to the handling function
+            return(
+                POST_update_existing_prefix(
                     request
                 )
             )

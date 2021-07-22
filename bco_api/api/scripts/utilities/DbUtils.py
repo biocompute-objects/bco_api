@@ -333,11 +333,26 @@ class DbUtils:
                 'message': 'The object with ID \'' + parameters['object_id'] + '\' was created on table \'' + parameters['table'] + '\'.',
                 'object_id': parameters['object_id']
             },
+            '201_prefix_create': {
+                'request_status': 'SUCCESS', 
+                'request_code': '201',
+                'message': 'The prefix \'' + parameters['prefix'] + '\' was successfully created.'
+            },
             '200_found': {
                 'request_status': 'SUCCESS', 
                 'request_code': '200',
                 'message': 'The object with ID \'' + parameters['object_id'] + '\' was found on table \'' + parameters['table'] + '\'.',
                 'content': p_content
+            },
+            '200_OK': {
+                'request_status': 'SUCCESS', 
+                'request_code': '200',
+                'message': 'The prefix \'' + parameters['prefix'] + '\' was deleted.'
+            },
+            '200_prefix_update': {
+                'request_status': 'SUCCESS', 
+                'request_code': '200',
+                'message': 'The prefix \'' + parameters['prefix'] + '\' was updated.'
             },
             '200_update': {
                 'request_status': 'SUCCESS', 
@@ -353,6 +368,11 @@ class DbUtils:
                 'request_status': 'FAILURE',
                 'request_code': '403',
                 'message': 'The token provided was not able to be used on this table.'
+            },
+            '404_missing_prefix': {
+                'request_status': 'FAILURE', 
+                'request_code': '404',
+                'message': 'The prefix \'' + parameters['prefix'] + '\' was not found on the server.'
             },
             '404_object_id': {
                 'request_status': 'FAILURE', 
@@ -381,7 +401,8 @@ class DbUtils:
         p_model_name, 
         p_fields, 
         p_data, 
-        p_update = False
+        p_update = False,
+        p_update_field = False
     ):
 
         # Source: https://docs.djangoproject.com/en/3.1/topics/db/queries/#topics-db-queries-update
@@ -411,6 +432,15 @@ class DbUtils:
         else:
 
             # Update an existing object.
+            # apps.get_model(
+            #     app_label = p_app_label, 
+            #     model_name = p_model_name
+            # ).objects.filter(
+            #     object_id = p_data['object_id']
+            # ).update(
+            #     contents = p_data['contents']
+            # )
+
             apps.get_model(
                 app_label = p_app_label, 
                 model_name = p_model_name

@@ -46,7 +46,7 @@ def POST_objects_draft(
 	processed = incoming.META.get('HTTP_AUTHORIZATION').split(' ')[1]
 
 	# Define the user groups.
-	user_groups = uu.get_user_groups(
+	user_groups = uu.get_user_groups_by_token(
 		token = processed
 	)
 
