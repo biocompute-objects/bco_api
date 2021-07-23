@@ -44,6 +44,7 @@ from .scripts.method_specific.POST_object_listing_by_token import POST_object_li
 from .scripts.method_specific.POST_prefix_permissions_by_token import POST_prefix_permissions_by_token
 from .scripts.method_specific.POST_read_object import POST_read_object
 from .scripts.method_specific.POST_set_object_permission import POST_set_object_permission
+from .scripts.method_specific.POST_set_prefix_permissions import POST_set_prefix_permissions
 from .scripts.method_specific.POST_update_existing_prefix import POST_update_existing_prefix, POST_update_existing_prefix
 
 
@@ -559,7 +560,54 @@ class ApiPrefixesDelete(
                     status = status.HTTP_400_BAD_REQUEST
                 )
             )
-            
+
+
+
+
+class ApiPrefixesPermissionsSet(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Delete a prefix.
+
+    # POST
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+                
+            # Pass the request to the handling function
+            return(
+                POST_set_prefix_permissions(
+                    request
+                )
+            )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
 
 
 

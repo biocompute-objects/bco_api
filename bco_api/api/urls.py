@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
@@ -37,7 +37,10 @@ from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescrib
 # Delete a prefix
 # (POST) api/prefixes/delete/
 
-# Get the prefix permissions for a given token
+# Set permissions for a prefix
+# (POST) api/prefixes/permissions/set/
+
+# Get ALL prefix permissions for a given token
 # (POST) api/prefixes/permissions/
 
 # Update a prefix
@@ -93,6 +96,10 @@ urlpatterns = [
     path(
         'api/prefixes/delete/',
         ApiPrefixesDelete.as_view()
+    ),
+    path(
+        'api/prefixes/permissions/set/',
+        ApiPrefixesPermissionsSet.as_view()
     ),
     path(
         'api/prefixes/token/',

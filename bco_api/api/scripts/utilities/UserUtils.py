@@ -1,3 +1,6 @@
+# Prefixes
+from ...models import prefixes
+
 # For returning server information.
 from django.conf import settings
 
@@ -19,6 +22,39 @@ class UserUtils:
 
     # These are methods for interacting with user information.
     
+
+
+
+    def check_permission_exists(
+        self,
+        perm
+    ):
+
+        # Does the user exist?
+        return Permission.objects.get(codename = 'test')
+    
+
+
+
+    def check_group_exists(
+        self,
+        n
+    ):
+
+        # Does the user exist?
+        return Group.objects.filter(name = n).exists()
+
+
+
+
+    def check_user_exists(
+        self,
+        un
+    ):
+
+        # Does the user exist?
+        return User.objects.filter(username = un).exists()
+
 
 
 
@@ -70,6 +106,18 @@ class UserUtils:
 
             # Bad user.
             return False
+    
+
+
+
+    def check_user_owns_prefix(
+        self,
+        un,
+        prfx
+    ):
+
+        # Check if a user owns a prefix.
+        return prefixes.objects.filter(owner_user = un, prefix = prfx).exists()
     
     
     
@@ -228,3 +276,21 @@ class UserUtils:
             'username': user.username,
             'other_info': other_info
         }
+
+
+
+    # Kick back a user object from a request.
+    def user_from_request(
+        self,
+        rq
+    ):
+
+        user_id = Token.objects.get(
+            key = rq.META.get(
+                'HTTP_AUTHORIZATION'
+            ).split(' ')[1]
+        ).user_id
+
+        return User.objects.get(
+            id = user_id
+        )
