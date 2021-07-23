@@ -5,7 +5,7 @@ from ..utilities import DbUtils
 from ..utilities import UserUtils
 
 # Model fields
-from ...models import prefix_groups
+from ...models import prefixes
 
 # Responses
 from rest_framework import status
@@ -25,7 +25,7 @@ def POST_delete_existing_prefix(
 
 	# Get all existing prefixes.
 	available_prefixes = list(
-		prefix_groups.objects.all().values_list(
+		prefixes.objects.all().values_list(
 				'prefix', 
 				flat = True
 			)
@@ -53,7 +53,7 @@ def POST_delete_existing_prefix(
 
 			# Django *DOESN'T* want primary keys now...
 			
-			prefixed = prefix_groups.objects.get(
+			prefixed = prefixes.objects.get(
 				prefix = standardized
 			)
 			prefixed.delete()

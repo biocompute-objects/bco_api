@@ -153,7 +153,7 @@ class UserUtils:
         # Get the other information for this user.
         # Source: https://stackoverflow.com/a/48592813
         other_info = {
-            'group_permissions': {},
+            'permissions': {},
             'account_creation': '',
             'account_expiration': ''
         }
@@ -166,19 +166,56 @@ class UserUtils:
         # Get each group's permissions separately,
         # then append them to other_info.
         
-        # Source: https://stackoverflow.com/a/27538767/5029459
-        # Couldn't get the comment answer to work...
+        # Try to get the permissions for the user,
+        # split by user and group.
 
-        # Need to process the permissions to be readable.
-        for group in user.groups.all():
+        # Define a dictionary to hold the permissions.
+        user_perms = {
+            'user': {},
+            'groups': {}
+        }
+        
+        # First, by the user.
+        for p in user.user_permissions.all():
             
-            # Get the group name.
-            g_name = group.name
+            # Keep the model and the codename.
+            if p.content_type.name not in user_perms['user']:
+                user_perms['user'][p.content_type.name] = []
+            
+            user_perms['user'][p.content_type.name].append(p.codename)
+        
+        # Next, by the group.
 
-            # Get the permissions.
-            g_permissions = group.permissions.all()
-            
-            other_info['group_permissions'][g_name] = [i.name for i in g_permissions]
+        # username.get_group_permissions() sheds the group
+        # name (a design flaw in django), so we have to
+        # invoke some inefficient logic here.
+
+        # In general, django isn't good at retaining
+        # groups and permissions in one step.
+
+        # See the first comment at https://stackoverflow.com/a/27538767
+        # for a partial solution.
+
+        # Alternatively, in models.py, we could define
+        # our own permissions class, but this is a bit
+        # burdensome.
+
+        for g in user.groups.all():
+
+            # Add the group name automatically.
+            if g.name not in user_perms['groups']:
+                user_perms['groups'][g.name] = {}
+
+            for p in Permission.objects.filter(group = g):
+                
+                # Keep the model and the codename.
+                if p.content_type.name not in user_perms['groups'][g.name]:
+                    user_perms['groups'][g.name][p.content_type.name] = []
+                
+                user_perms['groups'][g.name][p.content_type.name].append(p.codename)
+        
+        # Append.
+        other_info['permissions'] = user_perms
         
         # Account created.
         other_info['account_creation'] = user.date_joined
@@ -188,6 +225,6 @@ class UserUtils:
             'human_readable_hostname': settings.HUMAN_READABLE_HOSTNAME,
             'public_hostname': settings.PUBLIC_HOSTNAME,
             'token': token.key,
-            'username': username,
+            'username': user.username,
             'other_info': other_info
         }

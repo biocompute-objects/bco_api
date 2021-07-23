@@ -243,15 +243,15 @@ class DbUtils:
         # Save the user.
         user.save()
 
-        # Automatically add the user to the bco_drafters and bco_publishers groups.
+        # Automatically add the user to the bco_drafter and bco_publisher groups.
         user.groups.add(
             Group.objects.get(
-                name = 'bco_drafters'
+                name = 'bco_drafter'
             )
         )
         user.groups.add(
             Group.objects.get(
-                name = 'bco_publishers'
+                name = 'bco_publisher'
             )
         )
 

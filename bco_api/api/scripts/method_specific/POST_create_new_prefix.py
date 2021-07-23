@@ -5,7 +5,7 @@ from ..utilities import DbUtils
 from ..utilities import UserUtils
 
 # Model fields
-from ...models import prefix_groups
+from ...models import prefixes
 
 # Checking prefixes
 import re
@@ -28,7 +28,7 @@ def POST_create_new_prefix(
 
 	# Get all existing prefixes.
 	available_prefixes = list(
-		prefix_groups.objects.all().values_list(
+		prefixes.objects.all().values_list(
 				'prefix', 
 				flat = True
 			)
@@ -69,7 +69,7 @@ def POST_create_new_prefix(
 					
 					DbUtils.DbUtils().write_object(
 						p_app_label = 'api',
-						p_model_name = 'prefix_groups',
+						p_model_name = 'prefixes',
 						p_fields = ['owner_group', 'owner_user', 'prefix'],
 						p_data = {
 							'owner_group': user_info['group_pk'],

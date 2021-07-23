@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiObjectsPrefixesCreate, ApiObjectsPrefixesDelete, ApiObjectsPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
@@ -28,17 +28,20 @@ from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescrib
 # Set the permissions for a given BCO
 # (POST) api/objects/permissions/set/
 
+# Get all objects for a given token
+# (POST) api/objects/token/
+
 # Create a prefix
 # (POST) api/prefixes/create/
 
 # Delete a prefix
 # (POST) api/prefixes/delete/
 
+# Get the prefix permissions for a given token
+# (POST) api/prefixes/permissions/
+
 # Update a prefix
 # (POST) api/prefixes/update/
-
-# Get all objects for a given token
-# (POST) api/objects/token/
 
 # Describe the server's attributes
 # (GET) api/public/describe/
@@ -76,24 +79,28 @@ urlpatterns = [
         ApiObjectsPermissionsSet.as_view()
     ),
     path(
-        'api/prefixes/create/',
-        ApiObjectsPrefixesCreate.as_view()
-    ),
-    path(
-        'api/prefixes/delete/',
-        ApiObjectsPrefixesDelete.as_view()
-    ),
-    path(
-        'api/prefixes/update/',
-        ApiObjectsPrefixesUpdate.as_view()
-    ),
-    path(
         'api/objects/publish/', 
         ApiObjectsPublish.as_view()
     ),
     path(
         'api/objects/token/', 
         ApiObjectsToken.as_view()
+    ),
+    path(
+        'api/prefixes/create/',
+        ApiPrefixesCreate.as_view()
+    ),
+    path(
+        'api/prefixes/delete/',
+        ApiPrefixesDelete.as_view()
+    ),
+    path(
+        'api/prefixes/token/',
+        ApiPrefixesToken.as_view()
+    ),
+    path(
+        'api/prefixes/update/',
+        ApiPrefixesUpdate.as_view()
     ),
     path(
         'api/public/describe/', 

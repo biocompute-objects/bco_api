@@ -17,9 +17,13 @@ from django.db import models
 # Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
 
 # The user model is straight from Django.
-from django.contrib.auth.models import Group, User
-from django.db.models.signals import post_save
+from django.contrib.auth.models import Group, Permission, User
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+import django.db.utils as PermErrors
+
+# Referencing models.
+from django.contrib.contenttypes.models import ContentType
 
 # Issue with timezones.
 # Source: https://stackoverflow.com/a/32411560
@@ -28,8 +32,6 @@ from django.utils import timezone
 # For token creation.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
 from rest_framework.authtoken.models import Token
-
-
 
 
 # Generic BCO model
@@ -149,7 +151,7 @@ class new_users(
 
 
 # Link prefixes to groups
-class prefix_groups(
+class prefixes(
 	models.Model
 ):
 
@@ -248,3 +250,94 @@ def create_auth_token(
 		Token.objects.create(
 			user = instance
 		)
+
+
+# Link prefix creation to permissions creation.
+
+@receiver(
+	post_save,
+	sender = prefixes
+)
+def create_permissions_for_prefix(
+	sender,
+	instance = None,
+	created = False,
+	**kwargs
+):
+
+	if created:
+		
+		# Check to see whether or not the permissions
+		# have already been created for this prefix.
+		try:
+
+			for perm in ['add', 'change', 'delete', 'view']:
+			
+				Permission.objects.create(
+					name = 'Can ' + perm + ' BCOs with prefix ' + instance.prefix,
+					content_type = ContentType.objects.get(
+						app_label = 'api',
+						model = 'bco'
+					),
+					codename = perm + '_' + instance.prefix
+				)
+
+				# Give FULL permissions to the prefix user owner
+				# and their group.
+
+				# No try/except necessary here as the user's existence
+				# has already been verified upstream.
+
+				# Source: https://stackoverflow.com/a/20361273
+				
+				User.objects.get(
+					username = instance.owner_user
+				).user_permissions.add(
+					Permission.objects.get(
+						codename = perm + '_' + instance.prefix
+					)
+				)
+				
+				Group.objects.get(
+					name = instance.owner_user
+				).permissions.add(
+					Permission.objects.get(
+						codename = perm + '_' + instance.prefix
+					)
+				)
+		
+		except PermErrors.IntegrityError:
+			
+			# The permissions already exist.			
+			pass
+
+
+# Link prefix deletion to permissions deletion.
+
+@receiver(
+	post_delete,
+	sender = prefixes
+)
+def delete_permissions_for_prefix(
+	sender,
+	instance = None,
+	**kwargs
+):
+		
+	# No risk of raising an error when using
+	# a filter.
+	Permission.objects.filter(
+		codename = 'add_' + instance.prefix
+	).delete()
+
+	Permission.objects.filter(
+		codename = 'change_' + instance.prefix
+	).delete()
+
+	Permission.objects.filter(
+		codename = 'delete_' + instance.prefix
+	).delete()
+
+	Permission.objects.filter(
+		codename = 'view_' + instance.prefix
+	).delete()

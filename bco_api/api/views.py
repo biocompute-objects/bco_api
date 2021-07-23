@@ -41,6 +41,7 @@ from .scripts.method_specific.POST_objects_draft import POST_objects_draft
 from .scripts.method_specific.POST_objects_publish import POST_objects_publish
 from .scripts.method_specific.POST_new_account import POST_new_account
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
+from .scripts.method_specific.POST_prefix_permissions_by_token import POST_prefix_permissions_by_token
 from .scripts.method_specific.POST_read_object import POST_read_object
 from .scripts.method_specific.POST_set_object_permission import POST_set_object_permission
 from .scripts.method_specific.POST_update_existing_prefix import POST_update_existing_prefix, POST_update_existing_prefix
@@ -462,7 +463,7 @@ class ApiObjectsPermissionsSet(
 
 
 
-class ApiObjectsPrefixesCreate(
+class ApiPrefixesCreate(
     APIView
 ):
 
@@ -512,7 +513,7 @@ class ApiObjectsPrefixesCreate(
 
 
 
-class ApiObjectsPrefixesDelete(
+class ApiPrefixesDelete(
     APIView
 ):
 
@@ -562,7 +563,42 @@ class ApiObjectsPrefixesDelete(
 
 
 
-class ApiObjectsPrefixesUpdate(
+class ApiPrefixesToken(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Get the prefix permissions for a given token.
+
+    # POST
+
+    # Open permissions - anyone can request.
+
+    def post(
+        self, 
+        request
+    ):
+        
+        if 'Authorization' in request.headers:
+            
+            # Pass the request to the handling function
+            # Source: https://stackoverflow.com/a/31813810
+            return POST_prefix_permissions_by_token(
+                token = request.META.get('HTTP_AUTHORIZATION')
+            )
+
+        else:
+
+            return Response(
+                status = status.HTTP_400_BAD_REQUEST
+            )
+
+
+
+
+class ApiPrefixesUpdate(
     APIView
 ):
 

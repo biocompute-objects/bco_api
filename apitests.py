@@ -521,7 +521,7 @@ def tests(
     )
 
     # Admin checks first (using the wheel key)
-    wheel_key = 'd37da69418bae0ca08b6d2214735e9d8050d4648'
+    wheel_key = '917ed061b8b98b07947713ca8ba5a14bc89d30b6'
     
     # Try to create a prefix.
     pretty_output(
@@ -595,25 +595,20 @@ def tests(
         url = '/api/prefixes/delete/'
     )
 
-    print(x)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    # Get the prefix permissions for a given token.
+    pretty_output(
+        hostname = hostname,
+        json_send = {},
+        method = 'POST',
+        test_info = {
+            'description': 'Get the prefix permissions for a token.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = wheel_key,
+        url = '/api/prefixes/token/'
+    )
+
     # Pull the token.
     r_token_username = pretty_output(
         json_send = {
@@ -642,6 +637,108 @@ def tests(
         token = r_token_username['token'],
         url = '/api/accounts/describe/'
     )
+
+    print(x)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # There should be no objects associated with this account yet.
     objects = pretty_output(
@@ -763,7 +860,7 @@ def tests(
             "POST_objects_draft": [
                 {
                     "contents": {},
-                    "owner_group": "bco_drafters",
+                    "owner_group": "bco_drafter",
                     "schema": "IEEE",
                     "state": "DRAFT",
                     "table": "bco_draft"
@@ -805,7 +902,7 @@ def tests(
                 {
                     "contents": {},
                     "object_id": "this_draft_id_should_not_exist",
-                    "owner_group": "bco_drafters",
+                    "owner_group": "bco_drafter",
                     "schema": "IEEE",
                     "state": "DRAFT",
                     "table": "bco_draft"
@@ -839,7 +936,7 @@ def tests(
                 {
                     "contents": {},
                     "object_id": drafted[0]['object_id'],
-                    "owner_group": "bco_drafters",
+                    "owner_group": "bco_drafter",
                     "schema": "IEEE",
                     "state": "DRAFT",
                     "table": "bco_draft"
@@ -917,7 +1014,7 @@ def tests(
             "POST_objects_publish": [
                 {
                     "contents": {},
-                    "owner_group": "bco_drafters",
+                    "owner_group": "bco_drafter",
                     "table": "bco_publish"
                 }
             ]
