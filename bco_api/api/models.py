@@ -395,31 +395,43 @@ def delete_permissions_for_prefix(
 def create_group_perms(
 	sender,
 	instance = None,
+	created = False,
 	**kwargs
 ):
 
-	# Create the permissions, then
-	# use group_info to give the group admin 
-	# the admin permissions.
+	if created:
+	
+		# Check to see whether or not the permissions
+		# have already been created for this prefix.
+		try:
+		
+			# Create the permissions, then
+			# use group_info to give the group admin 
+			# the admin permissions.
 
-	# Create the administrative permissions for the group.
-	for perm in ['add_members_' + Group.objects.get(id = instance.group_id).name, 'delete_members_' + Group.objects.get(id = instance.group_id).name]:
-		Permission.objects.create(
-			name = 'Can ' + perm,
-			content_type = ContentType.objects.get(
-				app_label = 'auth',
-				model = 'group'
-			),
-			codename = perm
-		)
+			# Create the administrative permissions for the group.
+			for perm in ['add_members_' + Group.objects.get(id = instance.group_id).name, 'delete_members_' + Group.objects.get(id = instance.group_id).name]:
+				Permission.objects.create(
+					name = 'Can ' + perm,
+					content_type = ContentType.objects.get(
+						app_label = 'auth',
+						model = 'group'
+					),
+					codename = perm
+				)
 
-		# Give the administrative permissions to the user 
-		# creating this group.
-		User.objects.get(id = instance.owner_user_id).user_permissions.add(
-			Permission.objects.get(
-				codename = perm
-			)
-		)
+				# Give the administrative permissions to the user 
+				# creating this group.
+				User.objects.get(id = instance.owner_user_id).user_permissions.add(
+					Permission.objects.get(
+						codename = perm
+					)
+				)
+		
+		except PermErrors.IntegrityError:
+
+			# The permissions already exist.			
+			pass
 
 
 # Link group deletion to permissions deletion.

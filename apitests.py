@@ -521,7 +521,7 @@ def tests(
     )
 
     # Admin checks first (using the wheel key)
-    wheel_key = '4c3da30c226c35a645614d109450deac323558b6'
+    wheel_key = '2b369889923fbfc38957baa04c0f5582acbc514b'
     
     # Try to create a prefix.
     pretty_output(
@@ -887,7 +887,7 @@ def tests(
         url = '/api/prefixes/token/'
     )
 
-    # Create a group.
+    # Create some groups.
     pretty_output(
         hostname = hostname,
         json_send = {
@@ -896,7 +896,6 @@ def tests(
                     'description': 'Just some test group.',
                     'name': 'some_test_group',
                     'usernames': [
-                        'wheel',
                         r_token_username['username'],
                         r_token_username_auxiliary_user['username']
                     ]
@@ -945,6 +944,68 @@ def tests(
         url = '/api/groups/create/'
     )
 
+    # Create a third user so that we can test group
+    # modification logic.
+    r_token_username_third_user = pretty_output(
+        json_send = {
+            'email': 'generic@email.com'
+        },
+        hostname = hostname,
+        method = 'POST',
+        pull_key = True,
+        test_info = {
+            'description': 'Create a new account given a generic e-Mail.',
+            'expected_response_code': '201 Created',
+            'test_number': '2'
+        },
+        url = '/api/accounts/new/'
+    )
+
+    # Modify the groups.
+
+    # NOTE: can also be used to create a new group
+    # using the optional argument 'new_group'.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_api_groups_modify': [
+                {
+                    'actions': {
+                        'add_users': [
+                            'some_user_that_doesnt_exist',
+                            'wheel'
+                        ],
+                        'disinherit_from': [
+                            'some_group_that_doesnt_exist',
+                            'some_other_test_group'
+                        ],
+                        'inherit_from': [
+                            r_token_username_third_user['username'],
+                            'some_other_group_that_doesnt_exist'
+                        ],
+                        'owner_group': 'this_group_doesnt_exist',
+                        'owner_user': 'wheel',
+                        'redescribe': 'Just some other new description.',
+                        'remove_users': [
+                            r_token_username['username'],
+                            'this_user_also_doesnt_exist'
+                        ],
+                        'rename': 'the_new_group_name'
+                    },
+                    'name': 'some_test_group'
+                }
+            ]
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Modify some groups.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/groups/modify/'
+    )
+
     # Delete the groups.
     pretty_output(
         hostname = hostname,
@@ -952,7 +1013,8 @@ def tests(
             'POST_api_groups_delete': {
                 'names': [
                     'some_test_group', 
-                    'some_other_test_group'
+                    'some_other_test_group',
+                    'the_new_group_name'
                 ]
             }
         },

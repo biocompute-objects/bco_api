@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
@@ -24,6 +24,9 @@ from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescrib
 
 # Delete groups
 # (POST) /api/groups/delete/
+
+# Modify groups
+# (POST) /api/groups/modify/
 
 # Create BCOs
 # (POST) api/objects/create/
@@ -82,6 +85,10 @@ urlpatterns = [
     path(
         'api/groups/delete/', 
         ApiGroupsDelete.as_view()
+    ),
+    path(
+        'api/groups/modify/', 
+        ApiGroupsModify.as_view()
     ),
     path(
         'api/objects/draft/', 
