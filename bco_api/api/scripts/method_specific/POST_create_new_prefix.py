@@ -104,7 +104,7 @@ def POST_create_new_prefix(
 						parameters = {
 							'prefix': standardized.upper()
 						}
-					)['409_conflict']
+					)['409_prefix_conflict']
 				)
 		
 		else:

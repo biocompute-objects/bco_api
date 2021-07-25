@@ -252,13 +252,13 @@ def sub_test_check_missing_table(
     print(f"------------{ENDC}")
     
     # Any items?
-    if testable[0]['request_code'] == '404':
-        print(f"{OKGREEN}{testable[0]['request_code']}{ENDC}")
+    if testable[0]['status_code'] == '404':
+        print(f"{OKGREEN}{testable[0]['status_code']}{ENDC}")
     else:
 
         # Failure.
         failed = True
-        print(f"{FAIL}{testable[0]['request_code']}{ENDC}")
+        print(f"{FAIL}{testable[0]['status_code']}{ENDC}")
     
     print('\n')
 
@@ -289,13 +289,13 @@ def sub_test_not_in_owner_group(
     print(f"------------{ENDC}")
     
     # Any items?
-    if testable[0]['request_code'] == '403':
-        print(f"{OKGREEN}{testable[0]['request_code']}{ENDC}")
+    if testable[0]['status_code'] == '403':
+        print(f"{OKGREEN}{testable[0]['status_code']}{ENDC}")
     else:
 
         # Failure.
         failed = True
-        print(f"{FAIL}{testable[0]['request_code']}{ENDC}")
+        print(f"{FAIL}{testable[0]['status_code']}{ENDC}")
     
     print('\n')
 
@@ -327,13 +327,13 @@ def sub_test_in_owner_group_insufficient_write_permissions(
     print(f"------------{ENDC}")
     
     # Any items?
-    if testable[0]['request_code'] == '403':
-        print(f"{OKGREEN}{testable[0]['request_code']}{ENDC}")
+    if testable[0]['status_code'] == '403':
+        print(f"{OKGREEN}{testable[0]['status_code']}{ENDC}")
     else:
 
         # Failure.
         failed = True
-        print(f"{FAIL}{testable[0]['request_code']}{ENDC}")
+        print(f"{FAIL}{testable[0]['status_code']}{ENDC}")
     
     print('\n')
 
@@ -364,13 +364,13 @@ def sub_test_in_owner_group_has_write_permissions(
     print(f"------------{ENDC}")
     
     # Any items?
-    if testable[0]['request_code'] == '201':
-        print(f"{OKGREEN}{testable[0]['request_code']}{ENDC}")
+    if testable[0]['status_code'] == '201':
+        print(f"{OKGREEN}{testable[0]['status_code']}{ENDC}")
     else:
 
         # Failure.
         failed = True
-        print(f"{FAIL}{testable[0]['request_code']}{ENDC}")
+        print(f"{FAIL}{testable[0]['status_code']}{ENDC}")
     
     print('\n')
 
@@ -401,13 +401,13 @@ def sub_test_update_id_doesnt_exist(
     print(f"------------{ENDC}")
     
     # Any items?
-    if testable[0]['request_code'] == '404':
-        print(f"{OKGREEN}{testable[0]['request_code']}{ENDC}")
+    if testable[0]['status_code'] == '404':
+        print(f"{OKGREEN}{testable[0]['status_code']}{ENDC}")
     else:
 
         # Failure.
         failed = True
-        print(f"{FAIL}{testable[0]['request_code']}{ENDC}")
+        print(f"{FAIL}{testable[0]['status_code']}{ENDC}")
     
     print('\n')
 
@@ -438,13 +438,13 @@ def sub_test_update_id_does_exist(
     print(f"------------{ENDC}")
     
     # Any items?
-    if testable[0]['request_code'] == '201':
-        print(f"{OKGREEN}{testable[0]['request_code']}{ENDC}")
+    if testable[0]['status_code'] == '201':
+        print(f"{OKGREEN}{testable[0]['status_code']}{ENDC}")
     else:
 
         # Failure.
         failed = True
-        print(f"{FAIL}{testable[0]['request_code']}{ENDC}")
+        print(f"{FAIL}{testable[0]['status_code']}{ENDC}")
     
     print('\n')
 
@@ -475,13 +475,13 @@ def sub_test_good_wheel_token_bad_prefix(
     print(f"------------{ENDC}")
     
     # Any items?
-    if testable[0]['request_code'] == '409':
-        print(f"{OKGREEN}{testable[0]['request_code']}{ENDC}")
+    if testable[0]['status_code'] == '409':
+        print(f"{OKGREEN}{testable[0]['status_code']}{ENDC}")
     else:
 
         # Failure.
         failed = True
-        print(f"{FAIL}{testable[0]['request_code']}{ENDC}")
+        print(f"{FAIL}{testable[0]['status_code']}{ENDC}")
     
     print('\n')
 
@@ -521,7 +521,7 @@ def tests(
     )
 
     # Admin checks first (using the wheel key)
-    wheel_key = '917ed061b8b98b07947713ca8ba5a14bc89d30b6'
+    wheel_key = '4c3da30c226c35a645614d109450deac323558b6'
     
     # Try to create a prefix.
     pretty_output(
@@ -533,7 +533,7 @@ def tests(
                         'description': 'Generic glygen prefix.',
                         'owner_group': 'bco_publisher',
                         'owner_user': 'wheel',
-                        'prefix': 'khyy',
+                        'prefix': 'aDmIn',
                     }
                 ]
             }
@@ -558,7 +558,7 @@ def tests(
                         'description': 'Generic glygen prefix.',
                         'owner_group': 'bco_drafter',
                         'owner_user': 'wheel',
-                        'prefix': 'khyy',
+                        'prefix': 'aDmIn',
                     }
                 ]
             }
@@ -580,7 +580,7 @@ def tests(
             'POST_delete_existing_prefix': {
                 'prefixes': [
                     {
-                        'prefix': 'khyy',
+                        'prefix': 'aDmIn',
                     }
                 ]
             }
@@ -609,7 +609,15 @@ def tests(
         url = '/api/prefixes/token/'
     )
 
-    # Pull the token.
+
+
+
+    # ----- NON-admin tests ----- #
+    
+
+
+
+    # Create a new account and pull the token.
     r_token_username = pretty_output(
         json_send = {
             'email': 'generic@email.com'
@@ -637,6 +645,347 @@ def tests(
         token = r_token_username['token'],
         url = '/api/accounts/describe/'
     )
+
+    # Try to create a prefix.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_create_new_prefix': {
+                'prefixes': [
+                    {
+                        'description': 'Generic glygen prefix.',
+                        'owner_group': 'bco_publisher',
+                        'owner_user': 'wheel',
+                        'prefix': 'khyy',
+                    }
+                ]
+            }
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Create a test prefix.',
+            'expected_response_code': '403 Forbidden',
+            'test_number': '1'
+        },
+        token = r_token_username['token'],
+        url = '/api/prefixes/create/'
+    )
+
+    # Update a prefix.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_update_existing_prefix': {
+                'prefixes': [
+                    {
+                        'description': 'Generic glygen prefix.',
+                        'owner_group': 'bco_drafter',
+                        'owner_user': 'wheel',
+                        'prefix': 'khyy',
+                    }
+                ]
+            }
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Update an existing prefix.',
+            'expected_response_code': '403 Forbidden',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/prefixes/update/'
+    )
+
+    # Delete a prefix.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_delete_existing_prefix': {
+                'prefixes': [
+                    {
+                        'prefix': 'khyy',
+                    }
+                ]
+            }
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Delete an existing prefix.',
+            'expected_response_code': '403 Forbidden',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/prefixes/delete/'
+    )
+
+    # Get the prefix permissions for a given token.
+    pretty_output(
+        hostname = hostname,
+        json_send = {},
+        method = 'POST',
+        test_info = {
+            'description': 'Get the prefix permissions for a token.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/prefixes/token/'
+    )
+
+    # Create a test prefix and assign it to our newly created
+    # user.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_create_new_prefix': {
+                'prefixes': [
+                    {
+                        'description': 'Generic test prefix.',
+                        'owner_group': 'bco_publisher',
+                        'owner_user': r_token_username['username'],
+                        'prefix': 'TEST',
+                    }
+                ]
+            }
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Create a test prefix and assign it to our newly created user.',
+            'expected_response_code': '200 OK',
+            'test_number': '1'
+        },
+        token = wheel_key,
+        url = '/api/prefixes/create/'
+    )
+
+    # pretty_output(
+    #     hostname = hostname,
+    #     json_send = {
+    #         'POST_delete_existing_prefix': {
+    #             'prefixes': [
+    #                 {
+    #                     'prefix': 'TEST',
+    #                 }
+    #             ]
+    #         }
+    #     },
+    #     method = 'POST',
+    #     test_info = {
+    #         'description': 'Delete an existing prefix.',
+    #         'expected_response_code': '200 OK',
+    #         'test_number': '2'
+    #     },
+    #     token = wheel_key,
+    #     url = '/api/prefixes/delete/'
+    # )
+
+    # Create a second user who we will use to test prefix
+    # permissions.
+    r_token_username_auxiliary_user = pretty_output(
+        json_send = {
+            'email': 'generic@email.com'
+        },
+        hostname = hostname,
+        method = 'POST',
+        pull_key = True,
+        test_info = {
+            'description': 'Create a new account given a generic e-Mail.',
+            'expected_response_code': '201 Created',
+            'test_number': '2'
+        },
+        url = '/api/accounts/new/'
+    )
+
+    # This new user should NOT have any ability to alter
+    # the TEST prefix permissions.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_set_prefix_permissions': [
+                {
+                    'group': [
+                        'bco_drafter'
+                    ],
+                    'permissions': [
+                        'view'
+                    ],
+                    'prefix': 'TEST',
+                    'username': [
+                        r_token_username_auxiliary_user['username']
+                    ],
+                }
+            ],
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Set the permissions for a second user.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username_auxiliary_user['token'],
+        url = '/api/prefixes/permissions/set/'
+    )
+
+    # Check this user's permissions on the 'TEST' prefix.
+    # ... view to be implemented by Alex...
+
+    # Describe the second user's prefix permissions by token.
+    pretty_output(
+        hostname = hostname,
+        json_send = {},
+        method = 'POST',
+        test_info = {
+            'description': 'Get the prefix permissions for a token.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username_auxiliary_user['token'],
+        url = '/api/prefixes/token/'
+    )
+
+    # Try to add the new user to the prefix created for the
+    # original user.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_set_prefix_permissions': [
+                {
+                    'group': [
+                        'bco_drafter'
+                    ],
+                    'permissions': [
+                        'view'
+                    ],
+                    'prefix': 'TEST',
+                    'username': [
+                        r_token_username_auxiliary_user['username']
+                    ],
+                }
+            ],
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Set the permissions for a second user.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/prefixes/permissions/set/'
+    )
+
+    # Describe the second user's prefix permissions by token.
+    pretty_output(
+        hostname = hostname,
+        json_send = {},
+        method = 'POST',
+        test_info = {
+            'description': 'Get the prefix permissions for a token.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username_auxiliary_user['token'],
+        url = '/api/prefixes/token/'
+    )
+
+    # Create a group.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_api_groups_create': [
+                {
+                    'description': 'Just some test group.',
+                    'name': 'some_test_group',
+                    'usernames': [
+                        'wheel',
+                        r_token_username['username'],
+                        r_token_username_auxiliary_user['username']
+                    ]
+                },
+                {
+                    'delete_members_on_group_deletion': True,
+                    'description': 'Just some other test group.',
+                    'name': 'some_other_test_group',
+                    'usernames': [
+                        r_token_username_auxiliary_user['username']
+                    ]
+                }
+            ]
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Create a group.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/groups/create/'
+    )
+
+    # Make sure the group can't be created twice.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_api_groups_create': [
+                {
+                    'description': 'Just some test group.',
+                    'name': 'some_test_group',
+                    'usernames': [
+                        'wheel'
+                    ]
+                }
+            ]
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Make sure the group can\'t be created twice.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/groups/create/'
+    )
+
+    # Delete the groups.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_api_groups_delete': {
+                'names': [
+                    'some_test_group', 
+                    'some_other_test_group'
+                ]
+            }
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Delete the groups.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/groups/delete/'
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     print(x)
     

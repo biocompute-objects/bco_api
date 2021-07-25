@@ -320,73 +320,88 @@ class DbUtils:
         
         # Define the return messages, if they don't
         # come in defined.
-        definable = ['object_id', 'prefix', 'table']
+        definable = ['group', 'object_id', 'prefix', 'table']
 
         for i in definable:
             if i not in parameters:
                 parameters[i] = ''
         
         return {
-            '201_create': {
-                'request_status': 'SUCCESS', 
-                'request_code': '201',
-                'message': 'The object with ID \'' + parameters['object_id'] + '\' was created on table \'' + parameters['table'] + '\'.',
-                'object_id': parameters['object_id']
-            },
-            '201_prefix_create': {
-                'request_status': 'SUCCESS', 
-                'request_code': '201',
-                'message': 'The prefix \'' + parameters['prefix'] + '\' was successfully created.'
-            },
             '200_found': {
                 'request_status': 'SUCCESS', 
-                'request_code': '200',
+                'status_code': '200',
                 'message': 'The object with ID \'' + parameters['object_id'] + '\' was found on table \'' + parameters['table'] + '\'.',
                 'content': p_content
             },
+            '200_OK_group_delete': {
+                'request_status': 'SUCCESS', 
+                'status_code': '200',
+                'message': 'The group \'' + parameters['group'] + '\' was deleted.'
+            },
             '200_OK': {
                 'request_status': 'SUCCESS', 
-                'request_code': '200',
+                'status_code': '200',
                 'message': 'The prefix \'' + parameters['prefix'] + '\' was deleted.'
             },
             '200_prefix_update': {
                 'request_status': 'SUCCESS', 
-                'request_code': '200',
+                'status_code': '200',
                 'message': 'The prefix \'' + parameters['prefix'] + '\' was updated.'
             },
             '200_update': {
                 'request_status': 'SUCCESS', 
-                'request_code': '200',
+                'status_code': '200',
                 'message': 'The object with ID \'' + parameters['object_id'] + '\' was updated on table \'' + parameters['table'] + '\'.'
+            },
+            '201_create': {
+                'request_status': 'SUCCESS', 
+                'status_code': '201',
+                'message': 'The object with ID \'' + parameters['object_id'] + '\' was created on table \'' + parameters['table'] + '\'.',
+                'object_id': parameters['object_id']
+            },
+            '201_group_create': {
+                'request_status': 'SUCCESS', 
+                'status_code': '201',
+                'message': 'The group \'' + parameters['group'] + '\' was successfully created.'
+            },
+            '201_prefix_create': {
+                'request_status': 'SUCCESS', 
+                'status_code': '201',
+                'message': 'The prefix \'' + parameters['prefix'] + '\' was successfully created.'
             },
             '400_bad_request': {
                 'request_status': 'FAILURE',
-                'request_code': '400',
+                'status_code': '400',
                 'message': 'The request could not be processed with the parameters provided.'
             },
             '403_invalid_token': {
                 'request_status': 'FAILURE',
-                'request_code': '403',
-                'message': 'The token provided was not able to be used on this table.'
+                'status_code': '403',
+                'message': 'The token provided was not able to be used on this object.'
             },
             '404_missing_prefix': {
                 'request_status': 'FAILURE', 
-                'request_code': '404',
+                'status_code': '404',
                 'message': 'The prefix \'' + parameters['prefix'] + '\' was not found on the server.'
             },
             '404_object_id': {
                 'request_status': 'FAILURE', 
-                'request_code': '404',
+                'status_code': '404',
                 'message': 'The object ID \'' + parameters['object_id'] + '\' was not found on table \'' + parameters['table'] + '\'.'
             },
             '404_table': {
                 'request_status': 'FAILURE', 
-                'request_code': '404',
+                'status_code': '404',
                 'message': 'The table with name \'' + parameters['table'] + '\' was not found on the server.'
             },
-            '409_conflict': {
+            '409_group_conflict': {
                 'request_status': 'FAILURE', 
-                'request_code': '409',
+                'status_code': '409',
+                'message': 'The provided group \'' + parameters['group'] + '\' has already been created on this server.'
+            },
+            '409_prefix_conflict': {
+                'request_status': 'FAILURE', 
+                'status_code': '409',
                 'message': 'The provided prefix \'' + parameters['prefix'] + '\' has already been created on this server.'
             }
         }

@@ -115,7 +115,7 @@ def POST_read_object(
 					returning.append(
 						{
 							'request_status': 'SUCCESS', 
-							'request_code': '200',
+							'status_code': '200',
 							'message': 'The table \'' + read_object['table'] + '\' was found on the server.',
 							'content': result
 						}

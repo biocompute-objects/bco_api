@@ -18,7 +18,7 @@ from django.db import models
 
 # The user model is straight from Django.
 from django.contrib.auth.models import Group, Permission, User
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 import django.db.utils as PermErrors
 
@@ -44,6 +44,9 @@ class bco(
 
 	# Field is required.
 	contents = models.JSONField()
+
+	# Embargo field.
+	# TODO
 
 
 	# What is the class of the object (typically used to describe overall
@@ -95,6 +98,47 @@ class bco(
 	state = models.TextField()
 
 
+# Some additional information for Group.
+# This information is stored separately from
+# Group so as to not complicate or compromise
+# anything relating to authentication.
+class group_info(
+	models.Model
+):
+
+	# Delete group members on group deletion?
+	delete_members_on_group_deletion = models.BooleanField(
+		default = False
+	)
+	
+	# Description of the group
+	description = models.TextField()
+
+	# Expiration date
+	expiration = models.DateTimeField(
+		blank = True,
+		null = True
+	)
+	
+	# The group
+	group = models.ForeignKey(
+		Group, 
+		on_delete = models.CASCADE
+	)
+	
+	# Size limit for the number of members
+	max_n_members = models.IntegerField(
+		blank = True,
+		null = True
+	)
+
+	# Which user owns it?
+	owner_user = models.ForeignKey(
+		User,
+		on_delete = models.CASCADE
+	)
+
+
 # Generic meta data model
 class meta_table(
 	models.Model
@@ -131,13 +175,13 @@ class new_users(
 		max_length = 100
 	)
 
-	# In case we are writing back to user db.
+	# In case we are writing back to UserDB.
 	token = models.TextField(
 		blank = True, 
 		null = True
 	)
 
-	# Which host to send the activation back to.
+	# Which host to send the activation back to (i.e. UserDB).
 	hostname = models.TextField(
 		blank = True, 
 		null = True
@@ -150,7 +194,7 @@ class new_users(
 	)
 
 
-# Link prefixes to groups
+# Link prefixes to groups and users.
 class prefixes(
 	models.Model
 ):
@@ -175,7 +219,7 @@ class prefixes(
 
 
 
-# --- Permissions receivers --- #
+# --- Receivers --- #
 
 
 
@@ -341,3 +385,58 @@ def delete_permissions_for_prefix(
 	Permission.objects.filter(
 		codename = 'view_' + instance.prefix
 	).delete()
+
+
+# Link group creation to permission creation.
+@receiver(
+	post_save,
+	sender = group_info
+)
+def create_group_perms(
+	sender,
+	instance = None,
+	**kwargs
+):
+
+	# Create the permissions, then
+	# use group_info to give the group admin 
+	# the admin permissions.
+
+	# Create the administrative permissions for the group.
+	for perm in ['add_members_' + Group.objects.get(id = instance.group_id).name, 'delete_members_' + Group.objects.get(id = instance.group_id).name]:
+		Permission.objects.create(
+			name = 'Can ' + perm,
+			content_type = ContentType.objects.get(
+				app_label = 'auth',
+				model = 'group'
+			),
+			codename = perm
+		)
+
+		# Give the administrative permissions to the user 
+		# creating this group.
+		User.objects.get(id = instance.owner_user_id).user_permissions.add(
+			Permission.objects.get(
+				codename = perm
+			)
+		)
+
+
+# Link group deletion to permissions deletion.
+
+# pre_delete and NOT post_delete because we need
+# to get the Group's information before deleting it.
+@receiver(
+	pre_delete,
+	sender = Group
+)
+def delete_group_perms(
+	sender,
+	instance = None,
+	**kwargs
+):
+
+	for perm in ['add_members_' + instance.name, 'delete_members_' + instance.name]:
+		Permission.objects.filter(
+			codename = perm
+		).delete()

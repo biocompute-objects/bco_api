@@ -34,6 +34,8 @@ from .scripts.method_specific.GET_activate_account import GET_activate_account
 from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
 from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from .scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
+from .scripts.method_specific.POST_api_groups_create import POST_api_groups_create
+from .scripts.method_specific.POST_api_groups_delete import POST_api_groups_delete
 from .scripts.method_specific.POST_check_object_permissions import POST_check_object_permissions
 from .scripts.method_specific.POST_create_new_prefix import POST_create_new_prefix
 from .scripts.method_specific.POST_delete_existing_prefix import POST_delete_existing_prefix
@@ -139,7 +141,92 @@ class ApiAccountsDescribe(
             return Response(
                 status = status.HTTP_400_BAD_REQUEST
             )
-       
+
+
+
+class ApiGroupsCreate(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Create a group.
+
+    # POST
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+                
+            # Pass the request to the handling function
+            return POST_api_groups_create(
+                request
+            )
+        
+        else:
+
+            return Response(
+                data = checked,
+                status = status.HTTP_400_BAD_REQUEST
+            )
+
+
+
+
+class ApiGroupsDelete(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Delete groups.
+
+    # POST
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+                
+            # Pass the request to the handling function
+            return POST_api_groups_delete(
+                request
+            )
+        
+        else:
+
+            return Response(
+                data = checked,
+                status = status.HTTP_400_BAD_REQUEST
+            )
+
 
 
 

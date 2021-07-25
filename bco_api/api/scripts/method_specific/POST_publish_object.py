@@ -82,7 +82,7 @@ def POST_publish_object(
 				returning.append(
 					{
 						'request_status': 'SUCCESS', 
-						'request_code': '200', 
+						'status_code': '200', 
 						'message': 'Object with ID \'' + id_search + '\' was found in table \'' + read_object['table'] + '\'.', 
 						'contents': {
 							'object_id': id_search, 
@@ -100,7 +100,7 @@ def POST_publish_object(
 				returning.append(
 					{
 						'request_status': 'FAILURE', 
-						'request_code': '404', 
+						'status_code': '404', 
 						'message': 'Object with ID \'' + id_search + '\' was not found in table \'' + read_object['table'] + '\'.'
 					}
 				)
@@ -111,7 +111,7 @@ def POST_publish_object(
 			returning.append(
 				{
 					'request_status': 'FAILURE', 
-					'request_code': '404',
+					'status_code': '404',
 					'message': 'The table with name \'' + creation_object['table'] + '\' was not found on the server.'
 				}
 			)

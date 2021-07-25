@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
@@ -19,31 +19,37 @@ from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescrib
 # Step 1 of 2 of new account creation (step 2 of 2 is api/accounts/activate/<str:username>/<str:temp_identifier>)
 # (POST) api/accounts/new/
 
-# Create a BCO
+# Create groups
+# (POST) /api/groups/create/
+
+# Delete groups
+# (POST) /api/groups/delete/
+
+# Create BCOs
 # (POST) api/objects/create/
 
-# Get the permissions for a given BCO
+# Get the permissions for given BCOs
 # (POST) api/objects/permissions/
 
-# Set the permissions for a given BCO
+# Set the permissions for given BCOs
 # (POST) api/objects/permissions/set/
 
 # Get all objects for a given token
 # (POST) api/objects/token/
 
-# Create a prefix
+# Create prefixes
 # (POST) api/prefixes/create/
 
-# Delete a prefix
+# Delete prefixes
 # (POST) api/prefixes/delete/
 
-# Set permissions for a prefix
+# Set permissions for prefixes
 # (POST) api/prefixes/permissions/set/
 
 # Get ALL prefix permissions for a given token
 # (POST) api/prefixes/permissions/
 
-# Update a prefix
+# Update prefixes
 # (POST) api/prefixes/update/
 
 # Describe the server's attributes
@@ -68,6 +74,14 @@ urlpatterns = [
     path(
         'api/accounts/new/', 
         ApiAccountsNew.as_view()
+    ),
+    path(
+        'api/groups/create/', 
+        ApiGroupsCreate.as_view()
+    ),
+    path(
+        'api/groups/delete/', 
+        ApiGroupsDelete.as_view()
     ),
     path(
         'api/objects/draft/', 
