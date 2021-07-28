@@ -521,7 +521,7 @@ def tests(
     )
 
     # Admin checks first (using the wheel key)
-    wheel_key = '2b369889923fbfc38957baa04c0f5582acbc514b'
+    wheel_key = '0b2503f095e81021a496017ffd2d2161e0b73dfe'
     
     # Try to create a prefix.
     pretty_output(
@@ -1031,6 +1031,169 @@ def tests(
 
 
 
+    # --- DRAFTING --- #
+
+
+
+    # Set permissions for the BCO prefix.
+    # TODO: put "append" key to add to existing
+    # permissions, false values leads to complete
+    # overwrite.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_set_prefix_permissions': [
+                {
+                    'group': [
+                        'bco_drafter'
+                    ],
+                    'permissions': [
+                        'change',
+                        'delete',
+                        'view'
+                    ],
+                    'prefix': 'BCO',
+                    'username': [
+                        r_token_username['username']
+                    ],
+                }
+            ],
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Set the permissions for a user for the BCO prefix.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = wheel_key,
+        url = '/api/prefixes/permissions/set/'
+    )
+    
+    # Create a draft object.
+    drafted = pretty_output(
+        hostname = hostname,
+        json_send = {
+            "POST_api_objects_draft_create": [
+                {
+                    "contents": {},
+                    "owner_group": "bco_drafter",
+                    "prefix": "BCO",
+                    "schema": "IEEE",
+                    "state": "DRAFT",
+                }
+            ]
+        },
+        method = 'POST',
+        pull_key = True,
+        test_info = {
+            'description': 'Write a draft object.',
+            'expected_response_code': '200 OK',
+            'test_number': '8'
+        },
+        token = r_token_username['token'],
+        url = '/api/objects/drafts/create/'
+    )
+
+    # Get the draft permissions
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            "POST_api_objects_drafts_permissions": [
+                {
+                    "object_id": drafted[0]['object_id']
+                }
+            ]
+        },
+        method = 'POST',
+        pull_key = True,
+        test_info = {
+            'description': 'Get draft permissions.',
+            'expected_response_code': '200 OK',
+            'test_number': '8'
+        },
+        token = r_token_username['token'],
+        url = '/api/objects/drafts/permissions/'
+    )
+
+    # Modify the draft object.
+    # Notes: prefix, schema, and state should NOT change
+    # after draft is initially created.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            "POST_api_objects_drafts_modify": [
+                {
+                    "contents": {
+                        "test_key": "test_value"
+                    },
+                    "object_id": drafted[0]['object_id'],
+                    "owner_group": "bco_publisher"
+                }
+            ]
+        },
+        method = 'POST',
+        pull_key = True,
+        test_info = {
+            'description': 'Modify a draft object.',
+            'expected_response_code': '200 OK',
+            'test_number': '8'
+        },
+        token = r_token_username['token'],
+        url = '/api/objects/drafts/modify/'
+    )
+
+    # Get the draft permissions
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            "POST_api_objects_drafts_permissions": [
+                {
+                    "object_id": drafted[0]['object_id']
+                }
+            ]
+        },
+        method = 'POST',
+        pull_key = True,
+        test_info = {
+            'description': 'Get draft permissions.',
+            'expected_response_code': '200 OK',
+            'test_number': '8'
+        },
+        token = r_token_username['token'],
+        url = '/api/objects/drafts/permissions/'
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1051,6 +1214,31 @@ def tests(
 
     print(x)
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

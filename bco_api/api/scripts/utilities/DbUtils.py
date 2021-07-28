@@ -320,7 +320,7 @@ class DbUtils:
         
         # Define the return messages, if they don't
         # come in defined.
-        definable = ['group', 'object_id', 'prefix', 'table']
+        definable = ['group', 'object_id', 'object_perms', 'prefix', 'table']
 
         for i in definable:
             if i not in parameters:
@@ -348,6 +348,13 @@ class DbUtils:
                 'status_code': '200',
                 'message': 'The prefix \'' + parameters['prefix'] + '\' was deleted.'
             },
+            '200_OK_object_permissions': {
+                'request_status': 'SUCCESS', 
+                'status_code': '201',
+                'message': 'Permissions for the object with ID \'' + parameters['object_id'] + '\' were found on the server.',
+                'object_id': parameters['object_id'],
+                'permissions': parameters['object_perms']
+            },
             '200_prefix_update': {
                 'request_status': 'SUCCESS', 
                 'status_code': '200',
@@ -356,12 +363,12 @@ class DbUtils:
             '200_update': {
                 'request_status': 'SUCCESS', 
                 'status_code': '200',
-                'message': 'The object with ID \'' + parameters['object_id'] + '\' was updated on table \'' + parameters['table'] + '\'.'
+                'message': 'The object with ID \'' + parameters['object_id'] + '\' was updated.'
             },
             '201_create': {
                 'request_status': 'SUCCESS', 
                 'status_code': '201',
-                'message': 'The object with ID \'' + parameters['object_id'] + '\' was created on table \'' + parameters['table'] + '\'.',
+                'message': 'The object with ID \'' + parameters['object_id'] + '\' was created on the server.',
                 'object_id': parameters['object_id']
             },
             '201_group_create': {
@@ -379,6 +386,16 @@ class DbUtils:
                 'status_code': '400',
                 'message': 'The request could not be processed with the parameters provided.'
             },
+            '401_prefix_unauthorized': {
+                'request_status': 'FAILURE',
+                'status_code': '401',
+                'message': 'The token provided does not have draft permissions for prefix \'' + parameters['prefix'] + '\'.'
+            },
+            '403_insufficient_permissions': {
+                'request_status': 'FAILURE',
+                'status_code': '403',
+                'message': 'The token provided does not have sufficient permissions for the requested object.'
+            },
             '403_invalid_token': {
                 'request_status': 'FAILURE',
                 'status_code': '403',
@@ -392,7 +409,7 @@ class DbUtils:
             '404_object_id': {
                 'request_status': 'FAILURE', 
                 'status_code': '404',
-                'message': 'The object ID \'' + parameters['object_id'] + '\' was not found on table \'' + parameters['table'] + '\'.'
+                'message': 'The object ID \'' + parameters['object_id'] + '\' was not found on the server.'
             },
             '404_table': {
                 'request_status': 'FAILURE', 

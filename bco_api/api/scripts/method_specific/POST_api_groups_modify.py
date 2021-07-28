@@ -119,15 +119,11 @@ def POST_api_groups_modify(
 							)
 						]
 					)
-					
-					print('all_users')
-					print(all_users)
 
 					# Removals are processed first, then additions.
 
 					# Remove the users provided, if any.
 					if 'remove_users' in action_set:
-						print('removing users...')
 						all_users = all_users - set(
 							list(
 								User.objects.filter(
@@ -138,15 +134,10 @@ def POST_api_groups_modify(
 								)
 							)
 						)
-					
-					print('post_remove_users')
-					print(all_users)
 
 					# Get the users in the groups provided, if any.
 					if 'disinherit_from' in action_set:
 						
-						print('action_setdisinherit_from')
-						print(action_set['disinherit_from'])
 						# Get all the groups first, then get the user list.
 						rm_group_users = list(
 								User.objects.filter(
@@ -158,20 +149,14 @@ def POST_api_groups_modify(
 								flat = True
 							)
 						)
-
-						print('rm_group_users')
-						print(rm_group_users)
 						
 						all_users = all_users - set(rm_group_users)
-					
-					print('post_disinherit_from')
-					print(all_users)
 
 					# Addition explained at https://stackoverflow.com/a/1306663
 
 					# Add the users provided, if any.
 					if 'add_users' in action_set:
-						print('adding users...')
+						
 						all_users.update(
 							list(
 								User.objects.filter(
@@ -182,15 +167,10 @@ def POST_api_groups_modify(
 								)
 							)
 						)
-					
-					print('post_add_users')
-					print(all_users)
 
 					# Get the users in the groups provided, if any.
 					if 'inherit_from' in action_set:
 						
-						print('action_setinherit_from')
-						print(action_set['inherit_from'])
 						# Get all the groups first, then get the user list.
 						a_group_users = list(
 								User.objects.filter(
@@ -202,14 +182,8 @@ def POST_api_groups_modify(
 								flat = True
 							)
 						)
-
-						print('a_group_users')
-						print(a_group_users)
 						
 						all_users.update(a_group_users)
-					
-					print('post_inherit_from')
-					print(all_users)
 
 				returning.append(
 					db.messages(

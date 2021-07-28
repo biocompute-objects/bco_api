@@ -14,6 +14,9 @@ from django.contrib.auth.models import Permission
 # For getting the user's token.
 from rest_framework.authtoken.models import Token
 
+# Conditional logic
+from django.db.models import Q
+
 
 class UserUtils:
 
@@ -276,6 +279,73 @@ class UserUtils:
             'username': user.username,
             'other_info': other_info
         }
+
+
+
+    # Prefix permissions for a given user.
+    def prefix_perms_for_user(
+        self,
+        user_object,
+        flatten = True,
+        specific_permission = ['add', 'change', 'delete', 'view']
+    ):
+        
+        # flatten - return just the raw perms
+        # specific_permission - looking for a permission in particular?
+        
+        # Get the prefixes for the user and their groups, then filter.
+        pxs = list(
+                prefixes.objects.filter(
+                Q(owner_user = user_object.id) |
+                Q(owner_group__in = list(user_object.groups.all().values_list(
+                    'id', 
+                    flat = True
+                )))
+            ).values_list(
+                'prefix',
+                flat = True
+            )
+        )
+
+        # Get the permissions.
+        # Source: https://stackoverflow.com/a/952952
+        flattened = [item for sublist in [[sp + '_' + px for sp in specific_permission] for px in pxs] for item in sublist]
+
+        # Filter the permissions.
+        filtered = Permission.objects.filter(codename__in = flattened)
+
+        # Flatten the permissions so that we can
+        # work with them more easily.
+        flat_permissions = list(
+            filtered.values_list(
+                'codename', 
+                flat = True
+            )
+        )
+        
+        # Return based on what we need.
+        if flatten == True:
+
+            return flat_permissions
+
+        elif flatten == False:
+            
+            # Create a dictionary to hold the permissions,
+            # this is just an easier object to work with.
+            px_dict = {
+                key: [] for key in pxs
+            }
+
+            # Get each permissions.
+            for perm in flat_permissions:
+
+                # Split to get the perm.
+                split_up = perm.split('_')
+
+                px_dict[split_up[1]].append(split_up[0])
+            
+            return px_dict
+
 
 
 

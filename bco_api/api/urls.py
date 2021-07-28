@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraft, ApiObjectsPermissions, ApiObjectsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
@@ -28,14 +28,26 @@ from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescrib
 # Modify groups
 # (POST) /api/groups/modify/
 
-# Create BCOs
-# (POST) api/objects/create/
+# Create draft BCOs
+# (POST) api/objects/drafts/create/
+
+# Modify draft BCOs
+# (POST) api/objects/drafts/modify/
+
+# Get the permissions of draft BCOs
+# (POST) api/objects/drafts/permissions/
+
+# Set the permissions of draft BCOs
+# (POST) api/objects/drafts/permissions/
+
+# Read BCOs
+# (POST) api/objects/drafts/read/
 
 # Get the permissions for given BCOs
-# (POST) api/objects/permissions/
+# (POST) api/objects/drafts/permissions/
 
 # Set the permissions for given BCOs
-# (POST) api/objects/permissions/set/
+# (POST) api/objects/drafts/permissions/set/
 
 # Get all objects for a given token
 # (POST) api/objects/token/
@@ -91,16 +103,20 @@ urlpatterns = [
         ApiGroupsModify.as_view()
     ),
     path(
-        'api/objects/draft/', 
-        ApiObjectsDraft.as_view()
+        'api/objects/drafts/create/', 
+        ApiObjectsDraftsCreate.as_view()
     ),
     path(
-        'api/objects/permissions/', 
-        ApiObjectsPermissions.as_view()
+        'api/objects/drafts/modify/', 
+        ApiObjectsDraftsModify.as_view()
     ),
     path(
-        'api/objects/permissions/set/', 
-        ApiObjectsPermissionsSet.as_view()
+        'api/objects/drafts/permissions/', 
+        ApiObjectsDraftsPermissions.as_view()
+    ),
+    path(
+        'api/objects/drafts/permissions/set/', 
+        ApiObjectsDraftsPermissionsSet.as_view()
     ),
     path(
         'api/objects/publish/', 

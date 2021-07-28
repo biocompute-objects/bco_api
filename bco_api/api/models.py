@@ -29,6 +29,9 @@ from django.contrib.contenttypes.models import ContentType
 # Source: https://stackoverflow.com/a/32411560
 from django.utils import timezone
 
+# Object-level permissions.
+from guardian.shortcuts import assign_perm
+
 # For token creation.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
 from rest_framework.authtoken.models import Token
@@ -435,6 +438,87 @@ def create_group_perms(
 
 
 # Link group deletion to permissions deletion.
+
+# pre_delete and NOT post_delete because we need
+# to get the Group's information before deleting it.
+@receiver(
+	pre_delete,
+	sender = Group
+)
+def delete_group_perms(
+	sender,
+	instance = None,
+	**kwargs
+):
+
+	for perm in ['add_members_' + instance.name, 'delete_members_' + instance.name]:
+		Permission.objects.filter(
+			codename = perm
+		).delete()
+
+
+# Link draft creation to permission creation
+@receiver(
+	post_save,
+	sender = bco
+)
+def create_object_perms(
+	sender,
+	instance = None,
+	created = False,
+	**kwargs
+):
+
+	if created:
+	
+		# Check to see whether or not the permissions
+		# have already been created for this object.
+		try:
+			
+			# Only do anything if the save was for a 
+			# draft object.
+			if instance.state == 'DRAFT':
+			
+				# The owner group can only initially view
+				# the object.
+				for p in ['change_' + instance.object_id, 'delete_' + instance.object_id, 'view_' + instance.object_id]:
+
+					Permission.objects.create(
+						name = 'Can ' + p,
+						content_type = ContentType.objects.get(
+							app_label = 'api',
+							model = 'bco'
+						),
+						codename = p
+					)
+					
+					# Create the permission, and automatically give it
+					# to the owner group, NOT the owner user (owner user
+					# is checked for directly in requests and thus
+					# there is no need for assigning the permission
+					# to the user).
+
+					# The owner group can only initially view
+					# the object.
+
+					# guardian can't take a string name here for
+					# some reason...
+					if p == 'view_' + instance.object_id:
+						assign_perm(
+							perm = Permission.objects.get(codename = p),
+							user_or_group = Group.objects.get(id = instance.owner_group_id),
+							obj = instance
+						)
+		
+		except PermErrors.IntegrityError:
+
+			# The permissions already exist.			
+			pass
+
+
+# Link object deletion to object permissions deletion.
+
+# TODO:...
 
 # pre_delete and NOT post_delete because we need
 # to get the Group's information before deleting it.

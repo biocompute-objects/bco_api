@@ -3,6 +3,7 @@
 # For instructions on calling class methods from other classes, see https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
 
 # For returning server information
+from api.scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
 from django.conf import settings
 
 # For pulling the user ID directly (see below for
@@ -40,7 +41,8 @@ from .scripts.method_specific.POST_api_groups_modify import POST_api_groups_modi
 from .scripts.method_specific.POST_check_object_permissions import POST_check_object_permissions
 from .scripts.method_specific.POST_create_new_prefix import POST_create_new_prefix
 from .scripts.method_specific.POST_delete_existing_prefix import POST_delete_existing_prefix
-from .scripts.method_specific.POST_objects_draft import POST_objects_draft
+from .scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create
+from .scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
 from .scripts.method_specific.POST_objects_publish import POST_objects_publish
 from .scripts.method_specific.POST_new_account import POST_new_account
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
@@ -325,7 +327,7 @@ class ApiAccountsNew(
 
 
 
-class ApiObjectsDraft(
+class ApiObjectsDraftsCreate(
     APIView
 ):
 
@@ -349,17 +351,69 @@ class ApiObjectsDraft(
     ):
         
         # Check the request
-        checked = RequestUtils.RequestUtils().check_request_templates(
-            method = 'POST', 
-            request = request.data
-        )
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
 
         if checked is None:
             
             # Pass the request to the handling function
-            return POST_objects_draft(
-                    request
+            return POST_api_objects_drafts_create(
+                request
+            )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
                 )
+            )
+
+
+
+
+class ApiObjectsDraftsModify(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Modify an object.
+
+    # POST
+
+    # Permissions
+
+    # Note: We can't use the examples given in
+    # https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
+    # because our permissions system is not tied to
+    # the request type (DELETE, GET, PATCH, POST).
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+            
+            # Pass the request to the handling function
+            return POST_api_objects_drafts_modify(
+                request
+            )
         
         else:
 
@@ -428,7 +482,7 @@ class ApiObjectsPublish(
 
 
 
-class ApiObjectsPermissions(
+class ApiObjectsDraftsPermissions(
     APIView
 ):
 
@@ -441,9 +495,6 @@ class ApiObjectsPermissions(
     # their groups.
 
     # POST
-
-    # Permissions
-    permission_classes = [IsAuthenticated & (HasObjectChangePermission | HasObjectDeletePermission | HasObjectViewPermission)]
 
     def post(
         self, 
@@ -462,40 +513,12 @@ class ApiObjectsPermissions(
 
         if checked is None:
             
-            # Get the object and check its permissions
-
-            # Note: re-using GET method here...
-            objected = GET_draft_object_by_id(
-                request.data['object_id']
+            # Pass the request to the handling function
+            return(
+                POST_api_objects_drafts_permissions(
+                    request
+                )
             )
-
-            if objected is not None:
-            
-                # Assumes prefixes and table names are linked...
-                request.data['table_name'] = '_'.join(request.data['object_id'].split('/')[-1].split('_')[0:2]).lower()
-
-                # Check for object-level permissions
-                self.check_object_permissions(
-                    request, 
-                    objected
-                )
-                
-                # Pass the request to the handling function
-                return(
-                    POST_check_object_permissions(
-                        request, 
-                        objected
-                    )
-                )
-                                    
-            else:
-
-                return(
-                    Response(
-                        data = None,
-                        status = status.HTTP_403_FORBIDDEN
-                    )
-                )
         
         else:
 
@@ -509,7 +532,7 @@ class ApiObjectsPermissions(
 
 
 
-class ApiObjectsPermissionsSet(
+class ApiObjectsDraftsPermissionsSet(
     APIView
 ):
 
