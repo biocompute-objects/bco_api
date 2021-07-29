@@ -17,7 +17,7 @@ from rest_framework.response import Response
 
 
 
-def POST_set_prefix_permissions(
+def POST_api_prefixes_permissions_set(
 	request
 ):
 
@@ -33,7 +33,7 @@ def POST_set_prefix_permissions(
 	)
 
 	# Define the bulk request.
-	bulk_request = request.data['POST_set_prefix_permissions']
+	bulk_request = request.data['POST_api_prefixes_permissions_set']
 
 	# Get all existing prefixes.
 	available_prefixes = list(

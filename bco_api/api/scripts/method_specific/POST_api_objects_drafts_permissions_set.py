@@ -19,6 +19,39 @@ def POST_api_objects_drafts_permissions_set(
 	incoming
 ):
 
+	# OLD
+
+	# # # Assign the permission based on the given parameters.
+	# # Source: https://django-guardian.readthedocs.io/en/stable/api/guardian.shortcuts.html#assign-perm
+
+	# # Create a mapping from the request info to actual permissions.
+
+	# # Note that 'publish' means 'add'.
+	# mapping = {
+	# 	'change': 'api.change_' + incoming.data['table_name'],
+	# 	'delete': 'api.delete_' + incoming.data['table_name'],
+	# 	'publish': 'api.add_' + incoming.data['table_name'],
+	# 	'view': 'api.view_' + incoming.data['table_name']
+	# }
+
+	# Set the permission.
+	if 'un' in incoming.data['perm']:
+		remove_perm(
+			mapping[incoming.data['perm'].replace('un', '')], 
+			Group.objects.get(
+				name = incoming.data['group']
+			), 
+			objct
+		)
+	else:
+		assign_perm(
+			mapping[incoming.data['perm']], 
+			Group.objects.get(
+				name = incoming.data['group']
+			), 
+			objct
+		)
+	
 	# Set the permissions for given objects.
 
 	# Instantiate any necessary imports.
@@ -40,10 +73,7 @@ def POST_api_objects_drafts_permissions_set(
 		specific_permission = ['add']
 	)
 
-	print(px_perms)
-
 	# Define the bulk request.
-	print(incoming.data)
 	bulk_request = incoming.data['POST_api_objects_drafts_permissions_set']
 
 	# Construct an array to return the objects.

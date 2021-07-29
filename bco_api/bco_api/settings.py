@@ -39,6 +39,9 @@ server_config.read('./server.conf')
 # Is this a production server?
 PRODUCTION = server_config['PRODUCTION']['production']
 
+# Set the anonymous user's key.
+ANON_KEY = server_config['KEYS']['anon']
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '$vz@#@^q(od&$rf&*6^z!m5nh6qw2*cq*j6fha#^h9(r7$xqy4'
 

@@ -343,6 +343,11 @@ class DbUtils:
                 'status_code': '200',
                 'message': 'The group \'' + parameters['group'] + '\' was succesfully modified.'
             },
+            '200_OK_object_delete': {
+                'request_status': 'SUCCESS', 
+                'status_code': '200',
+                'message': 'The object with ID \'' + parameters['object_id'] + '\' was deleted.'
+            },
             '200_OK': {
                 'request_status': 'SUCCESS', 
                 'status_code': '200',

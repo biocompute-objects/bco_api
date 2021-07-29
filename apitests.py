@@ -1,7 +1,10 @@
+# Command line arguments
+# TODO: which tests to run (can be string 1,3,7-9)
+import sys, getopt
+
+# Requests and responses
 import json
 import requests
-
-# Command line arguments - hostname, token, which tests to run (can be string 1,3,7-9)
 
 # Put test dependency chart (which tests depend on which others)
 
@@ -496,14 +499,64 @@ def sub_test_good_wheel_token_bad_prefix(
     return None
 
 
+
+
+
+
+
+
+# ------- TESTS ------- #
+
+
+
+
+
+
+
+
 # Source: https://stackoverflow.com/a/287944
-def tests(
-    hostname
+# Source: https://www.tutorialspoint.com/python/python_command_line_arguments.htm
+def main(
+    argv
 ):
+
+    anon_key = ''
+    hostname = ''
+    wheel_key = ''
+
+    try:
+        opts, args = getopt.getopt(argv,"mp:a:w:",["public-hostname=", "anon-key=", "wheel-key="])
+    except getopt.GetoptError:
+        print('Usage: apitests.py -p <public hostname> -a <anon key> -w <wheel key>')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-m':
+            print('Usage: apitests.py -p <public hostname> -a <anon key> -w <wheel key>')
+            sys.exit()
+        elif opt in ("-p", "--public-hostname"):
+            hostname = arg
+        elif opt in ("-a", "--anon-key"):
+            anon_key = arg
+        elif opt in ("-w", "--wheel-key"):
+            wheel_key = arg
     
-    # Define a dictionary to hold response information
-    # that downstream tests depend on.
-    downstream = {}
+    # Were any arguments provided at all?
+    if opts == []:
+        print('No arguments provided.  Run \'apitests.py -m\' to get usage.')
+        sys.exit(2)
+    
+    # Make sure everything was given.
+    if hostname == '':
+        print('Public hostname must be provided.')
+        sys.exit(2)
+    
+    if anon_key == '':
+        print('Anonymous key must be provided.')
+        sys.exit(2)
+    
+    if wheel_key == '':
+        print('Wheel key must be provided.')
+        sys.exit(2)
 
     print('\n\n')
     print('******* BCO API Testing Suite *******')
@@ -513,34 +566,39 @@ def tests(
         hostname = hostname,
         method = 'GET',
         test_info = {
-            'description': 'Ask the API to describe itself using the anonymous account.',
+            'description': 'Ask the API to describe itself using the generic GET method.',
             'expected_response_code': '200 OK',
             'test_number': '1'
         },
         url = '/api/public/describe/'
     )
-
-    # Admin checks first (using the wheel key)
-    wheel_key = '0b2503f095e81021a496017ffd2d2161e0b73dfe'
     
-    # Try to create a prefix.
+
+
+
+    # ----- Wheel tests ----- #
+
+
+
+
+    # Try to create a prefix as wheel.
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_create_new_prefix': {
+            'POST_api_prefixes_create': {
                 'prefixes': [
                     {
-                        'description': 'Generic glygen prefix.',
+                        'description': 'Generic testing prefix.',
                         'owner_group': 'bco_publisher',
                         'owner_user': 'wheel',
-                        'prefix': 'aDmIn',
+                        'prefix': 'tEsT',
                     }
                 ]
             }
         },
         method = 'POST',
         test_info = {
-            'description': 'Create a test prefix.',
+            'description': 'Create a test prefix using the wheel account since the wheel user is in the prefix admins group.',
             'expected_response_code': '200 OK',
             'test_number': '1'
         },
@@ -548,24 +606,24 @@ def tests(
         url = '/api/prefixes/create/'
     )
 
-    # Update a prefix.
+    # Update the prefix.
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_update_existing_prefix': {
+            'POST_api_prefixes_update': {
                 'prefixes': [
                     {
                         'description': 'Generic glygen prefix.',
                         'owner_group': 'bco_drafter',
                         'owner_user': 'wheel',
-                        'prefix': 'aDmIn',
+                        'prefix': 'TesT',
                     }
                 ]
             }
         },
         method = 'POST',
         test_info = {
-            'description': 'Update an existing prefix.',
+            'description': 'Update an existing prefix by changing the owner group.',
             'expected_response_code': '200 OK',
             'test_number': '2'
         },
@@ -573,14 +631,14 @@ def tests(
         url = '/api/prefixes/update/'
     )
 
-    # Delete a prefix.
+    # Delete the prefix.
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_delete_existing_prefix': {
+            'POST_api_prefixes_delete': {
                 'prefixes': [
                     {
-                        'prefix': 'aDmIn',
+                        'prefix': 'test',
                     }
                 ]
             }
@@ -595,6 +653,42 @@ def tests(
         url = '/api/prefixes/delete/'
     )
 
+
+
+
+    # ----- Anon tests ----- #
+    
+
+
+
+    # Try to create a prefix as the anonymous user.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_api_prefixes_create': {
+                'prefixes': [
+                    {
+                        'description': 'Generic testing prefix.',
+                        'owner_group': 'bco_publisher',
+                        'owner_user': 'anon',
+                        'prefix': 'tEsT',
+                    }
+                ]
+            }
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Create a test prefix using the anon account since the anon user is NOT in the prefix admins group.',
+            'expected_response_code': '403 Forbidden',
+            'test_number': '2'
+        },
+        token = anon_key,
+        url = '/api/prefixes/create/'
+    )
+    
+    print(x)
+
+
     # Get the prefix permissions for a given token.
     pretty_output(
         hostname = hostname,
@@ -608,14 +702,6 @@ def tests(
         token = wheel_key,
         url = '/api/prefixes/token/'
     )
-
-
-
-
-    # ----- NON-admin tests ----- #
-    
-
-
 
     # Create a new account and pull the token.
     r_token_username = pretty_output(
@@ -650,7 +736,7 @@ def tests(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_create_new_prefix': {
+            'POST_api_prefixes_create': {
                 'prefixes': [
                     {
                         'description': 'Generic glygen prefix.',
@@ -675,7 +761,7 @@ def tests(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_update_existing_prefix': {
+            'POST_api_prefixes_update': {
                 'prefixes': [
                     {
                         'description': 'Generic glygen prefix.',
@@ -700,7 +786,7 @@ def tests(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_delete_existing_prefix': {
+            'POST_api_prefixes_delete': {
                 'prefixes': [
                     {
                         'prefix': 'khyy',
@@ -737,7 +823,7 @@ def tests(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_create_new_prefix': {
+            'POST_api_prefixes_create': {
                 'prefixes': [
                     {
                         'description': 'Generic test prefix.',
@@ -761,7 +847,7 @@ def tests(
     # pretty_output(
     #     hostname = hostname,
     #     json_send = {
-    #         'POST_delete_existing_prefix': {
+    #         'POST_api_prefixes_delete': {
     #             'prefixes': [
     #                 {
     #                     'prefix': 'TEST',
@@ -801,7 +887,7 @@ def tests(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_set_prefix_permissions': [
+            'POST_api_prefixes_permissions_set': [
                 {
                     'group': [
                         'bco_drafter'
@@ -848,7 +934,7 @@ def tests(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_set_prefix_permissions': [
+            'POST_api_prefixes_permissions_set': [
                 {
                     'group': [
                         'bco_drafter'
@@ -865,7 +951,7 @@ def tests(
         },
         method = 'POST',
         test_info = {
-            'description': 'Set the permissions for a second user.',
+            'description': 'Set the prefix permissions for a second user.',
             'expected_response_code': '200 OK',
             'test_number': '2'
         },
@@ -1042,7 +1128,7 @@ def tests(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_set_prefix_permissions': [
+            'POST_api_prefixes_permissions_set': [
                 {
                     'group': [
                         'bco_drafter'
@@ -1212,7 +1298,7 @@ def tests(
 
 
 
-    print(x)
+    
     
 
 
@@ -1754,7 +1840,7 @@ def tests(
     pretty_output(
         hostname = hostname,
         json_send = {
-            "POST_create_new_prefix": [
+            "POST_api_prefixes_create": [
                 {
                     "prefix": "GLY",
                 }
@@ -1776,7 +1862,7 @@ def tests(
     # prefixed = pretty_output(
     #     hostname = hostname,
     #     json_send = {
-    #         "POST_create_new_prefix": [
+    #         "POST_api_prefixes_create": [
     #             {
     #                 "prefix": "this_prefix_should_not_work",
     #             }
@@ -1801,7 +1887,7 @@ def tests(
     prefixed = pretty_output(
         hostname = hostname,
         json_send = {
-            "POST_create_new_prefix": [
+            "POST_api_prefixes_create": [
                 {
                     "prefix": "TEST",
                 }
@@ -1821,7 +1907,7 @@ def tests(
     # pretty_output(
     #     hostname = hostname,
     #     json_send = {
-    #         "POST_create_new_prefix": [
+    #         "POST_api_prefixes_create": [
     #             {
     #                 "prefix": "GLY",
     #             }
@@ -1838,5 +1924,11 @@ def tests(
     # )
 
 
-# Test the hostname.
-tests('http://127.0.0.1:8000')
+
+
+
+
+
+# Take command line arguments for the tests.
+if __name__ == '__main__':
+   main(sys.argv[1:])

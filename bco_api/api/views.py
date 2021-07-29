@@ -38,19 +38,18 @@ from .scripts.method_specific.POST_api_accounts_describe import POST_api_account
 from .scripts.method_specific.POST_api_groups_create import POST_api_groups_create
 from .scripts.method_specific.POST_api_groups_delete import POST_api_groups_delete
 from .scripts.method_specific.POST_api_groups_modify import POST_api_groups_modify
-from .scripts.method_specific.POST_check_object_permissions import POST_check_object_permissions
-from .scripts.method_specific.POST_create_new_prefix import POST_create_new_prefix
-from .scripts.method_specific.POST_delete_existing_prefix import POST_delete_existing_prefix
+from .scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
+from .scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
 from .scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create
 from .scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
 from .scripts.method_specific.POST_objects_publish import POST_objects_publish
-from .scripts.method_specific.POST_new_account import POST_new_account
+from .scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
 from .scripts.method_specific.POST_prefix_permissions_by_token import POST_prefix_permissions_by_token
 from .scripts.method_specific.POST_read_object import POST_read_object
-from .scripts.method_specific.POST_set_object_permission import POST_set_object_permission
-from .scripts.method_specific.POST_set_prefix_permissions import POST_set_prefix_permissions
-from .scripts.method_specific.POST_update_existing_prefix import POST_update_existing_prefix, POST_update_existing_prefix
+from .scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
+from .scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
+from .scripts.method_specific.POST_api_prefixes_update import POST_api_prefixes_update, POST_api_prefixes_update
 
 
 
@@ -311,7 +310,7 @@ class ApiAccountsNew(
         if checked is None:
         
             # Pass the request to the handling function.
-            return POST_new_account(
+            return POST_api_accounts_new(
                 request.data
             )
         
@@ -540,14 +539,8 @@ class ApiObjectsDraftsPermissionsSet(
     # -----------
 
     # Set the permissions for an object.
-    # Requestor MUST have change, delete, or view 
-    # permissions on the object in order to get permissions for
-    # their groups.
 
     # POST
-
-    # Permissions - object owner only
-    permission_classes = [RequestorInObjectOwnerGroup]
 
     def post(
         self, 
@@ -566,46 +559,10 @@ class ApiObjectsDraftsPermissionsSet(
 
         if checked is None:
             
-            # Get the object and check its permissions
-
-            # Note: re-using GET method here...
-            objected = GET_draft_object_by_id(
-                request.data['object_id']
+            # Call the handler.
+            POST_api_objects_drafts_permissions_set(
+                request
             )
-
-            if objected is not None:
-            
-                # Assumes prefixes and table names are linked...
-                request.data['table_name'] = '_'.join(request.data['object_id'].split('/')[-1].split('_')[0:2]).lower()
-
-                # Check for object-level permissions
-                self.check_object_permissions(
-                    request, 
-                    objected
-                )
-
-                # Set the permissions, then return the full permissions list
-                POST_set_object_permission(
-                    request, 
-                    objected
-                )
-                
-                # Pass the request to the handling function
-                return(
-                    POST_check_object_permissions(
-                        request, 
-                        objected
-                    )
-                )
-                                    
-            else:
-
-                return(
-                    Response(
-                        data = None,
-                        status = status.HTTP_403_FORBIDDEN
-                    )
-                )
         
         else:
 
@@ -651,7 +608,7 @@ class ApiPrefixesCreate(
                 
             # Pass the request to the handling function
             return(
-                POST_create_new_prefix(
+                POST_api_prefixes_create(
                     request
                 )
             )
@@ -701,7 +658,7 @@ class ApiPrefixesDelete(
                 
             # Pass the request to the handling function
             return(
-                POST_delete_existing_prefix(
+                POST_api_prefixes_delete(
                     request
                 )
             )
@@ -748,7 +705,7 @@ class ApiPrefixesPermissionsSet(
                 
             # Pass the request to the handling function
             return(
-                POST_set_prefix_permissions(
+                POST_api_prefixes_permissions_set(
                     request
                 )
             )
@@ -833,7 +790,7 @@ class ApiPrefixesUpdate(
                 
             # Pass the request to the handling function
             return(
-                POST_update_existing_prefix(
+                POST_api_prefixes_update(
                     request
                 )
             )

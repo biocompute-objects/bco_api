@@ -15,7 +15,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_create_new_prefix(
+def POST_api_prefixes_create(
 	incoming
 ):
 
@@ -24,7 +24,7 @@ def POST_create_new_prefix(
 	uu = UserUtils.UserUtils()
 
 	# Define the bulk request.
-	bulk_request = incoming.data['POST_create_new_prefix']['prefixes']
+	bulk_request = incoming.data['POST_api_prefixes_create']['prefixes']
 
 	# Get all existing prefixes.
 	available_prefixes = list(

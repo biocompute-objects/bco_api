@@ -16,6 +16,9 @@ from django.db import models
 
 # Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
 
+# For setting the anonymous key.
+from django.conf import settings
+
 # The user model is straight from Django.
 from django.contrib.auth.models import Group, Permission, User
 from django.db.models.signals import post_save, post_delete, pre_delete
@@ -294,9 +297,23 @@ def create_auth_token(
 ):
 
 	if created:
-		Token.objects.create(
-			user = instance
-		)
+	
+		# The anonymous user's token is hard-coded
+		# in server.conf.
+		if instance.username == 'anon':
+
+			# Create anon's record with the hard-coded key.
+			Token.objects.create(
+				user = instance,
+				key = settings.ANON_KEY
+			)
+
+		else:
+			
+			# Create a normal user's record.
+			Token.objects.create(
+				user = instance
+			)
 
 
 # Link prefix creation to permissions creation.

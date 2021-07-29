@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_delete_existing_prefix(
+def POST_api_prefixes_delete(
 	incoming
 ):
 
@@ -21,7 +21,7 @@ def POST_delete_existing_prefix(
 	uu = UserUtils.UserUtils()
 
 	# Define the bulk request.
-	bulk_request = incoming.data['POST_delete_existing_prefix']['prefixes']
+	bulk_request = incoming.data['POST_api_prefixes_delete']['prefixes']
 
 	# Get all existing prefixes.
 	available_prefixes = list(
