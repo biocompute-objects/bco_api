@@ -71,7 +71,8 @@ def POST_api_objects_drafts_create(
 		# Standardize the prefix.
 		standardized = creation_object['prefix'].upper()
 
-		if 'add_' + standardized in px_perms:
+		# Require the macro-level and draft-specific permissions.
+		if 'add_' + standardized in px_perms and 'draft_' + standardized in px_perms:
 		
 			# Make sure the group the object is being
 			# assigned to exists.

@@ -335,7 +335,8 @@ def create_permissions_for_prefix(
 		# have already been created for this prefix.
 		try:
 
-			for perm in ['add', 'change', 'delete', 'view']:
+			# Create the macro-level, draft, and publish permissions.
+			for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']:
 			
 				Permission.objects.create(
 					name = 'Can ' + perm + ' BCOs with prefix ' + instance.prefix,
@@ -369,7 +370,7 @@ def create_permissions_for_prefix(
 						codename = perm + '_' + instance.prefix
 					)
 				)
-		
+
 		except PermErrors.IntegrityError:
 			
 			# The permissions already exist.			
