@@ -746,7 +746,7 @@ class ApiPrefixesToken(
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
             return POST_api_prefixes_token(
-                token = request.META.get('HTTP_AUTHORIZATION')
+                request = request
             )
 
         else:
@@ -770,7 +770,7 @@ class ApiPrefixesTokenFlat(
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
             return POST_api_prefixes_token_flat(
-                token = request.META.get('HTTP_AUTHORIZATION')
+                request = request
             )
 
         else:
