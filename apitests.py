@@ -686,7 +686,6 @@ def main(
         url = '/api/prefixes/create/'
     )
     
-    print(x)
 
 
     # Get the prefix permissions for a given token.
@@ -702,6 +701,24 @@ def main(
         token = wheel_key,
         url = '/api/prefixes/token/'
     )
+
+
+        # Get the prefix permissions for a given token.
+    pretty_output(
+        hostname = hostname,
+        json_send = {},
+        method = 'POST',
+        test_info = {
+            'description': 'Get the prefix permissions for a token.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = wheel_key,
+        url = '/api/prefixes/token/flat/'
+    )
+
+    print(x)
+
 
     # Create a new account and pull the token.
     r_token_username = pretty_output(

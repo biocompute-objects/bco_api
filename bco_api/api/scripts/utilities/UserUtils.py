@@ -287,64 +287,85 @@ class UserUtils:
         self,
         user_object,
         flatten = True,
-        specific_permission = ['add', 'change', 'delete', 'view']
+        specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
     ):
         
         # flatten - return just the raw perms
         # specific_permission - looking for a permission in particular?
         
         # Get the prefixes for the user and their groups, then filter.
-        pxs = list(
-                prefixes.objects.filter(
-                Q(owner_user = user_object.id) |
-                Q(owner_group__in = list(user_object.groups.all().values_list(
-                    'id', 
-                    flat = True
-                )))
-            ).values_list(
-                'prefix',
-                flat = True
-            )
-        )
+        # pxs = list(
+        #         prefixes.objects.filter(
+        #         Q(owner_user = user_object.id) |
+        #         Q(owner_group__in = list(user_object.groups.all().values_list(
+        #             'id', 
+        #             flat = True
+        #         )))
+        #     ).values_list(
+        #         'prefix',
+        #         flat = True
+        #     )
+        # )
 
+
+        # A little expensive, but use the utility
+	    # we already have.
+        prefixed = self.get_user_info(
+            user_object
+        )['other_info']['permissions']
+
+
+        # To store flattened permissions
+        flat_perms = []
+
+        # We only need the permissions that are specific
+        # to the bco model.
+
+        bco_specific = {
+            'user': {},
+            'groups': {}
+        }
+
+        if 'bco' in prefixed['user']:
+            if flatten:
+                flat_perms = prefixed['user']['bco']
+            else:
+                bco_specific['user']['bco'] = prefixed['user']['bco']
+        else:
+            if not flatten:
+                bco_specific['user']['bco'] = {}
+        print(flat_perms)
+        for k, v in prefixed['groups'].items():
+            if 'bco' in prefixed['groups'][k]:
+                if flatten:
+                    for perm in v['bco']:
+                        if perm not in flat_perms:
+                            flat_perms.append(perm)
+                else:
+                    bco_specific['groups'][k] = {
+                        'bco': v['bco']
+                    }
+            else:
+                bco_specific['groups'][k] = {}
+        
+      
         # Get the permissions.
         # Source: https://stackoverflow.com/a/952952
-        flattened = [item for sublist in [[sp + '_' + px for sp in specific_permission] for px in pxs] for item in sublist]
-
-        # Filter the permissions.
-        filtered = Permission.objects.filter(codename__in = flattened)
+      
+        
 
         # Flatten the permissions so that we can
         # work with them more easily.
-        flat_permissions = list(
-            filtered.values_list(
-                'codename', 
-                flat = True
-            )
-        )
+ 
         
         # Return based on what we need.
         if flatten == True:
 
-            return flat_permissions
+            return flat_perms
 
         elif flatten == False:
-            
-            # Create a dictionary to hold the permissions,
-            # this is just an easier object to work with.
-            px_dict = {
-                key: [] for key in pxs
-            }
-
-            # Get each permissions.
-            for perm in flat_permissions:
-
-                # Split to get the perm.
-                split_up = perm.split('_')
-
-                px_dict[split_up[1]].append(split_up[0])
-            
-            return px_dict
+           
+            return bco_specific
 
 
 

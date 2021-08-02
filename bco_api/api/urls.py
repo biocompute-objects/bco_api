@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
@@ -63,6 +63,16 @@ from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescrib
 
 # Get ALL prefix permissions for a given token
 # (POST) api/prefixes/permissions/
+
+"""
+Get all prefix permissions (group and user) for a given token. Return with user and group as key for associated permissions.
+(POST) api/prefixes/token/
+"""
+
+"""
+Get all prefix permissions (group and user) for a given token. Return a flat list of all permissions.
+(POST) api/prefixes/token/flat/
+"""
 
 # Update prefixes
 # (POST) api/prefixes/update/
@@ -141,6 +151,10 @@ urlpatterns = [
     path(
         'api/prefixes/token/',
         ApiPrefixesToken.as_view()
+    ),
+    path(
+        'api/prefixes/token/flat/', 
+        ApiPrefixesTokenFlat.as_view()
     ),
     path(
         'api/prefixes/update/',

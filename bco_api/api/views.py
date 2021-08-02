@@ -45,7 +45,8 @@ from .scripts.method_specific.POST_api_objects_drafts_modify import POST_api_obj
 from .scripts.method_specific.POST_objects_publish import POST_objects_publish
 from .scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
-from .scripts.method_specific.POST_prefix_permissions_by_token import POST_prefix_permissions_by_token
+from .scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
+from .scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
 from .scripts.method_specific.POST_read_object import POST_read_object
 from .scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
 from .scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
@@ -744,7 +745,7 @@ class ApiPrefixesToken(
             
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
-            return POST_prefix_permissions_by_token(
+            return POST_api_prefixes_token(
                 token = request.META.get('HTTP_AUTHORIZATION')
             )
 
@@ -754,6 +755,29 @@ class ApiPrefixesToken(
                 status = status.HTTP_400_BAD_REQUEST
             )
 
+
+class ApiPrefixesTokenFlat(
+    APIView
+):
+
+    def post(
+        self, 
+        request
+    ):
+        
+        if 'Authorization' in request.headers:
+            
+            # Pass the request to the handling function
+            # Source: https://stackoverflow.com/a/31813810
+            return POST_api_prefixes_token_flat(
+                token = request.META.get('HTTP_AUTHORIZATION')
+            )
+
+        else:
+
+            return Response(
+                status = status.HTTP_400_BAD_REQUEST
+            )
 
 
 

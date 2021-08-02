@@ -14,11 +14,9 @@ from rest_framework.authtoken.models import Token
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_prefix_permissions_by_token(
+def POST_api_prefixes_token(
 	token
 ):
-
-	# Get all prefix permissions for a token.
 
 	# Instantiate any necessary imports.
 	uu = UserUtils.UserUtils()
@@ -36,36 +34,18 @@ def POST_prefix_permissions_by_token(
 	).user_id
 
 	# A little expensive, but use the utility
-	# we already have.
-	prefixed = uu.get_user_info(
-		username = User.objects.get(
+	# we already have. Default will return flattened list of permissions 
+	prefixes = uu.prefix_perms_for_user(
+		user_object = User.objects.get(
 			id = user_id
-		)
-	)['other_info']
+		).username,
+        flatten=False
+	)
 
-	# We only need the permissions that are specific
-	# to the bco model.
-	bco_specific = {
-		'user': {},
-		'groups': {}
-	}
-
-	if 'bco' in prefixed['permissions']['user']:
-		bco_specific['user']['bco'] = prefixed['permissions']['user']['bco']
-	else:
-		bco_specific['user']['bco'] = {}
-
-	for k, v in prefixed['permissions']['groups'].items():
-		if 'bco' in prefixed['permissions']['groups'][k]:
-			bco_specific['groups'][k] = {
-				'bco': prefixed['permissions']['groups'][k]['bco']
-			}
-		else:
-			bco_specific['groups'][k] = {}
 
 	return(
 		Response(
 			status = status.HTTP_200_OK,
-			data = bco_specific
+			data = prefixes
 		)
 	)
