@@ -8,50 +8,17 @@ from ..utilities import DbUtils
 from ..utilities import UserUtils
 
 # Permisions for objects
-from guardian.shortcuts import get_group_perms, get_perms, get_user_perms
+from guardian.shortcuts import assign_perm, get_perms,get_groups_with_perms, get_users_with_perms, remove_perm
+from django.contrib.auth.models import Group, User, Permission
 
 # Responses
 from rest_framework import status
 from rest_framework.response import Response
 
-
 def POST_api_objects_drafts_permissions_set(
 	incoming
 ):
 
-	# OLD
-
-	# # # Assign the permission based on the given parameters.
-	# # Source: https://django-guardian.readthedocs.io/en/stable/api/guardian.shortcuts.html#assign-perm
-
-	# # Create a mapping from the request info to actual permissions.
-
-	# # Note that 'publish' means 'add'.
-	# mapping = {
-	# 	'change': 'api.change_' + incoming.data['table_name'],
-	# 	'delete': 'api.delete_' + incoming.data['table_name'],
-	# 	'publish': 'api.add_' + incoming.data['table_name'],
-	# 	'view': 'api.view_' + incoming.data['table_name']
-	# }
-
-	# Set the permission.
-	if 'un' in incoming.data['perm']:
-		remove_perm(
-			mapping[incoming.data['perm'].replace('un', '')], 
-			Group.objects.get(
-				name = incoming.data['group']
-			), 
-			objct
-		)
-	else:
-		assign_perm(
-			mapping[incoming.data['perm']], 
-			Group.objects.get(
-				name = incoming.data['group']
-			), 
-			objct
-		)
-	
 	# Set the permissions for given objects.
 
 	# Instantiate any necessary imports.
@@ -70,7 +37,7 @@ def POST_api_objects_drafts_permissions_set(
 	px_perms = uu.prefix_perms_for_user(
 		flatten = True,
 		user_object = user,
-		specific_permission = ['add']
+		specific_permission = ['change']
 	)
 
 	# Define the bulk request.
@@ -81,10 +48,10 @@ def POST_api_objects_drafts_permissions_set(
 
 	# Since bulk_request is an array, go over each
 	# item in the array.
-	for creation_object in bulk_request:
+	for permission_object in bulk_request:
 		
 		# Get the prefix for this object.
-		standardized = creation_object['object_id'].split('/')[-1].split('_')[0].upper()
+		standardized = permission_object['object_id'].split('/')[-1].split('_')[0].upper()
 
 		# Does the requestor have any change
 		# permissions for the prefix?
@@ -108,10 +75,10 @@ def POST_api_objects_drafts_permissions_set(
 			# group that has object-level change permissions.
 
 			# To check these options, we need the actual object.
-			if bco.objects.filter(object_id = creation_object['object_id']).exists():
+			if bco.objects.filter(object_id = permission_object['object_id']).exists():
 
 				objected = bco.objects.get(
-					object_id = creation_object['object_id']
+					object_id = permission_object['object_id']
 				)
 
 				# We don't care where the change permission comes from,
@@ -121,31 +88,110 @@ def POST_api_objects_drafts_permissions_set(
 					objected
 				)
 
+
 				print('all_permissions')
 				print(all_permissions)
 
 				print('user.pk')
 				print(user.pk)
+
 				print('object.owner_user')
 				print(objected.owner_user)
 				
-				if user.pk == objected.owner_user.pk or 'change_' + standardized in all_permissions:
-					
-					# User...
+				if user.pk == objected.owner_user.pk or 'change_' + objected.object_id in all_permissions:
+					if 'actions' in permission_object:
 
-					# Update the request status.
+						# Set the working object to the actions.
+						action_set = permission_object['actions']
+
+
+	
+						# Removals are processed first, then additions.
+
+						# Remove the users provided, if any.
+						if 'remove_permissions' in action_set:
+							for perm, assignee  in action_set['remove_permissions']:
+								if assignee == 'users':
+									for u in assignee:
+										if uu.check_user_exists(un=u):
+											remove_perm(
+												perm = Permission.objects.get(codename = perm + "_" + objected.object_id),
+												user_or_group = User.objects.get(username=u),
+												obj = objected
+											)
+								if assignee == 'groups':
+									for g in assignee:
+										if uu.check_group_exists(n=g):
+											remove_perm(
+												perm = Permission.objects.get(codename = perm + "_" + objected.object_id),
+												user_or_group = Group.objects.get(name=g),
+												obj = objected
+											)
+					
+						if 'full_permissions' in action_set:
+							for up, perms in get_users_with_perms(obj=objected, attach_perms=True).items():
+								for perm in perms:
+									remove_perm(
+										perm = perm,
+										user_or_group = up,
+										obj = objected
+									)
+							for gp, perms in get_groups_with_perms(obj=objected, attach_perms=True).items():
+								for perm in perms:
+									remove_perm(
+										perm = perm,
+										user_or_group = gp,
+										obj = objected
+									)
+							for perm, assignee in action_set['full_permissions'].items():
+								if assignee == 'users':
+									for u in assignee:
+										if uu.check_user_exists(un=u):
+											assign_perm(
+												perm = Permission.objects.get(codename = perm + "_" + objected.object_id),
+												user_or_group = User.objects.get(username=u),
+												obj = objected
+											)
+								if assignee == 'groups':
+									for g in assignee:
+										if uu.check_group_exists(n=g):
+											assign_perm(
+												perm = Permission.objects.get(codename = perm + "_" + objected.object_id),
+												user_or_group = Group.objects.get(name=g),
+												obj = objected
+											)
+
+						if 'add_permissions' in action_set:			
+							for perm, assignee in action_set['add_permissions'].items():
+								if assignee == 'users':
+									for u in assignee:
+										if uu.check_user_exists(un=u):
+											assign_perm(
+												perm = Permission.objects.get(codename = perm + "_" + objected.object_id),
+												user_or_group = User.objects.get(username=u),
+												obj = objected
+											)
+								if assignee == 'groups':
+									for g in assignee:
+										if uu.check_group_exists(n=g):
+											assign_perm(
+												perm = Permission.objects.get(codename = perm + "_" + objected.object_id),
+												user_or_group = Group.objects.get(name=g),
+												obj = objected
+											)
+								
+
+					
+
 					returning.append(
 						db.messages(
 							parameters = {
-								'object_id': creation_object['object_id'],
-								'object_perms': get_perms(
-									user,
-									objected
-								)
+								'object_id': objected.object_id
 							}
-						)['200_OK']
+						)['200_OK_object_permissions_set']
 					)
-				
+						
+
 				else:
 
 					# Insufficient permissions.
@@ -161,7 +207,7 @@ def POST_api_objects_drafts_permissions_set(
 				returning.append(
 					db.messages(
 						parameters = {
-							'object_id': creation_object['object_id']
+							'object_id': permission_object['object_id']
 						}
 					)
 				)['404_object_id']

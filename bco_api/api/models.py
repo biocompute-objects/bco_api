@@ -527,6 +527,7 @@ def create_object_perms(
 							user_or_group = Group.objects.get(id = instance.owner_group_id),
 							obj = instance
 						)
+			
 		
 		except PermErrors.IntegrityError:
 

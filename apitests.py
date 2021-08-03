@@ -717,7 +717,7 @@ def main(
         url = '/api/prefixes/token/flat/'
     )
 
-    print(x)
+
 
 
     # Create a new account and pull the token.
@@ -1196,6 +1196,49 @@ def main(
         token = r_token_username['token'],
         url = '/api/objects/drafts/create/'
     )
+
+
+
+
+
+
+
+    
+
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_api_objects_drafts_permissions_set': [
+                {
+                    'actions': {
+                        'full_permissions': {
+                            'view': {
+                                'users': [
+                                    r_token_username['username']
+                                ],
+                                'groups': [
+                                    'bco_publisher',
+                                    'bco_drafter'
+                                ]
+                            }
+                        }
+                    },
+                    'object_id': drafted[0]['object_id']
+                }
+           
+            ]
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Set some object permissions.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/objects/drafts/permissions/set/'
+    )
+
+    print(x)
 
     # Get the draft permissions
     pretty_output(

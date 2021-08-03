@@ -320,7 +320,7 @@ class DbUtils:
         
         # Define the return messages, if they don't
         # come in defined.
-        definable = ['group', 'object_id', 'object_perms', 'prefix', 'table']
+        definable = ['group', 'object_id', 'object_perms', 'prefix', 'table', 'contents']
 
         for i in definable:
             if i not in parameters:
@@ -361,10 +361,16 @@ class DbUtils:
             },
             '200_OK_object_permissions': {
                 'request_status': 'SUCCESS', 
-                'status_code': '201',
+                'status_code': '200',
                 'message': 'Permissions for the object with ID \'' + parameters['object_id'] + '\' were found on the server.',
                 'object_id': parameters['object_id'],
                 'permissions': parameters['object_perms']
+            },
+            '200_OK_object_permissions_set': {
+                'request_status': 'SUCCESS', 
+                'status_code': '200',
+                'message': 'Permissions for the object with ID \'' + parameters['object_id'] + '\' were set on the server.',
+                'object_id': parameters['object_id']
             },
             '200_prefix_update': {
                 'request_status': 'SUCCESS', 
