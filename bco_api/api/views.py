@@ -2,8 +2,38 @@
 
 # For instructions on calling class methods from other classes, see https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
 
+# For helper functions
+from .scripts.utilities import RequestUtils, UserUtils
+
+# Request-specific methods
+from .scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
+from .scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
+
+from .scripts.method_specific.POST_api_groups_create import POST_api_groups_create
+from .scripts.method_specific.POST_api_groups_delete import POST_api_groups_delete
+from .scripts.method_specific.POST_api_groups_modify import POST_api_groups_modify
+
+from .scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create
+from .scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
+from .scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
+from .scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
+from .scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
+
+from .scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
+from .scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
+from .scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
+from .scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify, POST_api_prefixes_modify
+from .scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
+from .scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
+
+# FIX
+from .scripts.method_specific.GET_activate_account import GET_activate_account
+from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
+from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
+from .scripts.method_specific.POST_objects_publish import POST_objects_publish
+from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
+
 # For returning server information
-from api.scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
 from django.conf import settings
 
 # For pulling the user ID directly (see below for
@@ -15,6 +45,7 @@ from django.core import serializers
 # Simple JSON print
 import json
 
+# Views
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -26,31 +57,6 @@ from .permissions import RequestorInObjectOwnerGroup, RequestorInPrefixAdminsGro
 # Message page
 # Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
 from rest_framework.renderers import TemplateHTMLRenderer
-
-# For helper functions
-from .scripts.utilities import RequestUtils, UserUtils
-
-# Request-specific methods
-from .scripts.method_specific.GET_activate_account import GET_activate_account
-from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
-from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
-from .scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
-from .scripts.method_specific.POST_api_groups_create import POST_api_groups_create
-from .scripts.method_specific.POST_api_groups_delete import POST_api_groups_delete
-from .scripts.method_specific.POST_api_groups_modify import POST_api_groups_modify
-from .scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
-from .scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
-from .scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create
-from .scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
-from .scripts.method_specific.POST_objects_publish import POST_objects_publish
-from .scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
-from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
-from .scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
-from .scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
-from .scripts.method_specific.POST_read_object import POST_read_object
-from .scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
-from .scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
-from .scripts.method_specific.POST_api_prefixes_update import POST_api_prefixes_update, POST_api_prefixes_update
 
 
 
@@ -576,6 +582,52 @@ class ApiObjectsDraftsPermissionsSet(
 
 
 
+
+class ApiObjectsDraftsRead(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Read draft objects
+
+    # POST
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+            
+            # Call the handler.
+            POST_api_objects_drafts_read(
+                request
+            )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+
 class ApiPrefixesCreate(
     APIView
 ):
@@ -814,7 +866,7 @@ class ApiPrefixesUpdate(
                 
             # Pass the request to the handling function
             return(
-                POST_api_prefixes_update(
+                POST_api_prefixes_modify(
                     request
                 )
             )

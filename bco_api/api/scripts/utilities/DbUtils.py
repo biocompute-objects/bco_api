@@ -348,6 +348,12 @@ class DbUtils:
                 'status_code': '200',
                 'message': 'The object with ID \'' + parameters['object_id'] + '\' was deleted.'
             },
+            '200_OK_object_read': {
+                'request_status': 'SUCCESS', 
+                'status_code': '200',
+                'contents': parameters['contents'],
+                'message': 'The object with ID \'' + parameters['object_id'] + '\' was found on the server.'
+            },
             '200_OK': {
                 'request_status': 'SUCCESS', 
                 'status_code': '200',

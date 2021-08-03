@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiObjectsDraftsRead, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
@@ -48,6 +48,9 @@ from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescrib
 
 # Set the permissions for given BCOs
 # (POST) api/objects/drafts/permissions/set/
+
+# Read draft objects
+# (POST) api/objects/drafts/read/
 
 # Get all objects for a given token
 # (POST) api/objects/token/
@@ -127,6 +130,10 @@ urlpatterns = [
     path(
         'api/objects/drafts/permissions/set/', 
         ApiObjectsDraftsPermissionsSet.as_view()
+    ),
+    path(
+        'api/objects/drafts/read/', 
+        ApiObjectsDraftsRead.as_view()
     ),
     path(
         'api/objects/publish/', 

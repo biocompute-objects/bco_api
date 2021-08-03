@@ -610,7 +610,7 @@ def main(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_api_prefixes_update': {
+            'POST_api_prefixes_modify': {
                 'prefixes': [
                     {
                         'description': 'Generic glygen prefix.',
@@ -778,7 +778,7 @@ def main(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_api_prefixes_update': {
+            'POST_api_prefixes_modify': {
                 'prefixes': [
                     {
                         'description': 'Generic glygen prefix.',

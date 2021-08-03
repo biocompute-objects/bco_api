@@ -334,7 +334,7 @@ class UserUtils:
         else:
             if not flatten:
                 bco_specific['user']['bco'] = {}
-        print(flat_perms)
+        
         for k, v in prefixed['groups'].items():
             if 'bco' in prefixed['groups'][k]:
                 if flatten:

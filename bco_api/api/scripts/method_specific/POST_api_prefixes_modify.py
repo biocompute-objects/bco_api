@@ -15,7 +15,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_prefixes_update(
+def POST_api_prefixes_modify(
 	incoming
 ):
 
@@ -24,7 +24,7 @@ def POST_api_prefixes_update(
 	uu = UserUtils.UserUtils()
 
 	# Define the bulk request.
-	bulk_request = incoming.data['POST_api_prefixes_update']['prefixes']
+	bulk_request = incoming.data['POST_api_prefixes_modify']['prefixes']
 
 	# Get all existing prefixes.
 	available_prefixes = list(
