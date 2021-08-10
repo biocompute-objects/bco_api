@@ -87,28 +87,17 @@ def POST_api_objects_drafts_permissions_set(
 					user,
 					objected
 				)
-
-
-				print('all_permissions')
-				print(all_permissions)
-
-				print('user.pk')
-				print(user.pk)
-
-				print('object.owner_user')
-				print(objected.owner_user)
 				
 				if user.pk == objected.owner_user.pk or 'change_' + objected.object_id in all_permissions:
+
 					if 'actions' in permission_object:
 
 						# Set the working object to the actions.
 						action_set = permission_object['actions']
-
-
-	
+						
 						# Removals are processed first, then additions.
 
-						# Remove the users provided, if any.
+						# Remove the permissions provided, if any.
 						if 'remove_permissions' in action_set:
 							for perm, assignee  in action_set['remove_permissions']:
 								if assignee == 'users':
@@ -179,10 +168,7 @@ def POST_api_objects_drafts_permissions_set(
 												user_or_group = Group.objects.get(name=g),
 												obj = objected
 											)
-								
-
 					
-
 					returning.append(
 						db.messages(
 							parameters = {
@@ -190,8 +176,7 @@ def POST_api_objects_drafts_permissions_set(
 							}
 						)['200_OK_object_permissions_set']
 					)
-						
-
+					
 				else:
 
 					# Insufficient permissions.
