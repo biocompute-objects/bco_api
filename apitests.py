@@ -1238,7 +1238,82 @@ def main(
         url = '/api/objects/drafts/permissions/set/'
     )
 
+
+    # Publish.
+
+    # Publish a draft, publish directly, publish directly.
+    # 
+    # contents and draft_id are the "sources" of the object.
+    # contents and draft_id are mutually exclusive keys.
+    #
+    # source_id is used when providing a custom version number.
+    # prefix and object_id are mutually exclusive keys.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_api_objects_publish': [
+                {
+                    'draft_id': drafted[0]['object_id']
+                },
+                {
+                    'contents': {},
+                    'prefix': 'TEST'
+                },
+                {
+                    'contents': {},
+                    'source_id': ''
+                },
+                {
+                    'contents': {},
+                    'source_id': ''
+                },
+                {
+                    'contents': {},
+                    'source_id': ''
+                },
+                {
+                    'draft_id': drafted[0]['source_id'],
+                    'source_id': ''
+                },
+                {
+                    'draft_id': drafted[0]['source_id'],
+                    'source_id': ''
+                }
+            ]
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Publish some objects.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/objects/publish/'
+    )
+
     print(x)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # Get the draft permissions
     pretty_output(

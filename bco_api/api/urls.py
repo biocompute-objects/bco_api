@@ -1,6 +1,16 @@
 from django.urls import path
 from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiObjectsDraftsRead, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
 
+# For importing configuration files
+import configparser
+
+# Load the server config file.
+server_config = configparser.ConfigParser()
+server_config.read('./server.conf')
+
+# Is this a publish-only server?
+PUBLISH_ONLY = server_config['PUBLISHONLY']['publishonly']
+
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 
@@ -83,92 +93,115 @@ Get all prefix permissions (group and user) for a given token. Return a flat lis
 # Describe the server's attributes
 # (GET) api/public/describe/
 
-urlpatterns = [
-    path(
-        '<str:draft_object_id>', 
-        DraftObjectId.as_view()
-    ),
-    path(
-        '<str:object_id_root>/<str:object_id_version>', 
-        ObjectIdRootObjectIdVersion.as_view()
-    ),
-    path(
-        'api/accounts/activate/<str:username>/<str:temp_identifier>', ApiAccountsActivateUsernameTempIdentifier.as_view()
-    ),
-    path(
-        'api/accounts/describe/', 
-        ApiAccountsDescribe.as_view()
-    ),
-    path(
-        'api/accounts/new/', 
-        ApiAccountsNew.as_view()
-    ),
-    path(
-        'api/groups/create/', 
-        ApiGroupsCreate.as_view()
-    ),
-    path(
-        'api/groups/delete/', 
-        ApiGroupsDelete.as_view()
-    ),
-    path(
-        'api/groups/modify/', 
-        ApiGroupsModify.as_view()
-    ),
-    path(
-        'api/objects/drafts/create/', 
-        ApiObjectsDraftsCreate.as_view()
-    ),
-    path(
-        'api/objects/drafts/modify/', 
-        ApiObjectsDraftsModify.as_view()
-    ),
-    path(
-        'api/objects/drafts/permissions/', 
-        ApiObjectsDraftsPermissions.as_view()
-    ),
-    path(
-        'api/objects/drafts/permissions/set/', 
-        ApiObjectsDraftsPermissionsSet.as_view()
-    ),
-    path(
-        'api/objects/drafts/read/', 
-        ApiObjectsDraftsRead.as_view()
-    ),
-    path(
-        'api/objects/publish/', 
-        ApiObjectsPublish.as_view()
-    ),
-    path(
-        'api/objects/token/', 
-        ApiObjectsToken.as_view()
-    ),
-    path(
-        'api/prefixes/create/',
-        ApiPrefixesCreate.as_view()
-    ),
-    path(
-        'api/prefixes/delete/',
-        ApiPrefixesDelete.as_view()
-    ),
-    path(
-        'api/prefixes/permissions/set/',
-        ApiPrefixesPermissionsSet.as_view()
-    ),
-    path(
-        'api/prefixes/token/',
-        ApiPrefixesToken.as_view()
-    ),
-    path(
-        'api/prefixes/token/flat/', 
-        ApiPrefixesTokenFlat.as_view()
-    ),
-    path(
-        'api/prefixes/update/',
-        ApiPrefixesUpdate.as_view()
-    ),
-    path(
-        'api/public/describe/', 
-        ApiPublicDescribe.as_view()
-    )
-]
+# Initialize the URL patterns.
+urlpatterns = []
+
+# Do we have a publish-only server?
+if PUBLISH_ONLY == 'True':
+    
+    urlpatterns = [
+        path(
+            '<str:object_id_root>/<str:object_id_version>', 
+            ObjectIdRootObjectIdVersion.as_view()
+        ),
+        path(
+            'api/objects/publish/', 
+            ApiObjectsPublish.as_view()
+        ),
+        path(
+            'api/public/describe/', 
+            ApiPublicDescribe.as_view()
+        )
+    ]
+
+elif PUBLISH_ONLY == 'False':
+    
+    urlpatterns = [
+        path(
+            '<str:draft_object_id>', 
+            DraftObjectId.as_view()
+        ),
+        path(
+            '<str:object_id_root>/<str:object_id_version>', 
+            ObjectIdRootObjectIdVersion.as_view()
+        ),
+        path(
+            'api/accounts/activate/<str:username>/<str:temp_identifier>', ApiAccountsActivateUsernameTempIdentifier.as_view()
+        ),
+        path(
+            'api/accounts/describe/', 
+            ApiAccountsDescribe.as_view()
+        ),
+        path(
+            'api/accounts/new/', 
+            ApiAccountsNew.as_view()
+        ),
+        path(
+            'api/groups/create/', 
+            ApiGroupsCreate.as_view()
+        ),
+        path(
+            'api/groups/delete/', 
+            ApiGroupsDelete.as_view()
+        ),
+        path(
+            'api/groups/modify/', 
+            ApiGroupsModify.as_view()
+        ),
+        path(
+            'api/objects/drafts/create/', 
+            ApiObjectsDraftsCreate.as_view()
+        ),
+        path(
+            'api/objects/drafts/modify/', 
+            ApiObjectsDraftsModify.as_view()
+        ),
+        path(
+            'api/objects/drafts/permissions/', 
+            ApiObjectsDraftsPermissions.as_view()
+        ),
+        path(
+            'api/objects/drafts/permissions/set/', 
+            ApiObjectsDraftsPermissionsSet.as_view()
+        ),
+        path(
+            'api/objects/drafts/read/', 
+            ApiObjectsDraftsRead.as_view()
+        ),
+        path(
+            'api/objects/publish/', 
+            ApiObjectsPublish.as_view()
+        ),
+        path(
+            'api/objects/token/', 
+            ApiObjectsToken.as_view()
+        ),
+        path(
+            'api/prefixes/create/',
+            ApiPrefixesCreate.as_view()
+        ),
+        path(
+            'api/prefixes/delete/',
+            ApiPrefixesDelete.as_view()
+        ),
+        path(
+            'api/prefixes/permissions/set/',
+            ApiPrefixesPermissionsSet.as_view()
+        ),
+        path(
+            'api/prefixes/token/',
+            ApiPrefixesToken.as_view()
+        ),
+        path(
+            'api/prefixes/token/flat/', 
+            ApiPrefixesTokenFlat.as_view()
+        ),
+        path(
+            'api/prefixes/update/',
+            ApiPrefixesUpdate.as_view()
+        ),
+        path(
+            'api/public/describe/', 
+            ApiPublicDescribe.as_view()
+        )
+    ]

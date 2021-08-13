@@ -146,6 +146,7 @@ class group_info(
 
 
 # Generic meta data model
+# TODO: rename to prefix_meta
 class meta_table(
 	models.Model
 ):
@@ -499,7 +500,7 @@ def create_object_perms(
 			
 				# The owner group can only initially view
 				# the object.
-				for p in ['change_' + instance.object_id, 'delete_' + instance.object_id, 'view_' + instance.object_id]:
+				for p in ['change_' + instance.object_id, 'delete_' + instance.object_id, 'publish' + instance.object_id, 'view_' + instance.object_id]:
 
 					Permission.objects.create(
 						name = 'Can ' + p,

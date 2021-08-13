@@ -1,5 +1,9 @@
 # Utilities
-from . import FileUtils
+from os import posix_fadvise
+from ...models import meta_table
+
+# Checking versioning rules
+from ...models import bco
 
 # For writing objects to the database.
 from ...serializers import getGenericSerializer
@@ -9,16 +13,13 @@ import json
 import requests
 from . import UserUtils
 
-# For importing configuration files.
-import configparser
-
 # For checking datetimes
 import datetime
 
 # For getting the model.
 from django.apps import apps
 
-# For creating JSON IDs.
+# For getting object naming information.
 from django.conf import settings
 
 # For getting the API models.
@@ -29,6 +30,9 @@ from django.contrib.auth.models import Group, User
 
 # For user IDs.
 import random
+
+# Regular expressions
+import re
 
 # For user passwords.
 import uuid
@@ -91,6 +95,192 @@ class DbUtils:
         else:
 
             return None
+    
+
+
+    # Check version rules
+    def check_version_rules(
+        self,
+        published_id
+    ):
+    
+        # Potentially publishing a new version
+        # of a published object, but we have to check to 
+        # see if the provided URI exists in the publishing table.
+
+        # We can take the exact version of the object ID OR
+        # only the root version.  For example, 'http://hostname/some/other/paths/BCO_5' and 'http://hostname/some/other/paths/BCO_5/3.4' would 
+        # invoke the same logic here, assuming that version 3.4 of BCO_5 is
+        # the latest version.
+
+        # Does the provided object ID exist?
+        if bco.objects.filter(
+            object_id = published_id
+        ).exists():
+        
+            # The provided published object ID
+            # was found, and will be used to create
+            # the object ID for the new published
+            # object.
+
+            # Only the minor version is changed as the
+            # API is not responsible for enforcing versioning
+            # rules beyond differentiating between submissions
+            # of the same root URI.
+            
+            # First split so that we can do some processing.
+            split_up = published_id.split('/')
+            
+            # Get the version.
+            version = split_up[-1:][0]
+
+            # Increment the minor version.
+            incremented = version.split('.')
+            incremented[1] = int(incremented[1]) + 1
+            incremented = incremented[0] + '.' + str(incremented[1])
+
+            # Create the object ID.
+            split_up[len(split_up)-1] = incremented
+            
+            # Kick back the minor-incremented object ID.
+            return '/'.join(split_up)
+
+        else:
+
+            # If the EXACT object ID wasn't found, then
+            # the user may have provided either a root version
+            # of the URI or a version of the same root URI.
+
+            # If the provided version is larger
+            # than the version that would be generated automatically,
+            # then that provided version is used.
+
+            # First determine whether or not the provided URI
+            # only has the root or has the root and the version.
+
+            # Should do this by using settings.py root_uri
+            # information...
+
+            # Split up the URI into the root ID and the version.
+            root_uri = ''
+            version = ''
+
+            if re.match(
+                r"(.*?)/[A-Z]+_(\d+)$", 
+                published_id
+            ):
+
+                # Only the root ID was passed.
+                root_uri = published_id
+            
+            elif re.match(
+                r"(.*?)/[A-Z]+_(\d+)/(\d+)\.(\d+)$", 
+                published_id
+            ):
+
+                # The root ID and the version were passed.
+                split_up = published_id.split('/')
+
+                root_uri = '/'.join(
+                    split_up[:-1]
+                )
+
+                version = split_up[-1:]
+            
+            # See if the root ID even exists.
+
+            # Note the trailing slash in the regex search to prevent
+            # sub-string matches (e.g. http://127.0.0.1:8000/BCO_5 and
+            # http://127.0.0.1:8000/BCO_53 would both match the regex
+            # http://127.0.0.1:8000/BCO_5 if we did not have the trailing
+            # slash).
+            all_versions = list(
+                bco.objects.filter(
+                    object_id__regex = rf'{root_uri}/',
+                    state = 'PUBLISHED'
+                ).values_list(
+                    'object_id',
+                    flat = True
+                )
+            )
+
+            # Get the latest version for this object if we have any.
+            if len(all_versions) > 0:
+                
+                # There was at least one version of the root ID,
+                # so now perform some logic based on whether or
+                # not a version was also passed.
+                
+                # First find the latest version of the object.
+                latest_major = 0
+                latest_minor = 0
+
+                latest_version = [
+                    i.split('/')[-1:][0] for i in all_versions
+                ]
+
+                for i in latest_version:
+                    
+                    major_minor_split = i.split('.')
+                    
+                    if int(major_minor_split[0]) >= latest_major:
+                        if int(major_minor_split[1]) >= latest_minor:
+                            latest_major = int(major_minor_split[0])
+                            latest_minor = int(major_minor_split[1])
+
+                
+                # The version provided may fail, so create a flag to
+                # track this.
+                failed_version = False
+                
+                # If the root ID and the version were passed, check
+                # to see if the version given is greater than that which would 
+                # be generated automatically.
+                if version != '':
+
+                    # We already have the automatically generated version
+                    # number.  Now we just need to compare it with the
+                    # number that was provided.
+                    if int(version[0].split('.')[0]) > latest_major & int(version[0].split('.')[1]) > latest_minor:
+
+                        latest_major = int(version[0].split('.')[0])
+                        latest_minor = int(version[0].split('.')[1])
+                    
+                        # Write with the version provided.
+                        published_id = published_id + '/' + str(latest_major) + '.' + str(latest_minor)
+                    
+                    else:
+
+                        # Bad version provided.
+                        failed_version = True
+
+                else:
+
+                    # If only the root ID was passed, find the latest
+                    # version in the database, then increment the version.
+                    
+                    # Write with the minor version incremented.
+                    published_id = published_id + '/' + str(latest_major) + '.' + str(latest_minor + 1)
+                    
+                # Did everything go properly with the version provided?
+                if failed_version == False:
+                
+                    # The version was valid.
+                    return published_id
+                
+                else:
+
+                    # Bad request.
+                    return 1
+
+            else:
+
+                # If all_versions has 0 length, then the
+                # the root ID does not exist at all.
+                # In this case, we have to return a 404
+                # because we cannot create a version for
+                # a root ID that does not exist.
+                return 1
     
 
 
@@ -157,7 +347,7 @@ class DbUtils:
 
             return None
     
-
+    
 
 
     def get_api_models(
@@ -320,7 +510,7 @@ class DbUtils:
         
         # Define the return messages, if they don't
         # come in defined.
-        definable = ['group', 'object_id', 'object_perms', 'prefix', 'table', 'contents']
+        definable = ['errors', 'group', 'object_id', 'object_perms', 'prefix', 'published_id', 'table', 'contents']
 
         for i in definable:
             if i not in parameters:
@@ -372,6 +562,12 @@ class DbUtils:
                 'message': 'Permissions for the object with ID \'' + parameters['object_id'] + '\' were set on the server.',
                 'object_id': parameters['object_id']
             },
+            '200_OK_object_publish': {
+                'request_status': 'SUCCESS', 
+                'status_code': '200',
+                'message': 'Succesfully published  \'' + parameters['published_id'] + '\' on the server.',
+                'published_id': parameters['published_id']
+            },
             '200_prefix_update': {
                 'request_status': 'SUCCESS', 
                 'status_code': '200',
@@ -402,6 +598,12 @@ class DbUtils:
                 'request_status': 'FAILURE',
                 'status_code': '400',
                 'message': 'The request could not be processed with the parameters provided.'
+            },
+            '400_non_publishable_object': {
+                'request_status': 'FAILURE',
+                'status_code': '400',
+                'message': 'The object provided was not valid against the schema provided.  See key \'errors\' for specifics of the non-compliance.',
+                'errors': parameters['errors']
             },
             '401_prefix_unauthorized': {
                 'request_status': 'FAILURE',
@@ -442,12 +644,141 @@ class DbUtils:
                 'request_status': 'FAILURE', 
                 'status_code': '409',
                 'message': 'The provided prefix \'' + parameters['prefix'] + '\' has already been created on this server.'
-            }
+            },
         }
+    
 
 
 
+    # Publish an object.
+    def publish(
+        self,
+        og,
+        ou,
+        prfx,
+        publishable,
+        publishable_id
+    ):
 
+        # publishable is a draft object.
+
+        # Define the object naming information.
+        object_naming_info = settings.OBJECT_NAMING
+
+        # Define a variable to hold all information
+        # about the published object.
+        published = {}
+
+        # A new published object or an existing one?
+        if publishable_id == 'new':
+
+            # Define a variable which will hold the constructed name.
+            constructed_name = ''
+
+            # Create the constructed name based on whether or not
+            # we're on a production server.
+            if settings.PRODUCTION == 'True':
+
+                constructed_name = object_naming_info['uri_regex'].replace(
+                'prod_root_uri', 
+                object_naming_info['prod_root_uri']
+                )
+
+            elif settings.PRODUCTION == 'False':
+
+                constructed_name = object_naming_info['uri_regex'].replace(
+                'root_uri', 
+                object_naming_info['root_uri']
+                )
+            
+            constructed_name = constructed_name.replace(
+                'prefix', 
+                prfx
+            )
+
+            # Get rid of the rest of the regex for the name.
+            prefix_location = constructed_name.index(
+                prfx
+            )
+            prefix_length = len(
+                prfx
+            )
+            constructed_name = constructed_name[0:prefix_location+prefix_length]
+
+            # Get the object number counter from meta information about the prefix.
+            prefix_counter = meta_table.objects.get(prefix = prfx)
+
+            # Create the contents field.
+            published['contents'] = publishable.contents
+
+            # Create a new ID based on the prefix counter.
+            published['object_id'] =  constructed_name + '_' + str(prefix_counter.n_objects) + '/1.0'
+            
+            # Make sure to create the object ID field in our draft.
+            published['contents']['object_id'] = constructed_name
+
+            # Django wants a primary key for the Group...
+            published['owner_group'] = og
+
+            # Django wants a primary key for the User...
+            published['owner_user'] = ou
+
+            # The prefix is passed through.
+            published['prefix'] = prfx
+
+            # Schema is hard-coded for now...
+            published['schema'] = 'IEEE'
+
+            published['state'] = 'PUBLISHED'
+
+            # Publish.
+            self.write_object(
+                p_app_label = 'api', 
+                p_model_name = 'bco',
+                p_fields = ['contents', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
+                p_data = publishable
+            )
+
+            # Update the meta information about the prefix.
+            prefix_counter.n_objects = prefix_counter.n_objects + 1
+            prefix_counter.save()
+
+            # Successfuly saved the object.
+            return {
+                'published_id': published['object_id']
+            }
+        
+        else:
+
+            # An object ID was provided, so go straight to publishing.
+            
+            # ...
+
+            # # Django wants a primary key for the Group...
+            # published['owner_group'] = og
+
+            # # Django wants a primary key for the User...
+            # published['owner_user'] = ou
+
+            # # The prefix is passed through.
+            # published['prefix'] = prfx
+
+            # # Schema is hard-coded for now...
+            # published['schema'] = 'IEEE'
+
+            # published['state'] = 'PUBLISHED'
+
+            # # Publish.
+            # self.write_object(
+            #     p_app_label = 'api', 
+            #     p_model_name = 'bco',
+            #     p_fields = ['contents', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
+            #     p_data = publishable
+            # )
+            
+
+
+    
     # Write (update) either a draft or a published object to the database.
     def write_object(
         self, 

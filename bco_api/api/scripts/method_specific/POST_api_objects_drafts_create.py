@@ -83,6 +83,8 @@ def POST_api_objects_drafts_create(
 				name = creation_object['owner_group'].lower()
 			).exists():
 			
+				# TODO: abstract this out to DbUtils.
+				
 				# The prefix permission exists and the presumptive
 				# group owner also exists, so write the object.
 				
