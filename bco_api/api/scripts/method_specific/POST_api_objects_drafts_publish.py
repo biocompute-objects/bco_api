@@ -4,9 +4,6 @@ from ...models import bco
 # For getting objects out of the database.
 from ..utilities import DbUtils
 
-# Checking "publishable" objects agains schema
-from ..utilities import JsonUtils
-
 # User information
 from ..utilities import UserUtils
 
@@ -31,7 +28,6 @@ def POST_api_objects_drafts_publish(
 
 	# Instantiate any necessary imports.
 	db = DbUtils.DbUtils()
-	ju = JsonUtils.JsonUtils()
 	uu = UserUtils.UserUtils()
 	
 	# The token has already been validated,
@@ -81,7 +77,7 @@ def POST_api_objects_drafts_publish(
 			# To check these options, we need the actual object
 			# AND the requestor must have publish permissions
 			# on the draft.			
-			if bco.objects.filter(object_id = publish_object['draft_id']).exists():
+			if bco.objects.filter(object_id = publish_object['draft_id'], state = 'DRAFT').exists():
 
 				objected = bco.objects.get(
 					object_id = publish_object['draft_id']
@@ -102,30 +98,30 @@ def POST_api_objects_drafts_publish(
 					# it means that we are trying to publish
 					# a new version of an existing published object (on this server).
 
-					# Go straight to the publish attempt if there is no
-					# object_id key given with the request.
-					if 'object_id' not in publish_object:
+					# Attempt to publish, but first, verify
+					# that the object is IEEE-compliant.
+					# schema_check = ju.check_object_against_schema(
+					# 	object_pass = objected,
+					# 	schema_pass = 
+					# )
+					# TODO: fix the schema check...
+					schema_check = None
 
-						# Attempt to publish, but first, verify
-						# that the object is IEEE-compliant.
-						# schema_check = ju.check_object_against_schema(
-						# 	object_pass = objected,
-						# 	schema_pass = 
-						# )
-						# TODO: fix the schema check...
-						schema_check = None
+					if schema_check is None:
 
-						if schema_check is None:
+						# Go straight to the publish attempt if there is no
+						# object_id key given with the request.
+						if 'object_id' not in publish_object:
 
 							# Object is compliant, so kick it off to
 							# be published.
 							
-							# NOTE: For publishing, the owner group and the
+							# For publishing, the owner group and the
 							# owner user are "the same".  That is, the
 							# owner group is the one derived from the owner user.
 							published = db.publish(
-								og = Group.objects.get(name = objected.owner_user.username).pk,
-								ou = objected.owner_user.pk,
+								og = Group.objects.get(name = user.username).pk,
+								ou = user.pk,
 								prfx = standardized,
 								publishable = objected,
 								publishable_id = 'new'
@@ -154,66 +150,74 @@ def POST_api_objects_drafts_publish(
 						
 						else:
 
-							# Object provided is not schema-compliant.
-							returning.append(
-								db.messages(
-									parameters = {
-										'errors': schema_check
-									}
-								)['400_non_publishable_object']
-							)
-					
-					else:
-
-						# We need to check that the provided object ID
-						# complies with the versioning rules.
-						versioned = db.check_version_rules(
-							published_id = publish_object['published_id']
-						)
-
-						if versioned != 1:
-
-							# We now have the published_id to write with.
-							published = db.publish(
-								og = Group.objects.get(name = objected.owner_user.username).pk,
-								ou = objected.owner_user.pk,
-								prfx = standardized,
-								publishable = objected,
-								publishable_id = versioned
+							# We need to check that the provided object ID
+							# complies with the versioning rules.
+							versioned = db.check_version_rules(
+								published_id = publish_object['published_id']
 							)
 
-							# Did the publishing go well?
-							if type(published) is dict:
+							# If we get a dictionary back, that means we have
+							# a usable object ID.  Otherwise, something went wrong
+							# with trying to use the provided object ID.
+							if type(versioned) is dict:
 
-								# Update the request status.
-								returning.append(
-									db.messages(
-										parameters = {
-											'published_id': versioned
-										}
-									)['200_OK_object_publish']
+								# We now have the published_id to write with.
+								published = db.publish(
+									og = Group.objects.get(name = objected.owner_user.username).pk,
+									ou = objected.owner_user.pk,
+									prfx = standardized,
+									publishable = objected,
+									publishable_id = versioned
 								)
 
-								# Lastly, if we were given the directive to delete
-								# the draft on publish, process that.
+								# Did the publishing go well?
+								if type(published) is dict:
 
-								# Does the requestor have delete permissions on
-								# the object?
-								if 'delete_draft' in publish_object:
-									if publish_object['delete_draft'] == 'True' and 'delete_' + publish_object['draft_id'] in all_permissions:
-										objected.delete()
-						
-						else:
+									# Update the request status.
+									returning.append(
+										db.messages(
+											parameters = {
+												'published_id': versioned
+											}
+										)['200_OK_object_publish']
+									)
 
-							# Either the object wasn't found
-							# or an invalid version number was provided.
+									# Lastly, if we were given the directive to delete
+									# the draft on publish, process that.
 
-							# TODO: fix
-							returning.append(
-								db.messages(
-									parameters = {}
-								)['403_insufficient_permissions']
-							)
+									# Does the requestor have delete permissions on
+									# the object?
+									if 'delete_draft' in publish_object:
+										if publish_object['delete_draft'] == 'True' and 'delete_' + publish_object['draft_id'] in all_permissions:
+											objected.delete()
+							
+							else:
+
+								# Either the object wasn't found
+								# or an invalid version number was provided.
+								if versioned == 'bad_version_number':
+									returning.append(
+										db.messages(
+											parameters = {}
+										)['400_bad_version_number']
+									)
+								elif versioned == 'non_root_id':
+									returning.append(
+										db.messages(
+											parameters = {}
+										)['400_non_root_id']
+									)
+					
+					else:
+					
+						# Object provided is not schema-compliant.
+						returning.append(
+							db.messages(
+								parameters = {
+									'errors': schema_check
+								}
+							)['400_non_publishable_object']
+						)
 
 				else:
 

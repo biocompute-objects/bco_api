@@ -143,7 +143,9 @@ class DbUtils:
             split_up[len(split_up)-1] = incremented
             
             # Kick back the minor-incremented object ID.
-            return '/'.join(split_up)
+            return {
+                'published_id': '/'.join(split_up)
+            }
 
         else:
 
@@ -266,21 +268,23 @@ class DbUtils:
                 if failed_version == False:
                 
                     # The version was valid.
-                    return published_id
+                    return {
+                        'published_id': published_id
+                    }
                 
                 else:
 
                     # Bad request.
-                    return 1
+                    return 'bad_version_number'
 
             else:
 
                 # If all_versions has 0 length, then the
                 # the root ID does not exist at all.
-                # In this case, we have to return a 404
+                # In this case, we have to return a failure flag
                 # because we cannot create a version for
                 # a root ID that does not exist.
-                return 1
+                return 'non_root_id'
     
 
 
@@ -599,11 +603,21 @@ class DbUtils:
                 'status_code': '400',
                 'message': 'The request could not be processed with the parameters provided.'
             },
+            '400_bad_version_number': {
+                'request_status': 'FAILURE',
+                'status_code': '400',
+                'message': 'The provided version number for this object is not greater than the number that would be generated automatically and therefore the request to publish was denied.'
+            },
             '400_non_publishable_object': {
                 'request_status': 'FAILURE',
                 'status_code': '400',
                 'message': 'The object provided was not valid against the schema provided.  See key \'errors\' for specifics of the non-compliance.',
                 'errors': parameters['errors']
+            },
+            '400_non_root_id': {
+                'request_status': 'FAILURE',
+                'status_code': '400',
+                'message': 'The provided object ID does not contain a URI with a valid prefix.'
             },
             '401_prefix_unauthorized': {
                 'request_status': 'FAILURE',
@@ -751,30 +765,43 @@ class DbUtils:
         else:
 
             # An object ID was provided, so go straight to publishing.
+
+            # Create the contents field.
+            published['contents'] = publishable.contents
+
+            # Set the object ID.
+            published['object_id'] =  publishable_id
             
-            # ...
+            # Make sure to create the object ID field in the BCO.
+            published['contents']['object_id'] = publishable_id
 
-            # # Django wants a primary key for the Group...
-            # published['owner_group'] = og
+            # Django wants a primary key for the Group...
+            published['owner_group'] = og
 
-            # # Django wants a primary key for the User...
-            # published['owner_user'] = ou
+            # Django wants a primary key for the User...
+            published['owner_user'] = ou
 
-            # # The prefix is passed through.
-            # published['prefix'] = prfx
+            # The prefix is passed through.
+            published['prefix'] = prfx
 
-            # # Schema is hard-coded for now...
-            # published['schema'] = 'IEEE'
+            # Schema is hard-coded for now...
+            published['schema'] = 'IEEE'
 
-            # published['state'] = 'PUBLISHED'
+            # Mark the object as published.
+            published['state'] = 'PUBLISHED'
 
-            # # Publish.
-            # self.write_object(
-            #     p_app_label = 'api', 
-            #     p_model_name = 'bco',
-            #     p_fields = ['contents', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
-            #     p_data = publishable
-            # )
+            # Publish.
+            self.write_object(
+                p_app_label = 'api', 
+                p_model_name = 'bco',
+                p_fields = ['contents', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
+                p_data = publishable
+            )
+
+            # Successfuly saved the object.
+            return {
+                'published_id': published['object_id']
+            }
             
 
 
