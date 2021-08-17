@@ -132,7 +132,7 @@ def POST_api_objects_publish(
 					# Published object owner automatically has publish
 					# permissions, but we need to check for the publish
 					# permission otherwise.
-					if user.pk == objected.owner_user.pk or 'publish_' + publish_object['object_id'] in all_permissions:
+					if user.pk == objected.owner_user.pk or 'publish_new_version_' + publish_object['object_id'] in all_permissions:
 
 						# We need to check that the provided object ID
 						# complies with the versioning rules.

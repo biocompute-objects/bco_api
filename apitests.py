@@ -1248,6 +1248,8 @@ def main(
     #
     # source_id is used when providing a custom version number.
     # prefix and object_id are mutually exclusive keys.
+
+    # Require prefix
     pretty_output(
         hostname = hostname,
         json_send = {

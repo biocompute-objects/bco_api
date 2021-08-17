@@ -90,6 +90,7 @@ def POST_api_objects_drafts_publish(
 					objected
 				)
 				
+				# TODO: replace with guardian has_perm?
 				if user.pk == objected.owner_user.pk or 'publish_' + publish_object['draft_id'] in all_permissions:
 
 					# The draft ID exists and the requestor has the right permissions.
@@ -150,63 +151,77 @@ def POST_api_objects_drafts_publish(
 						
 						else:
 
-							# We need to check that the provided object ID
-							# complies with the versioning rules.
-							versioned = db.check_version_rules(
-								published_id = publish_object['published_id']
-							)
-
-							# If we get a dictionary back, that means we have
-							# a usable object ID.  Otherwise, something went wrong
-							# with trying to use the provided object ID.
-							if type(versioned) is dict:
-
-								# We now have the published_id to write with.
-								published = db.publish(
-									og = Group.objects.get(name = objected.owner_user.username).pk,
-									ou = objected.owner_user.pk,
-									prfx = standardized,
-									publishable = objected,
-									publishable_id = versioned
+							# Published object owner automatically has publish
+							# permissions, but we need to check for the publish
+							# permission otherwise.
+							if user.pk == objected.owner_user.pk or 'publish_new_version_' + publish_object['object_id'] in all_permissions:
+							
+								# We need to check that the provided object ID
+								# complies with the versioning rules.
+								versioned = db.check_version_rules(
+									published_id = publish_object['published_id']
 								)
 
-								# Did the publishing go well?
-								if type(published) is dict:
+								# If we get a dictionary back, that means we have
+								# a usable object ID.  Otherwise, something went wrong
+								# with trying to use the provided object ID.
+								if type(versioned) is dict:
 
-									# Update the request status.
-									returning.append(
-										db.messages(
-											parameters = {
-												'published_id': versioned
-											}
-										)['200_OK_object_publish']
+									# We now have the published_id to write with.
+									published = db.publish(
+										og = Group.objects.get(name = user.username).pk,
+										ou = user.pk,
+										prfx = standardized,
+										publishable = objected,
+										publishable_id = versioned
 									)
 
-									# Lastly, if we were given the directive to delete
-									# the draft on publish, process that.
+									# Did the publishing go well?
+									if type(published) is dict:
 
-									# Does the requestor have delete permissions on
-									# the object?
-									if 'delete_draft' in publish_object:
-										if publish_object['delete_draft'] == 'True' and 'delete_' + publish_object['draft_id'] in all_permissions:
-											objected.delete()
-							
+										# Update the request status.
+										returning.append(
+											db.messages(
+												parameters = {
+													'published_id': versioned
+												}
+											)['200_OK_object_publish']
+										)
+
+										# Lastly, if we were given the directive to delete
+										# the draft on publish, process that.
+
+										# Does the requestor have delete permissions on
+										# the object?
+										if 'delete_draft' in publish_object:
+											if publish_object['delete_draft'] == 'True' and 'delete_' + publish_object['draft_id'] in all_permissions:
+												objected.delete()
+								
+								else:
+
+									# Either the object wasn't found
+									# or an invalid version number was provided.
+									if versioned == 'bad_version_number':
+										returning.append(
+											db.messages(
+												parameters = {}
+											)['400_bad_version_number']
+										)
+									elif versioned == 'non_root_id':
+										returning.append(
+											db.messages(
+												parameters = {}
+											)['400_non_root_id']
+										)
+						
 							else:
 
-								# Either the object wasn't found
-								# or an invalid version number was provided.
-								if versioned == 'bad_version_number':
-									returning.append(
-										db.messages(
-											parameters = {}
-										)['400_bad_version_number']
-									)
-								elif versioned == 'non_root_id':
-									returning.append(
-										db.messages(
-											parameters = {}
-										)['400_non_root_id']
-									)
+								# Insufficient permissions.
+								returning.append(
+									db.messages(
+										parameters = {}
+									)['403_insufficient_permissions']
+								)
 					
 					else:
 					

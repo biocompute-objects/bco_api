@@ -686,6 +686,9 @@ class DbUtils:
         # A new published object or an existing one?
         if publishable_id == 'new':
 
+            # TODO: put new object ID logic in its own function
+            # like check_version_rules()...
+            
             # Define a variable which will hold the constructed name.
             constructed_name = ''
 

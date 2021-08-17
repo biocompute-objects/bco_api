@@ -535,17 +535,17 @@ def create_object_perms(
 				# use the object ID to make new versions of the published
 				# object.
 				Permission.objects.create(
-						name = 'Can publish',
+						name = 'Can publish a new version of an existing published object',
 						content_type = ContentType.objects.get(
 							app_label = 'api',
 							model = 'bco'
 						),
-						codename = 'can_publish'
+						codename = 'publish_new_version_' + instance.object_id
 					)
 				
 				# Only the object owner has default permissions to publish
 				# subsequent versions...
-				
+
 		except PermErrors.IntegrityError:
 
 			# The permissions already exist.			
