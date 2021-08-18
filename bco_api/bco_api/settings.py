@@ -80,7 +80,7 @@ if(server_config['REQUESTS_FROM']['public'].strip() == 'false'):
     
 elif(server_config['REQUESTS_FROM']['public'].strip() == 'true'):
 
-    ALLOWED_HOSTS = ['*']
+    ALLOWED_HOSTS = [server_config['HOSTNAMES']['prod_names'].split(',')[0],'*']
     CORS_ORIGIN_ALLOW_ALL = True
 
 # Use the built-in REST framework.
