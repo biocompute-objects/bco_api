@@ -1,9 +1,6 @@
 # For interacting with the database
 from ..utilities import DbUtils
 
-# For getting the model
-from django.apps import apps
-
 # For the user lookup
 from django.contrib.auth.models import User
 
