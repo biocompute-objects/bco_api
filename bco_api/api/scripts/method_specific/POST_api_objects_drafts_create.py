@@ -129,6 +129,8 @@ def POST_api_objects_drafts_create(
 				# Give the creation object the prefix.
 				creation_object['prefix'] = standardized
 
+				creation_object['state'] = 'DRAFT'
+
 				# Write to the database.
 				db.write_object(
 					p_app_label = 'api', 

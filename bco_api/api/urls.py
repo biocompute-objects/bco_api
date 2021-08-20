@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiObjectsDraftsRead, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiObjectsDraftsPublish, ApiObjectsDraftsRead, ApiObjectsSearch, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectId, ObjectIdRootObjectIdVersion
 
 # For importing configuration files
 import configparser
@@ -13,6 +13,9 @@ PUBLISH_ONLY = server_config['PUBLISHONLY']['publishonly']
 
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
+
+# Retrieve a published object directly by its URI
+# (GET) <str:object_id_root>
 
 # Retrieve a published object directly by its URI
 # (GET) <str:object_id_root>/<str:object_id_version>
@@ -61,6 +64,9 @@ PUBLISH_ONLY = server_config['PUBLISHONLY']['publishonly']
 
 # Read draft objects
 # (POST) api/objects/drafts/read/
+
+# Search objects
+# (POST) api/objects/search
 
 # Get all objects for a given token
 # (POST) api/objects/token/
@@ -122,6 +128,10 @@ elif PUBLISH_ONLY == 'False':
             DraftObjectId.as_view()
         ),
         path(
+            '<str:object_id_root>', 
+            ObjectIdRootObjectId.as_view()
+        ),
+        path(
             '<str:object_id_root>/<str:object_id_version>', 
             ObjectIdRootObjectIdVersion.as_view()
         ),
@@ -165,12 +175,20 @@ elif PUBLISH_ONLY == 'False':
             ApiObjectsDraftsPermissionsSet.as_view()
         ),
         path(
+            'api/objects/drafts/publish/', 
+            ApiObjectsDraftsPublish.as_view()
+        ),
+        path(
             'api/objects/drafts/read/', 
             ApiObjectsDraftsRead.as_view()
         ),
         path(
             'api/objects/publish/', 
             ApiObjectsPublish.as_view()
+        ),
+        path(
+            'api/objects/search/',
+            ApiObjectsSearch.as_view()
         ),
         path(
             'api/objects/token/', 

@@ -124,7 +124,7 @@ def POST_api_objects_drafts_publish(
 								og = Group.objects.get(name = user.username).pk,
 								ou = user.pk,
 								prfx = standardized,
-								publishable = objected,
+								publishable = objected.contents,
 								publishable_id = 'new'
 							)
 
@@ -244,15 +244,16 @@ def POST_api_objects_drafts_publish(
 					)
 
 			else:
+				print(publish_object)
 
 				# Couldn't find the object.
 				returning.append(
 					db.messages(
 						parameters = {
-							'object_id': publish_object['object_id']
+							'object_id': publish_object['draft_id']
 						}
-					)
-				)['404_object_id']
+					)['404_object_id']
+				)
 			
 		else:
 			

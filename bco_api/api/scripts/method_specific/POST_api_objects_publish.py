@@ -98,9 +98,10 @@ def POST_api_objects_publish(
 						og = Group.objects.get(name = user.username).pk,
 						ou = user.pk,
 						prfx = standardized,
-						publishable = publish_object['contents'],
+						publishable = publish_object["contents"],
 						publishable_id = 'new'
 					)
+
 
 					# Did the publishing go well?
 					if type(published) is dict:

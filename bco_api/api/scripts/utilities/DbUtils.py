@@ -726,13 +726,13 @@ class DbUtils:
             prefix_counter = meta_table.objects.get(prefix = prfx)
 
             # Create the contents field.
-            published['contents'] = publishable.contents
+            published['contents'] = publishable
 
             # Create a new ID based on the prefix counter.
             published['object_id'] =  constructed_name + '_' + '{:06d}'.format(prefix_counter.n_objects) + '/1.0'
             
             # Make sure to create the object ID field in our draft.
-            published['contents']['object_id'] = constructed_name
+            published['contents']['object_id'] = published['object_id']
 
             # Django wants a primary key for the Group...
             published['owner_group'] = og
@@ -747,15 +747,16 @@ class DbUtils:
             published['schema'] = 'IEEE'
 
             published['state'] = 'PUBLISHED'
-
+            print(published)
             # Publish.
             self.write_object(
                 p_app_label = 'api', 
                 p_model_name = 'bco',
                 p_fields = ['contents', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
-                p_data = publishable
+                p_data = published
             )
 
+          
             # Update the meta information about the prefix.
             prefix_counter.n_objects = prefix_counter.n_objects + 1
             prefix_counter.save()
@@ -770,7 +771,7 @@ class DbUtils:
             # An object ID was provided, so go straight to publishing.
 
             # Create the contents field.
-            published['contents'] = publishable.contents
+            published['contents'] = publishable
 
             # Set the object ID.
             published['object_id'] =  publishable_id
@@ -864,3 +865,5 @@ class DbUtils:
             ).update(
                 contents = p_data['contents']
             )
+    def convert_id_form(oi_root):
+        return oi_root.split("_")[0] +  '{:06d}'.format(int(oi_root.split("_")[1]))
