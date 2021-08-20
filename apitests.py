@@ -1833,7 +1833,7 @@ def main(
     pretty_output(
         hostname = hostname,
         json_send = {
-            "POST_objects_publish": [
+            "POST_api_objects_publish": [
                 {
                     "contents": {},
                     "owner_group": "bco_drafter",
@@ -1856,7 +1856,7 @@ def main(
     published = pretty_output(
         hostname = hostname,
         json_send = {
-            "POST_objects_publish": [
+            "POST_api_objects_publish": [
                 {
                     "contents": {},
                     "owner_group": "bco_publishers",
@@ -1890,36 +1890,36 @@ def main(
         url = published[0]['object_id']
     )
 
-    # Try to publish a draft object that doesn't exist.
-    # published = pretty_output(
-    #     hostname = hostname,
-    #     json_send = {
-    #         "POST_objects_publish": [
-    #             {
-    #                 "object_id": "this_object_id_should_not_exist",
-    #                 "schema": "IEEE",
-    #                 "state": "PUBLISH",
-    #                 "table": "bco_publish",
-    #                 "owner_group": "bco_publishers"
-    #             }
-    #         ]
-    #     },
-    #     method = 'POST',
-    #     test_info = {
-    #         'description': 'Try to publish a draft object that doesn\'t exist.',
-    #         'expected_response_code': '200 OK',
-    #         'test_number': '17'
-    #     },
-    #     token = r_token_username['token'],
-    #     url = '/api/objects/publish/'
-    # )
+    #Try to publish a draft object that doesn't exist.
+    published = pretty_output(
+        hostname = hostname,
+        json_send = {
+            "POST_api_objects_drafts_publish": [
+                {
+                    "object_id": "this_object_id_should_not_exist",
+                    "schema": "IEEE",
+                    "state": "PUBLISH",
+                    "table": "bco_publish",
+                    "owner_group": "bco_publishers"
+                }
+            ]
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Try to publish a draft object that doesn\'t exist.',
+            'expected_response_code': '200 OK',
+            'test_number': '17'
+        },
+        token = r_token_username['token'],
+        url = '/api/objects/drafts/publish/'
+    )
     
     # Note that the table that a draft exists on and its corresponding
     # publish table do not have to be the same!
     pretty_output(
         hostname = hostname,
         json_send = {
-            "POST_objects_publish": [
+            "POST_api_objects_drafts_publish": [
                 {
                     "object_id": "http://127.0.0.1:8000/BCO_DRAFT_209c55162dac44bb8c483cab7fc33a7c",
                     "schema": "IEEE",
@@ -1936,13 +1936,13 @@ def main(
             'test_number': '17'
         },
         token = r_token_username['token'],
-        url = '/api/objects/publish/'
+        url = '/api/objects/drafts/publish/'
     )
 
     pretty_output(
         hostname = hostname,
         json_send = {
-            "POST_objects_publish": [
+            "POST_objects_drafts_publish": [
                 {
                     "contents": {},
                     "object_id": "http://127.0.0.1:8000/BCO_3/1.5",
@@ -1960,13 +1960,13 @@ def main(
             'test_number': '17'
         },
         token = r_token_username['token'],
-        url = '/api/objects/publish/'
+        url = '/api/objects/drafts/publish/'
     )
 
     # Try to publish a draft object with destroying
     # the draft.
 
-
+   x
 
 
     # ----- non-object tests ----- #

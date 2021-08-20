@@ -729,7 +729,7 @@ class DbUtils:
             published['contents'] = publishable.contents
 
             # Create a new ID based on the prefix counter.
-            published['object_id'] =  constructed_name + '_' + str(prefix_counter.n_objects) + '/1.0'
+            published['object_id'] =  constructed_name + '_' + '{:06d}'.format(prefix_counter.n_objects) + '/1.0'
             
             # Make sure to create the object ID field in our draft.
             published['contents']['object_id'] = constructed_name

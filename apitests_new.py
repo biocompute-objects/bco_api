@@ -150,10 +150,13 @@ def pretty_output(
 def relationships(
     hn,
     oi,
-    un,
+    user1,
+    group1,
+    group2,
     wheel_key
 ):
 
+    print("------------Relationship Tests ------------")
     # Go through all possible user/group object permissions combinatorially.
 
     # Reset the object's permissions.
@@ -161,34 +164,57 @@ def relationships(
 
     # Set each test, then compare the object permission
     # results with what we would expect.
-    for perm in ['change', 'delete', 'view']:
+    for value in [1,2,3]:
+        for perm in ['change', 'delete', 'view']:
         
         # Don't share prefix permissions.
 
         # We can set an arbitrary prefix permission.
-        pretty_output(
-            hostname = hn,
-            json_send = {
-                'POST_api_prefixes_permissions_set': [
-                    {
-                        'group': [
-                            'bco_drafter'
-                        ],
-                        'permissions': [
-                            'view'
-                        ],
-                        'prefix': 'TEST',
-                        'username': [
-                            r_token_username_auxiliary_user['username']
-                        ],
-                    }
-                ],
-            },
-            method = 'POST',
-            test_info = {
-                'description': 'Set the prefix permissions for a user or a group.',
-                'expected_response_code': '200 OK'
-            },
-            token = r_token_username_auxiliary_user['token'],
-            url = '/api/prefixes/permissions/set/'
-        )
+            pretty_output(
+                hostname = hn,
+                json_send = {
+                    'POST_api_prefixes_permissions_set': [
+                        {
+                            'group': [
+                                'bco_drafter'
+                            ],
+                            'permissions': [
+                                'view'
+                            ],
+                            'prefix': 'TEST',
+                            'username': [
+                                user1['username']
+                            ],
+                        }
+                    ],
+                },
+                method = 'POST',
+                test_info = {
+                    'description': 'Set the prefix permissions for a user or a group.',
+                    'expected_response_code': '200 OK'
+                },
+                token = user1['token'],
+                url = '/api/prefixes/permissions/set/'
+            )
+
+    for possibly in [0, 1]:
+        for perm in ['change', 'delete', 'view']:
+            print("hi")
+                # Share prefix permissions
+            
+
+def superuser ():
+    print("info")
+
+def account():
+    print("info")
+
+def publishing():
+    print("info")
+
+def drafts():
+    print("info")
+
+
+def group():
+    print("info")

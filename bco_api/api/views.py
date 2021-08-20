@@ -17,7 +17,11 @@ from .scripts.method_specific.POST_api_objects_drafts_create import POST_api_obj
 from .scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
 from .scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
 from .scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
+from .scripts.method_specific.POST_api_objects_drafts_publish import POST_api_objects_drafts_publish
 from .scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
+
+
+from .scripts.method_specific.POST_api_objects_publish import POST_api_objects_publish
 
 from .scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
 from .scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
@@ -30,7 +34,7 @@ from .scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefi
 from .scripts.method_specific.GET_activate_account import GET_activate_account
 from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
 from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
-from .scripts.method_specific.POST_objects_publish import POST_objects_publish
+
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
 
 # For returning server information
@@ -52,7 +56,7 @@ from rest_framework import status
 
 # By-view permissions
 from rest_framework.permissions import IsAuthenticated
-from .permissions import RequestorInObjectOwnerGroup, RequestorInPrefixAdminsGroup, HasObjectGenericPermission, HasObjectChangePermission, HasObjectDeletePermission, HasObjectViewPermission, HasTableWritePermission
+from .permissions import RequestorInObjectOwnerGroup, RequestorInPrefixAdminsGroup, HasObjectGenericPermission, HasObjectChangePermission, HasObjectDeletePermission, HasObjectViewPermission
 
 # Message page
 # Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
@@ -432,62 +436,6 @@ class ApiObjectsDraftsModify(
 
 
 
-
-class ApiObjectsPublish(
-    APIView
-):
-
-    # Description
-    # -----------
-
-    # Publish an object.
-
-    # POST
-
-    # Permissions
-
-    # Note: We can't use the examples given in
-    # https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
-    # because our permissions system is not tied to
-    # the request type (DELETE, GET, PATCH, POST).
-    permission_classes = [IsAuthenticated, HasTableWritePermission]
-
-    def post(
-        self, 
-        request
-    ):
-
-        # checked is suppressed for the milestone.
-        
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-            
-            # Pass the request to the handling function
-            return(
-                POST_objects_publish(
-                    request
-                )
-            )
-        
-        else:
-
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
-            )
-
-
-
-
 class ApiObjectsDraftsPermissions(
     APIView
 ):
@@ -495,10 +443,7 @@ class ApiObjectsDraftsPermissions(
     # Description
     # -----------
 
-    # Get the permissions for an object.
-    # Requestor MUST have change, delete, or view 
-    # permissions on the object in order to get permissions for
-    # their groups.
+    # Set the permissions for an object.
 
     # POST
 
@@ -519,11 +464,9 @@ class ApiObjectsDraftsPermissions(
 
         if checked is None:
             
-            # Pass the request to the handling function
-            return(
-                POST_api_objects_drafts_permissions(
-                    request
-                )
+            # Call the handler.
+            POST_api_objects_drafts_permissions(
+                request
             )
         
         else:
@@ -580,6 +523,57 @@ class ApiObjectsDraftsPermissionsSet(
                 )
             )
 
+class ApiObjectsDraftsPublish(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Publish an object.
+
+    # POST
+
+    # Permissions
+
+    # Note: We can't use the examples given in
+    # https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
+    # because our permissions system is not tied to
+    # the request type (DELETE, GET, PATCH, POST).
+    permission_classes = [IsAuthenticated]
+
+    def post(
+        self, 
+        request
+    ):
+
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+            
+            # Pass the request to the handling function
+            return(
+                POST_api_objects_drafts_publish(
+                    request
+                )
+            )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
 
 
 
@@ -625,6 +619,58 @@ class ApiObjectsDraftsRead(
                 )
             )
 
+
+class ApiObjectsPublish(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Publish an object.
+
+    # POST
+
+    # Permissions
+
+    # Note: We can't use the examples given in
+    # https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
+    # because our permissions system is not tied to
+    # the request type (DELETE, GET, PATCH, POST).
+    permission_classes = [IsAuthenticated]
+
+    def post(
+        self, 
+        request
+    ):
+
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+            
+            # Pass the request to the handling function
+            return(
+                POST_api_objects_publish(
+                    request
+                )
+            )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
 
 
 
