@@ -37,7 +37,7 @@ from .scripts.method_specific.GET_activate_account import GET_activate_account
 from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
 from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from .scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
-from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
+from .scripts.method_specific.POST_api_objects_token import POST_api_objects_token
 
 # For returning server information
 from django.conf import settings
@@ -996,22 +996,10 @@ class ApiObjectsToken(
         # No schema for this request since only 
         # the Authorization header is required.
 
-        # Furthermore, if the token provided in the
-        # Authorization header is bad, DRF will kick
-        # back an invalid token response, so this section
-        # of code is redundant, but explanatory.
-        if 'Authorization' in request.headers:
-            
-            # Pass the request to the handling function
+        # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
-            return POST_object_listing_by_token(
-                token = request.META.get('HTTP_AUTHORIZATION')
-            )
-
-        else:
-
-            return Response(
-                status = status.HTTP_400_BAD_REQUEST
+            return POST_api_objects_token(
+                rqst = request
             )
 
 
@@ -1062,9 +1050,6 @@ class DraftObjectId(
     # Read an object by URI.
 
     # GET
-
-    # Permissions
-    permission_classes = [IsAuthenticated, HasObjectGenericPermission]
     
     def get(
         self, 
@@ -1075,61 +1060,11 @@ class DraftObjectId(
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).
 
-        # We can't serialize the object in GET_draft_object_by_id because
-        # we need the object "raw" to have its permissions checked.
-
-        # Get the object and check its permissions
-        objected = GET_draft_object_by_id(
-            request.build_absolute_uri()
+        # Pass straight to the handler.        
+        return GET_draft_object_by_id(
+            do_id = request.build_absolute_uri(),
+            rqst = request
         )
-
-        if objected is not None:
-
-            # Append the table and permission type to check for
-
-            # Assumes prefixes and table names are linked...
-            request.data['table_name'] = '_'.join(request.build_absolute_uri().split('/')[-1].split('_')[0:2]).lower()
-            request.data['perm_type'] = 'view'
-            
-            # Check for object-level permissions
-            self.check_object_permissions(
-                request, 
-                objected
-            )
-
-            # Serialize, then add some fields
-            serialized = json.loads(
-					serializers.serialize(
-                        'json', 
-                        [ objected, ]
-				    )
-			)
-			
-            serialized[0]['fields']['public_hostname'] = settings.PUBLIC_HOSTNAME
-            serialized[0]['fields']['human_readable_hostname'] = settings.HUMAN_READABLE_HOSTNAME
-
-            # Fix the owner group
-            serialized[0]['fields']['owner_group'] = Group.objects.get(id = serialized[0]['fields']['owner_group']).name
-
-            # Return JSON
-            # Source: https://stackoverflow.com/a/3289057/5029459
-            return(
-                Response(
-                    data = json.dumps(
-                        serialized
-                    ),
-                    status = status.HTTP_200_OK
-                )
-            )
-
-        else:
-
-            return(
-                Response(
-                    data = None,
-                    status = status.HTTP_403_FORBIDDEN
-                )
-            )
 
 
 

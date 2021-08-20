@@ -14,7 +14,7 @@ PUBLISH_ONLY = server_config['PUBLISHONLY']['publishonly']
 # Token-based authentication
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 
-# Retrieve a published object directly by its URI
+# Retrieve a published object directly by its URI (no version)
 # (GET) <str:object_id_root>
 
 # Retrieve a published object directly by its URI
