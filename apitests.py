@@ -1293,6 +1293,36 @@ def main(
         url = '/api/objects/publish/'
     )
 
+    # Search for some objects
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            "POST_api_objects_search": [
+                {
+                    "AND": {
+                        "OR": {
+                            "owner_user": ['user_1', 'user_2', 'etc...'],
+                            "owner_group": ['user_1', 'user_2', 'etc...']
+                        },
+                        "XOR": {
+                            "object_id": 'r{https://localhost:8000/BCO_DRAFT}'
+                        }
+                    },
+                    "full": "False"
+                }
+            ]
+        },
+        method = 'POST',
+        pull_key = True,
+        test_info = {
+            'description': 'Get draft permissions.',
+            'expected_response_code': '200 OK',
+            'test_number': '8'
+        },
+        token = r_token_username['token'],
+        url = '/api/objects/drafts/permissions/'
+    )
+
     print(x)
 
 

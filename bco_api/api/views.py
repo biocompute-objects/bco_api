@@ -19,6 +19,8 @@ from .scripts.method_specific.POST_api_objects_drafts_permissions import POST_ap
 from .scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
 from .scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
 
+from .scripts.method_specific.POST_api_objects_search import POST_api_objects_search
+
 from .scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
 from .scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
 from .scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
@@ -30,7 +32,7 @@ from .scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefi
 from .scripts.method_specific.GET_activate_account import GET_activate_account
 from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
 from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
-from .scripts.method_specific.POST_objects_publish import POST_objects_publish
+from .scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
 from .scripts.method_specific.POST_object_listing_by_token import POST_object_listing_by_token
 
 # For returning server information
@@ -628,6 +630,51 @@ class ApiObjectsDraftsRead(
 
 
 
+class ApiObjectsSearch(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Search for objects
+
+    # POST
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # checked is suppressed for the milestone.
+        
+        # Check the request
+        # checked = RequestUtils.RequestUtils().check_request_templates(
+        #     method = 'POST', 
+        #     request = request.data
+        # )
+
+        checked = None
+
+        if checked is None:
+            
+            # Call the handler.
+            POST_api_objects_search(
+                request
+            )
+        
+        else:
+
+            return(
+                Response(
+                    data = checked,
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+            )
+
+
+
+
 class ApiPrefixesCreate(
     APIView
 ):
@@ -1042,6 +1089,38 @@ class DraftObjectId(
 
 # Allow anyone to view published objects.
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
+class ObjectIdRootObjectId(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Read an object by URI.
+
+    # GET
+
+    # Anyone can view a published object
+    authentication_classes = []
+    permission_classes = []
+
+    def get(
+        self, 
+        request, 
+        object_id_root
+    ):
+
+        return(
+            GET_published_object_by_id(
+                object_id_root
+            )
+        )
+
+
+
+
+# Allow anyone to view published objects.
+# Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 class ObjectIdRootObjectIdVersion(
     APIView
 ):
@@ -1065,7 +1144,7 @@ class ObjectIdRootObjectIdVersion(
     ):
 
         return(
-            GET_published_object_by_id(
+            GET_published_object_by_id_with_version(
                 object_id_root, 
                 object_id_version
             )
