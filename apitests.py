@@ -1236,6 +1236,23 @@ def main(
         url = '/api/objects/drafts/permissions/set/'
     )
 
+    # Get all the user's objects by token.
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            'POST_api_objects_drafts_token': {}
+        },
+        method = 'POST',
+        test_info = {
+            'description': 'Get the objects available to a user based on their token.',
+            'expected_response_code': '200 OK',
+            'test_number': '2'
+        },
+        token = r_token_username['token'],
+        url = '/api/objects/drafts/token/'
+    )
+
+
 
     # Publish.
 
@@ -1321,7 +1338,7 @@ def main(
     #     url = '/api/objects/drafts/permissions/'
     # )
 
-    # print(x)
+    print(x)
 
 
 

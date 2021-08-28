@@ -282,6 +282,30 @@ class UserUtils:
 
 
 
+
+    # Prefixes for a given user.
+    def prefixes_for_user(
+        self,
+        user_object
+    ):
+
+        # Simple function to return prefixes
+        # that a user has ANY permission on.
+
+        # Recall that having any permission on
+        # a prefix automatically means viewing
+        # permission.
+        return list(
+            set(
+                [
+                    i.split('_')[1] for i in user_object.get_all_permissions()
+                ]
+            )
+        )
+
+
+
+
     # Prefix permissions for a given user.
     def prefix_perms_for_user(
         self,

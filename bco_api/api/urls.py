@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiObjectsDraftsPublish, ApiObjectsDraftsRead, ApiObjectsSearch, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiObjectsDraftsPublish, ApiObjectsDraftsRead, ApiObjectsSearch, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsDraftsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectId, ObjectIdRootObjectIdVersion
 
 # For importing configuration files
 import configparser
@@ -65,11 +65,11 @@ PUBLISH_ONLY = server_config['PUBLISHONLY']['publishonly']
 # Read draft objects
 # (POST) api/objects/drafts/read/
 
+# Get all draft objects for a given token
+# (POST) api/objects/drafts/token/
+
 # Search objects
 # (POST) api/objects/search
-
-# Get all objects for a given token
-# (POST) api/objects/token/
 
 # Create prefixes
 # (POST) api/prefixes/create/
@@ -183,16 +183,16 @@ elif PUBLISH_ONLY == 'False':
             ApiObjectsDraftsRead.as_view()
         ),
         path(
+            'api/objects/drafts/token/', 
+            ApiObjectsDraftsToken.as_view()
+        ),
+        path(
             'api/objects/publish/', 
             ApiObjectsPublish.as_view()
         ),
         path(
             'api/objects/search/',
             ApiObjectsSearch.as_view()
-        ),
-        path(
-            'api/objects/token/', 
-            ApiObjectsToken.as_view()
         ),
         path(
             'api/prefixes/create/',

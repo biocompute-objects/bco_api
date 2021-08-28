@@ -3,7 +3,7 @@
 # For instructions on calling class methods from other classes, see https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
 
 # For helper functions
-from .scripts.utilities import RequestUtils, UserUtils
+from .scripts.utilities import UserUtils
 
 # Request-specific methods
 from .scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
@@ -19,6 +19,7 @@ from .scripts.method_specific.POST_api_objects_drafts_permissions import POST_ap
 from .scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
 from .scripts.method_specific.POST_api_objects_drafts_publish import POST_api_objects_drafts_publish
 from .scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
+from .scripts.method_specific.POST_api_objects_drafts_token import POST_api_objects_drafts_token
 
 from .scripts.method_specific.POST_api_objects_search import POST_api_objects_search
 
@@ -37,19 +38,6 @@ from .scripts.method_specific.GET_activate_account import GET_activate_account
 from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
 from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from .scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
-from .scripts.method_specific.POST_api_objects_token import POST_api_objects_token
-
-# For returning server information
-from django.conf import settings
-
-# For pulling the user ID directly (see below for
-# the note on the documentation error in django-rest-framework)
-from django.contrib.auth.models import Group
-
-from django.core import serializers
-
-# Simple JSON print
-import json
 
 # Views
 from rest_framework.views import APIView
@@ -512,7 +500,7 @@ class ApiObjectsDraftsPermissionsSet(
         if checked is None:
             
             # Call the handler.
-            POST_api_objects_drafts_permissions_set(
+            return POST_api_objects_drafts_permissions_set(
                 request
             )
         
@@ -620,6 +608,36 @@ class ApiObjectsDraftsRead(
                     status = status.HTTP_400_BAD_REQUEST
                 )
             )
+
+
+
+
+class ApiObjectsDraftsToken(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Get all the draft objects for a given token.
+
+    # POST
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # No schema for this request since only 
+        # the Authorization header is required.
+
+        # Pass the request to the handling function
+            # Source: https://stackoverflow.com/a/31813810
+            return POST_api_objects_drafts_token(
+                rqst = request
+            )
+
+
 
 
 class ApiObjectsPublish(
@@ -972,34 +990,6 @@ class ApiPrefixesUpdate(
                     data = checked,
                     status = status.HTTP_400_BAD_REQUEST
                 )
-            )
-
-
-
-
-class ApiObjectsToken(
-    APIView
-):
-
-    # Description
-    # -----------
-
-    # Read an object.
-
-    # POST
-
-    def post(
-        self, 
-        request
-    ):
-        
-        # No schema for this request since only 
-        # the Authorization header is required.
-
-        # Pass the request to the handling function
-            # Source: https://stackoverflow.com/a/31813810
-            return POST_api_objects_token(
-                rqst = request
             )
 
 

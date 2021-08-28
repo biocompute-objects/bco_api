@@ -4,9 +4,6 @@ from ...models import bco
 # User information
 from ..utilities import UserUtils
 
-# Object-level permissions
-from guardian.shortcuts import has_perm
-
 # Responses
 from rest_framework import status
 from rest_framework.response import Response

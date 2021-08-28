@@ -225,7 +225,10 @@ class prefixes(
 
 
 
+# def get_first_name(self):
+#     return self.first_name
 
+# User.add_to_class("__str__", get_first_name)
 # --- Receivers --- #
 
 
