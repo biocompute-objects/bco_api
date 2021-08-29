@@ -70,18 +70,18 @@ def populate_models(sender, **kwargs):
     else:
         
         # Django wants a primary key for the Group...
-        group_pk = Group.objects.get(name = 'bco_publisher').pk
+        group = Group.objects.get(name = 'bco_publisher').name
 
         # Django wants a primary key for the User...
-        user_pk = User.objects.get(username = 'bco_publisher').pk
+        user = User.objects.get(username = 'bco_publisher').username
         
         DbUtils.DbUtils().write_object(
             p_app_label = 'api',
             p_model_name = 'prefixes',
             p_fields = ['owner_group', 'owner_user', 'prefix'],
             p_data = {
-                'owner_group': group_pk,
-                'owner_user': user_pk,
+                'owner_group': group,
+                'owner_user': user,
                 'prefix': 'BCO'
             }
         )

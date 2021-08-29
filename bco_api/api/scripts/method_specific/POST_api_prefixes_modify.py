@@ -71,8 +71,8 @@ def POST_api_prefixes_modify(
 				prefixed = prefixes.objects.get(
 					prefix = standardized
 				)
-				prefixed.owner_group = Group.objects.get(pk = user_info['group_pk'])
-				prefixed.owner_user = User.objects.get(pk = user_info['user_pk'])
+				prefixed.owner_group = Group.objects.get(name = user_info['group'])
+				prefixed.owner_user = User.objects.get(username = user_info['user'])
 				prefixed.save()
 
 				# Created the prefix.

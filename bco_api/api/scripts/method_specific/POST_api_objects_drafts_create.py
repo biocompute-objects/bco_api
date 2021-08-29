@@ -4,18 +4,11 @@ from ..utilities import DbUtils
 # User information
 from ..utilities import UserUtils
 
-# For getting the model.
-from django.apps import apps
-
 # For getting object naming information.
 from django.conf import settings
 
 # For writing objects to the database.
 from django.contrib.auth.models import Group
-
-# Permissions
-# Source: https://django-guardian.readthedocs.io/en/stable/api/guardian.shortcuts.html#assign-perm
-from guardian.shortcuts import assign_perm
 
 # Responses
 from rest_framework import status
@@ -121,10 +114,10 @@ def POST_api_objects_drafts_create(
 				owner_group = Group.objects.get(name = creation_object['owner_group'])
 				
 				# Django wants a primary key for the Group...
-				creation_object['owner_group'] = owner_group.pk
+				creation_object['owner_group'] = owner_group.name
 
 				# Set the owner user (the requestor).
-				creation_object['owner_user'] = user.pk
+				creation_object['owner_user'] = user.username
 
 				# Give the creation object the prefix.
 				creation_object['prefix'] = standardized

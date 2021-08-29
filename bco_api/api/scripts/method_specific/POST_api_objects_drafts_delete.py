@@ -81,7 +81,7 @@ def POST_api_objects_drafts_delete(
 					objected
 				)
 				
-				if user.pk == objected.owner_user.pk or 'delete_' + standardized in all_permissions:
+				if user.username == objected.owner_user.username or 'delete_' + standardized in all_permissions:
 
 					# Delete the object.
 					objected.delete()

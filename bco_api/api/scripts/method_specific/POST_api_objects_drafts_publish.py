@@ -91,7 +91,7 @@ def POST_api_objects_drafts_publish(
 				)
 				
 				# TODO: replace with guardian has_perm?
-				if user.pk == objected.owner_user.pk or 'publish_' + publish_object['draft_id'] in all_permissions:
+				if user.username == objected.owner_user.username or 'publish_' + publish_object['draft_id'] in all_permissions:
 
 					# The draft ID exists and the requestor has the right permissions.
 
@@ -121,8 +121,8 @@ def POST_api_objects_drafts_publish(
 							# owner user are "the same".  That is, the
 							# owner group is the one derived from the owner user.
 							published = db.publish(
-								og = Group.objects.get(name = user.username).pk,
-								ou = user.pk,
+								og = Group.objects.get(name = user.username).name,
+								ou = user.username,
 								prfx = standardized,
 								publishable = objected.contents,
 								publishable_id = 'new'
@@ -154,7 +154,7 @@ def POST_api_objects_drafts_publish(
 							# Published object owner automatically has publish
 							# permissions, but we need to check for the publish
 							# permission otherwise.
-							if user.pk == objected.owner_user.pk or 'publish_new_version_' + publish_object['object_id'] in all_permissions:
+							if user.username == objected.owner_user.username or 'publish_new_version_' + publish_object['object_id'] in all_permissions:
 							
 								# We need to check that the provided object ID
 								# complies with the versioning rules.
@@ -169,8 +169,8 @@ def POST_api_objects_drafts_publish(
 
 									# We now have the published_id to write with.
 									published = db.publish(
-										og = Group.objects.get(name = user.username).pk,
-										ou = user.pk,
+										og = Group.objects.get(name = user.username).name,
+										ou = user.username,
 										prfx = standardized,
 										publishable = objected,
 										publishable_id = versioned

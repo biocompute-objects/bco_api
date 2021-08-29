@@ -82,7 +82,7 @@ def POST_api_objects_drafts_read(
 					objected
 				)
 				
-				if user.pk == objected.owner_user.pk or 'view_' + standardized in all_permissions:
+				if user.username == objected.owner_user.username or 'view_' + standardized in all_permissions:
 
 					# Read the object.
 					returning.append(

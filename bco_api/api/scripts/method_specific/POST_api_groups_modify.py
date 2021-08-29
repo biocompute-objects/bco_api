@@ -57,7 +57,7 @@ def POST_api_groups_modify(
 
 			# Get the group and its information.
 			grouped = Group.objects.get(name = standardized)
-			group_information = group_info.objects.get(group = grouped.pk)
+			group_information = group_info.objects.get(group = grouped.name)
 			
 			# Check that the requestor is the group admin.
 			if requestor_info.username == group_information.owner_user.username:

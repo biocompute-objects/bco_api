@@ -72,8 +72,8 @@ def POST_api_prefixes_create(
 						p_model_name = 'prefixes',
 						p_fields = ['owner_group', 'owner_user', 'prefix'],
 						p_data = {
-							'owner_group': user_info['group_pk'],
-							'owner_user': user_info['user_pk'],
+							'owner_group': user_info['group'],
+							'owner_user': user_info['user'],
 							'prefix': standardized
 						}
 					)

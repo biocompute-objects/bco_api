@@ -86,7 +86,7 @@ def POST_api_objects_drafts_permissions(
 					objected
 				)
 				
-				if user.pk == objected.owner_user.pk or 'view_' + standardized in all_permissions:
+				if user.username == objected.owner_user.username or 'view_' + standardized in all_permissions:
 
 					# Kick back the permissions,
 					# *** but only for this requestor (user) ***.
@@ -108,7 +108,7 @@ def POST_api_objects_drafts_permissions(
 
 					# Get user's groups.
 					user_groups = list(
-						Group.objects.filter(user = user.pk).values_list(
+						Group.objects.filter(user = user.username).values_list(
 							'name', 
 							flat = True
 						)

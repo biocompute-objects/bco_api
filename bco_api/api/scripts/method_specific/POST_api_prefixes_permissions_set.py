@@ -57,7 +57,7 @@ def POST_api_prefixes_permissions_set(
 		if standardized in available_prefixes:
 
 			# The prefix exists, but is the requestor the owner?
-			if uu.check_user_owns_prefix(un = user.pk, prfx = standardized) == True:
+			if uu.check_user_owns_prefix(un = user.username, prfx = standardized) == True:
 
 				# Split out the permissions assignees into users and groups.
 				assignees = {

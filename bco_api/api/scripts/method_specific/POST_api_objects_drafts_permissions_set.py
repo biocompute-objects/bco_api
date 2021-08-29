@@ -88,7 +88,7 @@ def POST_api_objects_drafts_permissions_set(
 					objected
 				)
 				
-				if user.pk == objected.owner_user.pk or 'change_' + objected.object_id in all_permissions:
+				if user.username == objected.owner_user.username or 'change_' + objected.object_id in all_permissions:
 
 					if 'actions' in permission_object:
 

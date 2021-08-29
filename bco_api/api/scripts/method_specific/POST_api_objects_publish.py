@@ -95,8 +95,8 @@ def POST_api_objects_publish(
 					# owner user are "the same".  That is, the
 					# owner group is the one derived from the owner user.
 					published = db.publish(
-						og = Group.objects.get(name = user.username).pk,
-						ou = user.pk,
+						og = Group.objects.get(name = user.username).name,
+						ou = user.username,
 						prfx = standardized,
 						publishable = publish_object["contents"],
 						publishable_id = 'new'
@@ -133,7 +133,7 @@ def POST_api_objects_publish(
 					# Published object owner automatically has publish
 					# permissions, but we need to check for the publish
 					# permission otherwise.
-					if user.pk == objected.owner_user.pk or 'publish_new_version_' + publish_object['object_id'] in all_permissions:
+					if user.username == objected.owner_user.username or 'publish_new_version_' + publish_object['object_id'] in all_permissions:
 
 						# We need to check that the provided object ID
 						# complies with the versioning rules.
@@ -152,8 +152,8 @@ def POST_api_objects_publish(
 							# owner user are "the same".  That is, the
 							# owner group is the one derived from the owner user.
 							published = db.publish(
-								og = Group.objects.get(name = user.username).pk,
-								ou = user.pk,
+								og = Group.objects.get(name = user.username).name,
+								ou = user.username,
 								prfx = standardized,
 								publishable = publish_object['contents'],
 								publishable_id = versioned

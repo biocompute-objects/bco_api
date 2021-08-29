@@ -74,13 +74,15 @@ class bco(
 	# The object owner (should be a group).
 	owner_group = models.ForeignKey(
 		Group, 
-		on_delete = models.CASCADE
+		on_delete = models.CASCADE,
+		to_field = 'name'
 	)
 
 	# The object owner (should be a user).
 	owner_user = models.ForeignKey(
 		User,
-		on_delete = models.CASCADE
+		on_delete = models.CASCADE,
+		to_field = 'username'
 	)
 
 
@@ -129,7 +131,8 @@ class group_info(
 	# The group
 	group = models.ForeignKey(
 		Group, 
-		on_delete = models.CASCADE
+		on_delete = models.CASCADE,
+		to_field = 'name'
 	)
 	
 	# Size limit for the number of members
@@ -141,7 +144,8 @@ class group_info(
 	# Which user owns it?
 	owner_user = models.ForeignKey(
 		User,
-		on_delete = models.CASCADE
+		on_delete = models.CASCADE,
+		to_field = 'username'
 	)
 
 
@@ -210,13 +214,15 @@ class prefixes(
 	# Each prefix has exactly one group owner.
 	owner_group = models.ForeignKey(
 		Group, 
-		on_delete = models.CASCADE
+		on_delete = models.CASCADE,
+		to_field = 'name'
 	)
 
 	# Each prefix has exactly one user owner.
 	owner_user = models.ForeignKey(
 		User, 
-		on_delete = models.CASCADE
+		on_delete = models.CASCADE,
+		to_field = 'username'
 	)
 	
 	prefix = models.CharField(
@@ -525,10 +531,12 @@ def create_object_perms(
 
 					# guardian can't take a string name here for
 					# some reason...
+					for i in dir(instance):
+						print(i)
 					if p == 'view_' + instance.object_id:
 						assign_perm(
 							perm = Permission.objects.get(codename = p),
-							user_or_group = Group.objects.get(id = instance.owner_group_id),
+							user_or_group = Group.objects.get(name = instance.owner_group),
 							obj = instance
 						)
 			

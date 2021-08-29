@@ -80,20 +80,20 @@ class UserUtils:
         try:
 
             # Django wants a primary key for the User...
-            user_pk = User.objects.get(username = un).pk
+            user = User.objects.get(username = un).username
             
             try:
             
                 # Django wants a primary key for the Group...
-                group_pk = Group.objects.get(name = gn).pk
+                group = Group.objects.get(name = gn).name
 
                 # Finally, check that the user is in the group.
                 if gn in list(User.objects.get(username = un).groups.values_list('name', flat = True)):
                     
-                    # Kick back the user and group pks.
+                    # Kick back the user and group info.
                     return {
-                        'user_pk': user_pk,
-                        'group_pk': group_pk
+                        'user': user,
+                        'group': group
                     }
                 
                 else:

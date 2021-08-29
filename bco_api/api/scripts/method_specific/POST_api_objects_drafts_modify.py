@@ -91,17 +91,9 @@ def POST_api_objects_drafts_modify(
 					objected
 				)
 
-				print('all_permissions')
-				print(all_permissions)
-
-				print('user.pk')
-				print(user.pk)
-				print('object.owner_user')
-				print(objected.owner_user)
-
 				# TODO: add permission setting view...
 				# if user.pk == object.owner_user or 'change_' + standardized in all_permissions:
-				if user.pk == objected.owner_user.pk or 'add_' + standardized in all_permissions:
+				if user.username == objected.owner_user.username or 'add_' + standardized in all_permissions:
 
 					# User does *NOT* have to be in the owner group!
 					# to assign the object's group owner.
