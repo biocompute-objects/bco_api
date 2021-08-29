@@ -531,8 +531,6 @@ def create_object_perms(
 
 					# guardian can't take a string name here for
 					# some reason...
-					for i in dir(instance):
-						print(i)
 					if p == 'view_' + instance.object_id:
 						assign_perm(
 							perm = Permission.objects.get(codename = p),

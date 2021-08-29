@@ -68,9 +68,31 @@ def POST_api_objects_drafts_token(
 		prefix__in = user_prefixes,
 		state = 'DRAFT'
 	)
+
+	# Assume all the values are supposed to be returned.
+	# Source: https://stackoverflow.com/a/51733590
+	return_values = ['contents', 'object_class', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state']
+
+	# If there are any valid keys in the request,
+	# use them to narrow down the fields.
+
+	# Redunant logic here since the schema check
+	# would catch this...
+	if 'fields' in rqst.data['POST_api_objects_drafts_token']:
+
+		# Take the fields and find their intersection with
+		# the available fields.
+		# Source: https://stackoverflow.com/a/3697438
+		common_fields = list(
+			set(rqst.data['POST_api_objects_drafts_token']['fields']) &
+			set(return_values)
+		)
+
+		if len(common_fields) > 0:
+			return_values = common_fields
 	
 	# Get the user's objects.
 	return Response(
-		data = user_objects.intersection(prefix_objects).values(),
+		data = user_objects.intersection(prefix_objects).values(*return_values),
 		status = status.HTTP_200_OK
 	)

@@ -1240,7 +1240,13 @@ def main(
     pretty_output(
         hostname = hostname,
         json_send = {
-            'POST_api_objects_drafts_token': {}
+            'POST_api_objects_drafts_token': {
+                'fields': [
+                    'contents',
+                    'object_id',
+                    'owner_user'
+                ]
+            }
         },
         method = 'POST',
         test_info = {
