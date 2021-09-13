@@ -1,5 +1,5 @@
 # Utilities
-from os import posix_fadvise
+
 from ...models import meta_table
 
 # Checking versioning rules
