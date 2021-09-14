@@ -1,5 +1,4 @@
 # Utilities
-from os import posix_fadvise
 from ...models import meta_table
 
 # Checking versioning rules
@@ -27,6 +26,9 @@ from django.contrib.contenttypes.models import ContentType
 
 # For checking for and creating users.
 from django.contrib.auth.models import Group, User
+
+# For recording the creation time.
+from django.utils import timezone
 
 # For user IDs.
 import random
@@ -569,7 +571,7 @@ class DbUtils:
             '200_OK_object_publish': {
                 'request_status': 'SUCCESS', 
                 'status_code': '200',
-                'message': 'Succesfully published  \'' + parameters['published_id'] + '\' on the server.',
+                'message': 'Successfully published  \'' + parameters['published_id'] + '\' on the server.',
                 'published_id': parameters['published_id']
             },
             '200_prefix_update': {
@@ -746,13 +748,17 @@ class DbUtils:
             # Schema is hard-coded for now...
             published['schema'] = 'IEEE'
 
+            # This is PUBLISHED.
             published['state'] = 'PUBLISHED'
-            print(published)
+
+            # Set the datetime properly.
+            published['last_update'] = timezone.now()
+            
             # Publish.
             self.write_object(
                 p_app_label = 'api', 
                 p_model_name = 'bco',
-                p_fields = ['contents', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
+                p_fields = ['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                 p_data = published
             )
 
@@ -794,11 +800,14 @@ class DbUtils:
             # Mark the object as published.
             published['state'] = 'PUBLISHED'
 
+            # Set the datetime properly.
+            published['last_update'] = timezone.now()
+
             # Publish.
             self.write_object(
                 p_app_label = 'api', 
                 p_model_name = 'bco',
-                p_fields = ['contents', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
+                p_fields = ['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                 p_data = publishable
             )
 

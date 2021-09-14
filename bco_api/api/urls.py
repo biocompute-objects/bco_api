@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiObjectsDraftsPublish, ApiObjectsDraftsRead, ApiObjectsSearch, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsDraftsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectId, ObjectIdRootObjectIdVersion
+from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiObjectsDraftsPublish, ApiObjectsDraftsRead, ApiObjectsSearch, ApiObjectsToken, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsDraftsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectId, ObjectIdRootObjectIdVersion
 
 # For importing configuration files
 import configparser
@@ -70,6 +70,9 @@ PUBLISH_ONLY = server_config['PUBLISHONLY']['publishonly']
 
 # Search objects
 # (POST) api/objects/search
+
+# All objects for a token (draft and published)
+# (POST) api/objects/token/
 
 # Create prefixes
 # (POST) api/prefixes/create/
@@ -193,6 +196,10 @@ elif PUBLISH_ONLY == 'False':
         path(
             'api/objects/search/',
             ApiObjectsSearch.as_view()
+        ),
+        path(
+            'api/objects/token/',
+            ApiObjectsToken.as_view()
         ),
         path(
             'api/prefixes/create/',

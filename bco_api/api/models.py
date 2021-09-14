@@ -106,6 +106,12 @@ class bco(
 	state = models.TextField()
 
 
+	# When was the draft last updated?
+
+	# Field is automatically generated.
+	last_update = models.DateTimeField()
+
+
 # Some additional information for Group.
 # This information is stored separately from
 # Group so as to not complicate or compromise

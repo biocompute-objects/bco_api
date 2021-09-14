@@ -7,6 +7,9 @@ from ..utilities import UserUtils
 # Object-level permissions
 from guardian.shortcuts import get_objects_for_user
 
+# Concatenating QuerySets
+from itertools import chain
+
 # Responses
 from rest_framework import status
 from rest_framework.response import Response
@@ -15,10 +18,14 @@ from rest_framework.response import Response
 
 
 def POST_api_objects_drafts_token(
-	rqst
+	rqst,
+	internal = False
 ):
 
-	# Get all objects for a token.
+	# internal - is the call being made to this handler
+	# internally?
+	
+	# Get all DRAFT objects for a token.
 
 	# The token has already been validated,
 	# so the user is guaranteed to exist.
@@ -71,7 +78,7 @@ def POST_api_objects_drafts_token(
 
 	# Assume all the values are supposed to be returned.
 	# Source: https://stackoverflow.com/a/51733590
-	return_values = ['contents', 'object_class', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state']
+	return_values = ['contents', 'last_update', 'object_class', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state']
 
 	# If there are any valid keys in the request,
 	# use them to narrow down the fields.
@@ -91,8 +98,26 @@ def POST_api_objects_drafts_token(
 		if len(common_fields) > 0:
 			return_values = common_fields
 	
-	# Get the user's objects.
-	return Response(
-		data = user_objects.intersection(prefix_objects).values(*return_values),
-		status = status.HTTP_200_OK
-	)
+	# Return based on whether or not we're using an internal
+	# call.
+	if internal == False:
+	
+		# Get the user's DRAFT objects.
+		return Response(
+			data = user_objects.intersection(prefix_objects).values(*return_values),
+			status = status.HTTP_200_OK
+		)
+	
+	elif internal == True:
+		
+		# Concatenate the QuerySets.
+		# Source: https://stackoverflow.com/a/434755
+		
+		# Get the user's DRAFT objects AND
+		# add in the published objects.
+		result_list = chain(user_objects.intersection(prefix_objects).values(*return_values), bco.objects.filter(state = 'PUBLISHED').values())
+
+		return Response(
+			data = result_list,
+			status = status.HTTP_200_OK
+		)

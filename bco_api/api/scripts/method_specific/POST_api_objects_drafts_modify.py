@@ -10,6 +10,9 @@ from ..utilities import UserUtils
 # For writing objects to the database.
 from django.contrib.auth.models import Group
 
+# For recording the update time.
+from django.utils import timezone
+
 # Permisions for objects
 from guardian.shortcuts import get_perms
 
@@ -44,10 +47,7 @@ def POST_api_objects_drafts_modify(
 		specific_permission = ['add']
 	)
 
-	print(px_perms)
-
 	# Define the bulk request.
-	print(incoming.data)
 	bulk_request = incoming.data['POST_api_objects_drafts_modify']
 
 	# Construct an array to return the objects.
@@ -105,6 +105,11 @@ def POST_api_objects_drafts_modify(
 
 						# *** COMPLETELY OVERWRITES CONTENTS!!! ***
 						objected.contents = creation_object['contents']
+
+						# Set the update time.
+						objected.last_update = timezone.now()
+
+						# Save it.
 						objected.save()
 						
 						# Update the request status.

@@ -10,6 +10,9 @@ from django.conf import settings
 # For writing objects to the database.
 from django.contrib.auth.models import Group
 
+# For recording the creation time.
+from django.utils import timezone
+
 # Responses
 from rest_framework import status
 from rest_framework.response import Response
@@ -45,8 +48,6 @@ def POST_api_objects_drafts_create(
 		user_object = user,
 		specific_permission = ['add']
 	)
-
-	print(px_perms)
 
 	# Define the bulk request.
 	bulk_request = incoming.data['POST_api_objects_draft_create']
@@ -122,13 +123,17 @@ def POST_api_objects_drafts_create(
 				# Give the creation object the prefix.
 				creation_object['prefix'] = standardized
 
+				# This is a DRAFT.
 				creation_object['state'] = 'DRAFT'
+
+				# Set the datetime properly.
+				creation_object['last_update'] = timezone.now()
 
 				# Write to the database.
 				db.write_object(
 					p_app_label = 'api', 
 					p_model_name = 'bco',
-					p_fields = ['contents', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
+					p_fields = ['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
 					p_data = creation_object
 				)
 

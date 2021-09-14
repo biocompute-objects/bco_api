@@ -23,8 +23,9 @@ from .scripts.method_specific.POST_api_objects_drafts_token import POST_api_obje
 
 from .scripts.method_specific.POST_api_objects_search import POST_api_objects_search
 
-
 from .scripts.method_specific.POST_api_objects_publish import POST_api_objects_publish
+
+from .scripts.method_specific.POST_api_objects_token import POST_api_objects_token
 
 from .scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
 from .scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
@@ -735,6 +736,34 @@ class ApiObjectsSearch(
                     data = checked,
                     status = status.HTTP_400_BAD_REQUEST
                 )
+            )
+
+
+
+
+class ApiObjectsToken(
+    APIView
+):
+
+    # Description
+    # -----------
+
+    # Get all the objects for a given token.
+
+    # POST
+
+    def post(
+        self, 
+        request
+    ):
+        
+        # No schema for this request since only 
+        # the Authorization header is required.
+
+        # Pass the request to the handling function
+            # Source: https://stackoverflow.com/a/31813810
+            return POST_api_objects_token(
+                rqst = request
             )
 
 
