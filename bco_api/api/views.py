@@ -56,18 +56,15 @@ from rest_framework.renderers import TemplateHTMLRenderer
 
 
 
-class ApiAccountsActivateUsernameTempIdentifier(
-    APIView
-):
-
-    # Description
-    # -----------
-
-    # Activate an account.
+class ApiAccountsActivateUsernameTempIdentifier(APIView):
+    """
+    Activate an account
 
     # GET
 
     # Anyone can ask to activate an new account
+
+    """
     authentication_classes = []
     permission_classes = []
 
@@ -119,7 +116,10 @@ class ApiAccountsActivateUsernameTempIdentifier(
 class ApiAccountsDescribe(
     APIView
 ):
-    
+    """
+    Some text
+    """
+
     def post(
         self, 
         request

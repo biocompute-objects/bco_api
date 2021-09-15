@@ -1,8 +1,29 @@
-from django.urls import path
+from django.urls import path, include, re_path
 from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, ApiGroupsDelete, ApiGroupsModify, ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, ApiObjectsDraftsPublish, ApiObjectsDraftsRead, ApiObjectsSearch, ApiObjectsToken, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, ApiPrefixesToken, ApiPrefixesTokenFlat, ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsDraftsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectId, ObjectIdRootObjectIdVersion
 
 # For importing configuration files
 import configparser
+
+from rest_framework_swagger.views import get_swagger_view
+
+# drf_yasg code starts here
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="BioCompute Object Data Base API (BCODB API)",
+        default_version='1.3.0',
+        description="A web application that can be used to create, store and edit BioCompute objects based on BioCompute schema described in the BCO specification document.",
+        terms_of_service="https://github.com/biocompute-objects/bco_api/blob/master/LICENSE",
+        contact=openapi.Contact(email="object.biocompute@gmail.com"),
+        license=openapi.License(name="MIT License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+# ends here
 
 # Load the server config file.
 server_config = configparser.ConfigParser()
@@ -109,6 +130,15 @@ urlpatterns = []
 if PUBLISH_ONLY == 'True':
     
     urlpatterns = [
+        re_path(
+            r'^api/doc(?P<format>\.json|\.yaml)$',schema_view.without_ui(cache_timeout=0), name='schema-json'
+        ),
+        path(
+            'api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'
+        ),
+        path(
+            'api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'
+        ),
         path(
             '<str:object_id_root>/<str:object_id_version>', 
             ObjectIdRootObjectIdVersion.as_view()
@@ -126,6 +156,15 @@ if PUBLISH_ONLY == 'True':
 elif PUBLISH_ONLY == 'False':
     
     urlpatterns = [
+        re_path(
+            r'^api/docs(?P<format>\.json|\.yaml)$',schema_view.without_ui(cache_timeout=0), name='schema-json'
+        ),
+        path(
+            'api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'
+        ),
+        path(
+            'api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'
+        ),
         path(
             '<str:draft_object_id>', 
             DraftObjectId.as_view()
