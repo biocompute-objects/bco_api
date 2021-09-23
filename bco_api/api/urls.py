@@ -128,144 +128,96 @@ urlpatterns = []
 
 # Do we have a publish-only server?
 if PUBLISH_ONLY == 'True':
-    
     urlpatterns = [
-        re_path(
-            r'^api/doc(?P<format>\.json|\.yaml)$',schema_view.without_ui(cache_timeout=0), name='schema-json'
-        ),
-        path(
-            'api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'
-        ),
-        path(
-            'api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'
-        ),
-        path(
-            '<str:object_id_root>/<str:object_id_version>', 
-            ObjectIdRootObjectIdVersion.as_view()
-        ),
-        path(
-            'api/objects/publish/', 
-            ApiObjectsPublish.as_view()
-        ),
-        path(
-            'api/public/describe/', 
-            ApiPublicDescribe.as_view()
-        )
+        re_path(r'^api/doc(?P<format>\.json|\.yaml)$',schema_view.without_ui(cache_timeout=0), name='schema-json'),
+        path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+        path('api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+        path('<str:object_id_root>/<str:object_id_version>', ObjectIdRootObjectIdVersion.as_view()),
+        path('api/objects/publish/', ApiObjectsPublish.as_view()),
+        path('api/public/describe/', ApiPublicDescribe.as_view())
     ]
 
 elif PUBLISH_ONLY == 'False':
-    
     urlpatterns = [
-        re_path(
-            r'^api/docs(?P<format>\.json|\.yaml)$',schema_view.without_ui(cache_timeout=0), name='schema-json'
+        re_path(r'^api/docs(?P<format>\.json|\.yaml)$',schema_view.without_ui(cache_timeout=0), name='schema-json'),
+        path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+        path('api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'
         ),
-        path(
-            'api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'
-        ),
-        path(
-            'api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'
-        ),
-        path(
-            '<str:draft_object_id>', 
+        path('<str:draft_object_id>', 
             DraftObjectId.as_view()
         ),
-        path(
-            '<str:object_id_root>', 
+        path('<str:object_id_root>', 
             ObjectIdRootObjectId.as_view()
         ),
-        path(
-            '<str:object_id_root>/<str:object_id_version>', 
+        path('<str:object_id_root>/<str:object_id_version>', 
             ObjectIdRootObjectIdVersion.as_view()
         ),
-        path(
-            'api/accounts/activate/<str:username>/<str:temp_identifier>', ApiAccountsActivateUsernameTempIdentifier.as_view()
+        path('api/accounts/activate/<str:username>/<str:temp_identifier>', ApiAccountsActivateUsernameTempIdentifier.as_view()
         ),
-        path(
-            'api/accounts/describe/', 
+        path('api/accounts/describe/', 
             ApiAccountsDescribe.as_view()
         ),
-        path(
-            'api/accounts/new/', 
+        path('api/accounts/new/', 
             ApiAccountsNew.as_view()
         ),
-        path(
-            'api/groups/create/', 
+        path('api/groups/create/', 
             ApiGroupsCreate.as_view()
         ),
-        path(
-            'api/groups/delete/', 
+        path('api/groups/delete/', 
             ApiGroupsDelete.as_view()
         ),
-        path(
-            'api/groups/modify/', 
+        path('api/groups/modify/', 
             ApiGroupsModify.as_view()
         ),
-        path(
-            'api/objects/drafts/create/', 
+        path('api/objects/drafts/create/', 
             ApiObjectsDraftsCreate.as_view()
         ),
-        path(
-            'api/objects/drafts/modify/', 
+        path('api/objects/drafts/modify/', 
             ApiObjectsDraftsModify.as_view()
         ),
-        path(
-            'api/objects/drafts/permissions/', 
+        path('api/objects/drafts/permissions/', 
             ApiObjectsDraftsPermissions.as_view()
         ),
-        path(
-            'api/objects/drafts/permissions/set/', 
+        path('api/objects/drafts/permissions/set/', 
             ApiObjectsDraftsPermissionsSet.as_view()
         ),
-        path(
-            'api/objects/drafts/publish/', 
+        path('api/objects/drafts/publish/', 
             ApiObjectsDraftsPublish.as_view()
         ),
-        path(
-            'api/objects/drafts/read/', 
+        path('api/objects/drafts/read/', 
             ApiObjectsDraftsRead.as_view()
         ),
-        path(
-            'api/objects/drafts/token/', 
+        path('api/objects/drafts/token/', 
             ApiObjectsDraftsToken.as_view()
         ),
-        path(
-            'api/objects/publish/', 
+        path('api/objects/publish/', 
             ApiObjectsPublish.as_view()
         ),
-        path(
-            'api/objects/search/',
+        path('api/objects/search/',
             ApiObjectsSearch.as_view()
         ),
-        path(
-            'api/objects/token/',
+        path('api/objects/token/',
             ApiObjectsToken.as_view()
         ),
-        path(
-            'api/prefixes/create/',
+        path('api/prefixes/create/',
             ApiPrefixesCreate.as_view()
         ),
-        path(
-            'api/prefixes/delete/',
+        path('api/prefixes/delete/',
             ApiPrefixesDelete.as_view()
         ),
-        path(
-            'api/prefixes/permissions/set/',
+        path('api/prefixes/permissions/set/',
             ApiPrefixesPermissionsSet.as_view()
         ),
-        path(
-            'api/prefixes/token/',
+        path('api/prefixes/token/',
             ApiPrefixesToken.as_view()
         ),
         path(
             'api/prefixes/token/flat/', 
             ApiPrefixesTokenFlat.as_view()
         ),
-        path(
-            'api/prefixes/update/',
+        path('api/prefixes/update/',
             ApiPrefixesUpdate.as_view()
         ),
-        path(
-            'api/public/describe/', 
-            ApiPublicDescribe.as_view()
-        )
+        path('api/public/describe/', 
+            ApiPublicDescribe.as_view())
     ]

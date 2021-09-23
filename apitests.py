@@ -1344,29 +1344,7 @@ def main(
     #     url = '/api/objects/drafts/permissions/'
     # )
 
-    print(x)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # print(x)
 
     # Get the draft permissions
     pretty_output(
@@ -1815,7 +1793,6 @@ def main(
     # Try to publish a draft object with destroying
     # the draft.
 
-    x
 
 
     # ----- non-object tests ----- #
