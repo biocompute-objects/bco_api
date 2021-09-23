@@ -54,7 +54,9 @@ from .permissions import RequestorInObjectOwnerGroup, RequestorInPrefixAdminsGro
 from rest_framework.renderers import TemplateHTMLRenderer
 
 
-
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import api_view
 
 class ApiAccountsActivateUsernameTempIdentifier(APIView):
     """
@@ -109,29 +111,23 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
                 )
             )
 
-
-
-
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
-class ApiAccountsDescribe(
-    APIView
-):
+class ApiAccountsDescribe(APIView):
     """
-    Some text
+    Account Details.
+    
+    No schema for this request since only
+    the Authorization header is required.
+
+    Furthermore, if the token provided in the
+    Authorization header is bad, DRF will kick
+    back an invalid token response, so this section
+    of code is redundant, but explanatory.
     """
 
-    def post(
-        self, 
-        request
-    ):
-
-        # No schema for this request since only 
-        # the Authorization header is required.
-
-        # Furthermore, if the token provided in the
-        # Authorization header is bad, DRF will kick
-        # back an invalid token response, so this section
-        # of code is redundant, but explanatory.
+    auth = openapi.Parameter('HTTP_AUTHORIZATION', openapi.IN_QUERY, description="test manual param", type=openapi.TYPE_BOOLEAN)
+    @swagger_auto_schema(manual_parameters=[auth])
+    def post(self, request):
         if 'Authorization' in request.headers:
             
             # Pass the request to the handling function

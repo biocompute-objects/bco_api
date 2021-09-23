@@ -19,7 +19,7 @@ from rest_framework.response import Response
 
 
 def POST_api_objects_drafts_permissions(
-	incoming
+    incoming
 ):
 
 	# Give back the permissions for given objects.

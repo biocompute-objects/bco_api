@@ -5,15 +5,11 @@ from ...models import bco
 from rest_framework import status
 from rest_framework.response import Response
 
-def GET_published_object_by_id_with_version(
-    oi_root,
-    oi_version
-):
+def GET_published_object_by_id_with_version(oi_root, oi_version):
+    """
 
-    print(oi_root)
-#    oi_root = oi_root.split("_")[0] +  '{:06d}'.format(int(oi_root.split("_")[1]))
-    # Get a published object given a root and a version.
-    print(oi_root)
+    """
+
     # The object ID either exists or it does not.
     retrieved = list(
         bco.objects.filter(
@@ -24,7 +20,6 @@ def GET_published_object_by_id_with_version(
             flat = True
         )
     )
-    print("Chris forgot to fix this", oi_root, retrieved)
     # Was the object found?
     if len(retrieved) > 0:
         
