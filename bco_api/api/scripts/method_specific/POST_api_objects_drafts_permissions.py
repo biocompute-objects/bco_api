@@ -18,9 +18,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_objects_drafts_permissions(
-    incoming
-):
+def POST_api_objects_drafts_permissions(incoming):
 
 	# Give back the permissions for given objects.
 
