@@ -515,7 +515,7 @@ def create_object_perms(
 			
 				# The owner group can only initially view
 				# the object.
-				for p in ['change_' + instance.object_id, 'delete_' + instance.object_id, 'publish' + instance.object_id, 'view_' + instance.object_id]:
+				for p in ['change_' + instance.object_id, 'delete_' + instance.object_id, 'publish_' + instance.object_id, 'view_' + instance.object_id]:
 
 					Permission.objects.create(
 						name = 'Can ' + p,
@@ -524,6 +524,13 @@ def create_object_perms(
 							model = 'bco'
 						),
 						codename = p
+					)
+
+					# Give wheel everything.
+					assign_perm(
+						perm = Permission.objects.get(codename = p),
+						user_or_group = User.objects.get(username = 'wheel'),
+						obj = instance
 					)
 					
 					# Create the permission, and automatically give it
@@ -560,6 +567,13 @@ def create_object_perms(
 				
 				# Only the object owner has default permissions to publish
 				# subsequent versions...
+
+				# Give wheel everything.
+				assign_perm(
+					perm = Permission.objects.get(codename = 'publish_new_version_' + instance.object_id),
+					user_or_group = User.objects.get(username = 'wheel'),
+					obj = instance
+				)
 
 		except PermErrors.IntegrityError:
 

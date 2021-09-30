@@ -1344,31 +1344,34 @@ def main(
     #     url = '/api/objects/drafts/permissions/'
     # )
 
-    print(x)
 
 
 
 
 
 
+    # Get the draft permissions (wheel)
+    pretty_output(
+        hostname = hostname,
+        json_send = {
+            "POST_api_objects_drafts_permissions": [
+                {
+                    "object_id": drafted[0]['object_id']
+                }
+            ]
+        },
+        method = 'POST',
+        pull_key = True,
+        test_info = {
+            'description': 'Get draft permissions.',
+            'expected_response_code': '200 OK',
+            'test_number': '8'
+        },
+        token = wheel_key,
+        url = '/api/objects/drafts/permissions/'
+    )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # Get the draft permissions
+    # Get the draft permissions (object owner)
     pretty_output(
         hostname = hostname,
         json_send = {
@@ -1388,6 +1391,18 @@ def main(
         token = r_token_username['token'],
         url = '/api/objects/drafts/permissions/'
     )
+
+
+
+
+
+
+
+
+
+
+
+    print(x)
 
     # Modify the draft object.
     # Notes: prefix, schema, and state should NOT change

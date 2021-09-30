@@ -456,7 +456,7 @@ class ApiObjectsDraftsPermissions(
         if checked is None:
             
             # Call the handler.
-            POST_api_objects_drafts_permissions(
+            return POST_api_objects_drafts_permissions(
                 request
             )
         

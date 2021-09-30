@@ -104,11 +104,11 @@ def POST_api_objects_drafts_permissions(
 						objected
 					)
 
-					perms['username'][user.username] = up
+					perms['username'][user.username] = list(up)
 
 					# Get user's groups.
 					user_groups = list(
-						Group.objects.filter(user = user.username).values_list(
+						Group.objects.filter(user = user.pk).values_list(
 							'name', 
 							flat = True
 						)
@@ -125,6 +125,8 @@ def POST_api_objects_drafts_permissions(
 
 						if g.name in user_groups:
 							perms['group_names'][g.name] = p
+					
+					print(perms)
 
 					# Update the request status.
 					returning.append(
