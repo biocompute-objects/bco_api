@@ -6,20 +6,20 @@
     "type": "object",
     "properties":
     {
-        "POST_create_new_object":
+        "POST_objects_draft":
         {
-            "description": "The template for creating a new object.",
-            "$ref": "request_definitions/templates/POST_create_new_object.schema"
+            "description": "The template for drafting a new object.",
+            "$ref": "request_definitions/templates/POST_objects_draft.schema"
         },
-        "POST_get_key_permissions":
+        "POST_objects_publish":
         {
-            "description": "Return the permissions associated with an API key.",
-            "$ref": "request_definitions/templates/POST_get_key_permissions.schema"
+            "description": "The template for publishing an object.",
+            "$ref": "request_definitions/templates/POST_objects_draft.schema"
         },
-        "POST_new_account":
+        "POST_api_accounts_new":
         {
             "description": "Ask for a new account on the API.",
-            "$ref": "request_definitions/templates/POST_new_account.schema"
+            "$ref": "request_definitions/templates/POST_api_accounts_new.schema"
         },
         "POST_object_listing_by_token":
         {
