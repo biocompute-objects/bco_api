@@ -6,10 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-
-
 def POST_api_objects_token(rqst):
-
     """
     Get all objects for a token.
 
@@ -23,9 +20,9 @@ def POST_api_objects_token(rqst):
     objects.
     """
     rqst.data['POST_api_objects_drafts_token'] = rqst.data.pop('POST_api_objects_token')
-    
+
     # Get the user's objects.
     return POST_api_objects_drafts_token(
-        rqst = rqst,
-        internal = True
-    )
+            rqst=rqst,
+            internal=True
+            )
