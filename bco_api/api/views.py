@@ -47,24 +47,27 @@ from rest_framework import status
 
 # By-view permissions
 from rest_framework.permissions import IsAuthenticated
-from .permissions import RequestorInObjectOwnerGroup, RequestorInPrefixAdminsGroup, HasObjectGenericPermission, HasObjectChangePermission, HasObjectDeletePermission, HasObjectViewPermission
+from .permissions import RequestorInObjectOwnerGroup, RequestorInPrefixAdminsGroup, HasObjectGenericPermission, HasObjectChangePermission, \
+    HasObjectDeletePermission, HasObjectViewPermission
 
 # Message page
 # Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
 from rest_framework.renderers import TemplateHTMLRenderer
 
-
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
+
 
 class ApiAccountsActivateUsernameTempIdentifier(APIView):
     """
     Activate an account
 
-    # GET
+    --------------------
 
-    # Anyone can ask to activate an new account
+    This is a request to activate a new account.  This is open to anyone to
+    activate a new account, as long as they have a valid token.  This allows
+    other users to act as the verification layer in addition to the system.
 
     """
     authentication_classes = []
@@ -72,19 +75,30 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
 
     # For the success and error messages
     renderer_classes = [
-        TemplateHTMLRenderer
-    ]
+            TemplateHTMLRenderer
+            ]
     template_name = 'api/account_activation_message.html'
 
-    def get(
-        self, 
-        request, 
-        username, 
-        temp_identifier
-    ):
+    auth = []
+    auth.append(openapi.Parameter('username', openapi.IN_PATH, description="Username to be authenticated.", type=openapi.TYPE_STRING))
+    auth.append(openapi.Parameter('temp_identifier', openapi.IN_PATH, description="The temporary identifier needed to authenticate the activation.  This is "
+                                                                                  "found in the temporary account table (i.e. where an account is staged).",
+                                  type=openapi.TYPE_STRING))
 
+    @swagger_auto_schema(manual_parameters=auth, responses={
+            201: "Account has been authorized.",
+            208: "Account has already been authorized.",
+            403: "Requestor's credentials were rejected.",
+            424: "Account has not been registered."
+            }, tags=["Account Management", "API"])
+    def get(
+            self,
+            request,
+            username: str,
+            temp_identifier: str
+            ):
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'GET', 
@@ -93,23 +107,24 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
         checked = None
 
         if checked is None:
-        
+
             # Pass the request to the handling function
-            return(
-                GET_activate_account(
-                    username = username, 
-                    temp_identifier = temp_identifier
-                )
+            return (
+                    GET_activate_account(
+                            username=username,
+                            temp_identifier=temp_identifier
+                            )
             )
-        
+
         else:
-        
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
+
 
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 class ApiAccountsDescribe(APIView):
@@ -126,27 +141,27 @@ class ApiAccountsDescribe(APIView):
     """
 
     auth = openapi.Parameter('HTTP_AUTHORIZATION', openapi.IN_QUERY, description="test manual param", type=openapi.TYPE_BOOLEAN)
+
     @swagger_auto_schema(manual_parameters=[auth])
     def post(self, request):
         if 'Authorization' in request.headers:
-            
+
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
             return POST_api_accounts_describe(
-                token = request.META.get('HTTP_AUTHORIZATION')
-            )
+                    token=request.META.get('HTTP_AUTHORIZATION')
+                    )
 
         else:
 
             return Response(
-                status = status.HTTP_400_BAD_REQUEST
-            )
-
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
 
 
 class ApiGroupsCreate(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -156,12 +171,12 @@ class ApiGroupsCreate(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -171,25 +186,23 @@ class ApiGroupsCreate(
         checked = None
 
         if checked is None:
-                
+
             # Pass the request to the handling function
             return POST_api_groups_create(
-                request
-            )
-        
+                    request
+                    )
+
         else:
 
             return Response(
-                data = checked,
-                status = status.HTTP_400_BAD_REQUEST
-            )
-
-
+                    data=checked,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
 
 
 class ApiGroupsDelete(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -199,12 +212,12 @@ class ApiGroupsDelete(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -214,25 +227,23 @@ class ApiGroupsDelete(
         checked = None
 
         if checked is None:
-                
+
             # Pass the request to the handling function
             return POST_api_groups_delete(
-                request
-            )
-        
+                    request
+                    )
+
         else:
 
             return Response(
-                data = checked,
-                status = status.HTTP_400_BAD_REQUEST
-            )
-
-
+                    data=checked,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
 
 
 class ApiGroupsModify(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -242,12 +253,12 @@ class ApiGroupsModify(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -257,26 +268,23 @@ class ApiGroupsModify(
         checked = None
 
         if checked is None:
-                
+
             # Pass the request to the handling function
             return POST_api_groups_modify(
-                request
-            )
-        
+                    request
+                    )
+
         else:
 
             return Response(
-                data = checked,
-                status = status.HTTP_400_BAD_REQUEST
-            )
-
-
+                    data=checked,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
 
 
 class ApiAccountsNew(
-    APIView
-):
-
+        APIView
+        ):
     # Description
     # -----------
 
@@ -291,12 +299,12 @@ class ApiAccountsNew(
     permission_classes = []
 
     def post(
-        self, 
-        request
-    ):
+            self,
+            request
+            ):
 
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -306,27 +314,25 @@ class ApiAccountsNew(
         checked = None
 
         if checked is None:
-        
+
             # Pass the request to the handling function.
             return POST_api_accounts_new(
-                request.data
-            )
-        
+                    request.data
+                    )
+
         else:
-        
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiObjectsDraftsCreate(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -343,10 +349,10 @@ class ApiObjectsDraftsCreate(
     # the request type (DELETE, GET, PATCH, POST).
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -356,27 +362,25 @@ class ApiObjectsDraftsCreate(
         checked = None
 
         if checked is None:
-            
+
             # Pass the request to the handling function
             return POST_api_objects_drafts_create(
-                request
-            )
-        
+                    request
+                    )
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiObjectsDraftsModify(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -393,10 +397,10 @@ class ApiObjectsDraftsModify(
     # the request type (DELETE, GET, PATCH, POST).
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -406,26 +410,25 @@ class ApiObjectsDraftsModify(
         checked = None
 
         if checked is None:
-            
+
             # Pass the request to the handling function
             return POST_api_objects_drafts_modify(
-                request
-            )
-        
+                    request
+                    )
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
 
 
 class ApiObjectsDraftsPermissions(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -435,12 +438,12 @@ class ApiObjectsDraftsPermissions(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -450,27 +453,25 @@ class ApiObjectsDraftsPermissions(
         checked = None
 
         if checked is None:
-            
+
             # Call the handler.
             return POST_api_objects_drafts_permissions(
-                request
-            )
-        
+                    request
+                    )
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiObjectsDraftsPermissionsSet(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -480,12 +481,12 @@ class ApiObjectsDraftsPermissionsSet(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -495,25 +496,25 @@ class ApiObjectsDraftsPermissionsSet(
         checked = None
 
         if checked is None:
-            
+
             # Call the handler.
             return POST_api_objects_drafts_permissions_set(
-                request
-            )
-        
+                    request
+                    )
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
 
-class ApiObjectsDraftsPublish(
-    APIView
-):
 
+class ApiObjectsDraftsPublish(
+        APIView
+        ):
     # Description
     # -----------
 
@@ -530,12 +531,12 @@ class ApiObjectsDraftsPublish(
     permission_classes = [IsAuthenticated]
 
     def post(
-        self, 
-        request
-    ):
+            self,
+            request
+            ):
 
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -545,28 +546,27 @@ class ApiObjectsDraftsPublish(
         checked = None
 
         if checked is None:
-            
+
             # Pass the request to the handling function
-            return(
-                POST_api_objects_drafts_publish(
-                    request
-                )
+            return (
+                    POST_api_objects_drafts_publish(
+                            request
+                            )
             )
-        
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
 
 
 class ApiObjectsDraftsRead(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -576,12 +576,12 @@ class ApiObjectsDraftsRead(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -591,27 +591,25 @@ class ApiObjectsDraftsRead(
         checked = None
 
         if checked is None:
-            
+
             # Call the handler.
             POST_api_objects_drafts_read(
-                request
-            )
-        
+                    request
+                    )
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiObjectsDraftsToken(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -621,26 +619,22 @@ class ApiObjectsDraftsToken(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
-        # No schema for this request since only 
+            self,
+            request
+            ):
+        # No schema for this request since only
         # the Authorization header is required.
 
         # Pass the request to the handling function
-            # Source: https://stackoverflow.com/a/31813810
-            return POST_api_objects_drafts_token(
-                rqst = request
-            )
-
-
+        # Source: https://stackoverflow.com/a/31813810
+        return POST_api_objects_drafts_token(
+                rqst=request
+                )
 
 
 class ApiObjectsPublish(
-    APIView
-):
-
+        APIView
+        ):
     # Description
     # -----------
 
@@ -657,12 +651,12 @@ class ApiObjectsPublish(
     permission_classes = [IsAuthenticated]
 
     def post(
-        self, 
-        request
-    ):
+            self,
+            request
+            ):
 
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -672,29 +666,27 @@ class ApiObjectsPublish(
         checked = None
 
         if checked is None:
-            
+
             # Pass the request to the handling function
-            return(
-                POST_api_objects_publish(
-                    request
-                )
+            return (
+                    POST_api_objects_publish(
+                            request
+                            )
             )
-        
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiObjectsSearch(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -704,12 +696,12 @@ class ApiObjectsSearch(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -719,27 +711,25 @@ class ApiObjectsSearch(
         checked = None
 
         if checked is None:
-            
+
             # Call the handler.
             POST_api_objects_search(
-                request
-            )
-        
+                    request
+                    )
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiObjectsToken(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -749,26 +739,23 @@ class ApiObjectsToken(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
-        # No schema for this request since only 
+            self,
+            request
+            ):
+        # No schema for this request since only
         # the Authorization header is required.
 
+        # import pdb;pdb.set_trace()
         # Pass the request to the handling function
-            # Source: https://stackoverflow.com/a/31813810
-            return POST_api_objects_token(
-                rqst = request
-            )
-
-
+        # Source: https://stackoverflow.com/a/31813810
+        return POST_api_objects_token(
+                rqst=request
+                )
 
 
 class ApiPrefixesCreate(
-    APIView
-):
-
+        APIView
+        ):
     # Description
     # -----------
 
@@ -780,12 +767,12 @@ class ApiPrefixesCreate(
     permission_classes = [RequestorInPrefixAdminsGroup]
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -795,30 +782,27 @@ class ApiPrefixesCreate(
         checked = None
 
         if checked is None:
-                
+
             # Pass the request to the handling function
-            return(
-                POST_api_prefixes_create(
-                    request
-                )
+            return (
+                    POST_api_prefixes_create(
+                            request
+                            )
             )
-        
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiPrefixesDelete(
-    APIView
-):
-
+        APIView
+        ):
     # Description
     # -----------
 
@@ -830,12 +814,12 @@ class ApiPrefixesDelete(
     permission_classes = [RequestorInPrefixAdminsGroup]
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -845,29 +829,27 @@ class ApiPrefixesDelete(
         checked = None
 
         if checked is None:
-                
+
             # Pass the request to the handling function
-            return(
-                POST_api_prefixes_delete(
-                    request
-                )
+            return (
+                    POST_api_prefixes_delete(
+                            request
+                            )
             )
-        
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiPrefixesPermissionsSet(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -877,12 +859,12 @@ class ApiPrefixesPermissionsSet(
     # POST
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -892,29 +874,27 @@ class ApiPrefixesPermissionsSet(
         checked = None
 
         if checked is None:
-                
+
             # Pass the request to the handling function
-            return(
-                POST_api_prefixes_permissions_set(
-                    request
-                )
+            return (
+                    POST_api_prefixes_permissions_set(
+                            request
+                            )
             )
-        
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiPrefixesToken(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -926,54 +906,52 @@ class ApiPrefixesToken(
     # Open permissions - anyone can request.
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         if 'Authorization' in request.headers:
-            
+
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
             return POST_api_prefixes_token(
-                request = request
-            )
+                    request=request
+                    )
 
         else:
 
             return Response(
-                status = status.HTTP_400_BAD_REQUEST
-            )
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
 
 
 class ApiPrefixesTokenFlat(
-    APIView
-):
+        APIView
+        ):
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         if 'Authorization' in request.headers:
-            
+
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
             return POST_api_prefixes_token_flat(
-                request = request
-            )
+                    request=request
+                    )
 
         else:
 
             return Response(
-                status = status.HTTP_400_BAD_REQUEST
-            )
-
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
 
 
 class ApiPrefixesUpdate(
-    APIView
-):
-
+        APIView
+        ):
     # Description
     # -----------
 
@@ -985,12 +963,12 @@ class ApiPrefixesUpdate(
     permission_classes = [RequestorInPrefixAdminsGroup]
 
     def post(
-        self, 
-        request
-    ):
-        
+            self,
+            request
+            ):
+
         # checked is suppressed for the milestone.
-        
+
         # Check the request
         # checked = RequestUtils.RequestUtils().check_request_templates(
         #     method = 'POST', 
@@ -1000,30 +978,27 @@ class ApiPrefixesUpdate(
         checked = None
 
         if checked is None:
-                
+
             # Pass the request to the handling function
-            return(
-                POST_api_prefixes_modify(
-                    request
-                )
+            return (
+                    POST_api_prefixes_modify(
+                            request
+                            )
             )
-        
+
         else:
 
-            return(
-                Response(
-                    data = checked,
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            return (
+                    Response(
+                            data=checked,
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
             )
-
-
 
 
 class ApiPublicDescribe(
-    APIView
-):
-
+        APIView
+        ):
     # Description
     # -----------
 
@@ -1037,27 +1012,24 @@ class ApiPublicDescribe(
     permission_classes = []
 
     def get(
-        self, 
-        request
-    ):
-    
+            self,
+            request
+            ):
         # Instantiate UserUtils
         uu = UserUtils.UserUtils()
-        
+
         # Pass the request to the handling function
         return Response(
-            uu.get_user_info(
-                username = 'anon'
-            )
-        )
-
-
+                uu.get_user_info(
+                        username='anon'
+                        )
+                )
 
 
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 class DraftObjectId(
-    APIView
-):
+        APIView
+        ):
 
     # Description
     # -----------
@@ -1065,31 +1037,27 @@ class DraftObjectId(
     # Read an object by URI.
 
     # GET
-    
+
     def get(
-        self, 
-        request, 
-        draft_object_id
-    ):
-        
+            self,
+            request,
+            draft_object_id
+            ):
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).
 
         # Pass straight to the handler.        
         return GET_draft_object_by_id(
-            do_id = request.build_absolute_uri(),
-            rqst = request
-        )
-
-
+                do_id=request.build_absolute_uri(),
+                rqst=request
+                )
 
 
 # Allow anyone to view published objects.
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 class ObjectIdRootObjectId(
-    APIView
-):
-
+        APIView
+        ):
     # Description
     # -----------
 
@@ -1102,26 +1070,22 @@ class ObjectIdRootObjectId(
     permission_classes = []
 
     def get(
-        self, 
-        request, 
-        object_id_root
-    ):
-
-        return(
-            GET_published_object_by_id(
-                object_id_root
-            )
+            self,
+            request,
+            object_id_root
+            ):
+        return (
+                GET_published_object_by_id(
+                        object_id_root
+                        )
         )
-
-
 
 
 # Allow anyone to view published objects.
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 class ObjectIdRootObjectIdVersion(
-    APIView
-):
-
+        APIView
+        ):
     # Description
     # -----------
 
@@ -1134,15 +1098,14 @@ class ObjectIdRootObjectIdVersion(
     permission_classes = []
 
     def get(
-        self, 
-        request, 
-        object_id_root, 
-        object_id_version
-    ):
-
-        return(
-            GET_published_object_by_id_with_version(
-                object_id_root, 
-                object_id_version
-            )
+            self,
+            request,
+            object_id_root,
+            object_id_version
+            ):
+        return (
+                GET_published_object_by_id_with_version(
+                        object_id_root,
+                        object_id_version
+                        )
         )

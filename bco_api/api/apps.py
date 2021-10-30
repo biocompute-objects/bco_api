@@ -8,19 +8,17 @@ from django.db.models.signals import post_migrate
 
 
 class ApiConfig(
-    AppConfig
-):
-    
+        AppConfig
+        ):
     name = 'api'
 
     def ready(
-        self
-    ):
-        
+            self
+            ):
         # Create the anonymous user if they don't exist.
         from .signals import populate_models
 
         post_migrate.connect(
-            populate_models, 
-            sender = self
-        )
+                populate_models,
+                sender=self
+                )
