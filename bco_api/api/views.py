@@ -63,9 +63,11 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
     """
     Activate an account
 
-    # GET
+    --------------------
 
-    # Anyone can ask to activate an new account
+    This is a request to activate a new account.  This is open to anyone to
+    activate a new account, as long as they have a valid token.  This allows
+    other users to act as the verification layer in addition to the system.
 
     """
     authentication_classes = []
@@ -77,13 +79,24 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
             ]
     template_name = 'api/account_activation_message.html'
 
+    auth = []
+    auth.append(openapi.Parameter('username', openapi.IN_PATH, description="Username to be authenticated.", type=openapi.TYPE_STRING))
+    auth.append(openapi.Parameter('temp_identifier', openapi.IN_PATH, description="The temporary identifier needed to authenticate the activation.  This is "
+                                                                                  "found in the temporary account table (i.e. where an account is staged).",
+                                  type=openapi.TYPE_STRING))
+
+    @swagger_auto_schema(manual_parameters=auth, responses={
+            201: "Account has been authorized.",
+            208: "Account has already been authorized.",
+            403: "Requestor's credentials were rejected.",
+            424: "Account has not been registered."
+            }, tags=["Account Management", "API"])
     def get(
             self,
             request,
-            username,
-            temp_identifier
+            username: str,
+            temp_identifier: str
             ):
-
         # checked is suppressed for the milestone.
 
         # Check the request
