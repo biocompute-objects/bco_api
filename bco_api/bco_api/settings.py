@@ -122,6 +122,7 @@ AUTHENTICATION_BACKENDS = [
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
 INSTALLED_APPS = [
     'django.contrib.admin',
+    'django.contrib.admindocs',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
