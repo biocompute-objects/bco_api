@@ -47,3 +47,32 @@ fetch('https://beta.portal.aws.biochemistry.gwu.edu/api/objects/create/', {
     console.log(data);
 })
 ```
+
+# Using Docker with BCO API
+
+### Building the BCO API via Docker
+
+A docker file is provided to allow easy building of the BCO API.  This can be done from the root directory (the directory with Dockerfile in it) by running:
+
+`docker build -t bco_api:latest .`
+
+This will build a container named `bco_api` with the tag `latest`.
+
+### Running the container via Docker
+
+The BCO Api container can be run via docker on the command line by running:
+
+`docker run --rm --network host -it bco_api:latest`
+
+This will expose the server at `http://127.0.0.1:8000`.
+
+#### Overriding the port
+
+It is possible to override the port 8000 to whatever port is desired.  This is done by running the container:
+
+`docker run --rm --network host -it bco_api:latest 0.0.0.0:8080`
+
+NOTE: The ip address of 0.0.0.0 is to allow the web serer to properly associate with 127.0.0.1 - if given 127.0.0.1 it will not allow communications outside of the container!
+
+With 8080 representing the desired port.  You can also give it a specific network created with `docker network create` if you wanted to give assigned IP addresses.
+
