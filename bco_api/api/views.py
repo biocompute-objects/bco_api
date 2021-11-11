@@ -131,7 +131,7 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
             208: "Account has already been authorized.",
             403: "Requestor's credentials were rejected.",
             424: "Account has not been registered."
-        }, tags=["Account Management", "API"])
+        }, tags=["Account Management", "API Index"])
     def get(self, request, username: str, temp_identifier: str):
         # Check the request to make sure it is valid - not sure what this is really doing though
         # Placeholder
@@ -148,6 +148,8 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
 class ApiAccountsDescribe(APIView):
     """
     Account details
+
+    --------------------
     
     No schema for this request since only the Authorization header is required.
 
@@ -176,6 +178,8 @@ class ApiGroupsCreate(APIView):
     """
     Create group
 
+    --------------------
+
     This API call creates a BCO group in ths system.
     """
 
@@ -203,6 +207,8 @@ class ApiGroupsDelete(APIView):
     """
     Delete group
 
+    --------------------
+
     Deletes a group from the BCO API database.
     """
 
@@ -229,6 +235,8 @@ class ApiGroupsModify(APIView):
     """
     Modify group
 
+    --------------------
+
     Modifies an already existing BCO group.
     """
 
@@ -254,6 +262,8 @@ class ApiGroupsModify(APIView):
 class ApiAccountsNew(APIView):
     """
     Account creation request
+
+    --------------------
 
     Ask for a new account.  Sends an e-mail to the provided e-mail, which must then be clicked to activate the account.
     """
@@ -285,6 +295,8 @@ class ApiObjectsDraftsCreate(APIView):
     """
     Create BCO Draft
 
+    --------------------
+
     Creates a new BCO draft object.
     """
 
@@ -310,6 +322,8 @@ class ApiObjectsDraftsCreate(APIView):
 class ApiObjectsDraftsModify(APIView):
     """
     Modify a BCO Object
+
+    --------------------
 
     Modifies a BCO object.  The BCO object must be a draft in order to be modifiable.
     """
@@ -337,6 +351,8 @@ class ApiObjectsDraftsPermissions(APIView):
     """
     Get Permissions for a BCO Object
 
+    --------------------
+
     Gets the permissions for a BCO object.  The BCO object must be in draft form.
     """
 
@@ -362,6 +378,8 @@ class ApiObjectsDraftsPermissions(APIView):
 class ApiObjectsDraftsPermissionsSet(APIView):
     """
     Set Permissions for a BCO Object
+
+    --------------------
 
     Sets the permissions for a BCO object.  The BCO object must be in draft form.
     """
@@ -389,6 +407,8 @@ class ApiObjectsDraftsPermissionsSet(APIView):
 class ApiObjectsDraftsPublish(APIView):
     """
     Publish a BCO
+
+    --------------------
 
     Publish a draft BCO object.  Once published, a BCO object becomes immutable.
     """
@@ -419,6 +439,8 @@ class ApiObjectsDraftsRead(APIView):
     """
     Read BCO
 
+    --------------------
+
     Reads a draft BCO object.
     """
 
@@ -446,6 +468,8 @@ class ApiObjectsDraftsToken(APIView):
     """
     Get Draft BCOs
 
+    --------------------
+
     Get all the draft objects for a given token.
     """
 
@@ -470,6 +494,8 @@ class ApiObjectsDraftsToken(APIView):
 class ApiObjectsPublish(APIView):
     """
     Publish an Object
+
+    --------------------
 
     Reads a draft BCO object.
     """
@@ -497,6 +523,8 @@ class ApiObjectsSearch(APIView):
     """
     Search for BCO
 
+    --------------------
+
     Search for available BCO objects that match criteria.
     """
 
@@ -523,6 +551,8 @@ class ApiObjectsToken(APIView):
     """
     Get BCOs
 
+    --------------------
+
     Get all BCOs available for a specific token.
     """
 
@@ -547,6 +577,8 @@ class ApiObjectsToken(APIView):
 class ApiPrefixesCreate(APIView):
     """
     Create a Prefix
+
+    --------------------
 
     Creates a prefix to be used to classify BCOs and to determine permissions.
     """
@@ -573,6 +605,8 @@ class ApiPrefixesCreate(APIView):
 class ApiPrefixesDelete(APIView):
     """
     Delete a Prefix
+
+    --------------------
 
     Deletes a prefix for BCOs.
     """
@@ -604,6 +638,8 @@ class ApiPrefixesPermissionsSet(APIView):
     """
     Set Prefix Permissions
 
+    --------------------
+
     Sets the permissions available for a specified prefix.
     """
 
@@ -630,6 +666,8 @@ class ApiPrefixesToken(APIView):
     """
     Get Prefixes
 
+    --------------------
+
     Get all available prefixes for a given token.
     """
 
@@ -641,7 +679,7 @@ class ApiPrefixesToken(APIView):
             200: "Fetch prefixes is successful.",
             400: "Bad request.",
             403: "Invalid token."
-        }, tags=["BCO Management", "API Index"])
+        }, tags=["Prefix Management", "BCO Organization", "API Index"])
     def post(self, request) -> Response:
         if 'Authorization' in request.headers:
             # Pass the request to the handling function
@@ -666,6 +704,8 @@ class ApiPrefixesTokenFlat(APIView):
 class ApiPrefixesUpdate(APIView):
     """
     Update a Prefix
+
+    --------------------
 
     Updates a prefix with additional or new information.
     """
@@ -692,116 +732,142 @@ class ApiPrefixesUpdate(APIView):
         return check_post_and_process(request, POST_api_prefixes_modify)
 
 
-class ApiPublicDescribe(
-    APIView
-):
-    # Description
-    # -----------
+class ApiPublicDescribe(APIView):
+    """
+    Describe API
 
-    # Describe what's on the API.
-    # *** DOES NOT REQUIRE A TOKEN ***.
+    --------------------
 
-    # GET
+    Returns information about the API.
 
-    # Anyone can ask for an API description.
+    """
     authentication_classes = []
     permission_classes = []
 
-    def get(
-            self,
-            request
-    ):
-        # Instantiate UserUtils
-        uu = UserUtils.UserUtils()
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
 
+    auth = []
+
+    @swagger_auto_schema(manual_parameters=auth, responses={
+            201: "Account has been authorized.",
+            208: "Account has already been authorized.",
+            403: "Requestor's credentials were rejected.",
+            424: "Account has not been registered."
+        }, tags=["API Management", "API Index"])
+    def get(self, request):
         # Pass the request to the handling function
-        return Response(
-            uu.get_user_info(
-                username='anon'
-            )
-        )
+        return Response(UserUtils.UserUtils().get_user_info(username='anon'))
 
 
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
-class DraftObjectId(
-    APIView
-):
+class DraftObjectId(APIView):
+    """
+    Read Object by URI
 
-    # Description
-    # -----------
+    --------------------
 
-    # Read an object by URI.
+    Reads and returns and object based on a URI.
 
-    # GET
+    """
 
-    def get(
-            self,
-            request,
-            draft_object_id
-    ):
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
+
+    auth = []
+    auth.append(openapi.Parameter('draft_object_id', openapi.IN_PATH, description="Object ID to be viewed.",
+                                  type=openapi.TYPE_STRING))
+
+    @swagger_auto_schema(manual_parameters=auth, responses={
+            201: "Account has been authorized.",
+            208: "Account has already been authorized.",
+            403: "Requestor's credentials were rejected.",
+            424: "Account has not been registered."
+        }, tags=["BCO Management", "API Index"])
+    def get(self, request, draft_object_id):
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).
 
-        # Pass straight to the handler.        
-        return GET_draft_object_by_id(
-            do_id=request.build_absolute_uri(),
-            rqst=request
-        )
+        # Pass straight to the handler.
+        # TODO: This is not dealing with the draft_object_id parameter being passed in?
+        return GET_draft_object_by_id(do_id=request.build_absolute_uri(), rqst=request)
 
 
 # Allow anyone to view published objects.
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
-class ObjectIdRootObjectId(
-    APIView
-):
-    # Description
-    # -----------
+class ObjectIdRootObjectId(APIView):
+    """
+    View Published BCO by ID
 
-    # Read an object by URI.
+    --------------------
 
-    # GET
+    Reads and returns a published BCO based on an object ID.
+
+    """
+
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
+
+    auth = []
+    auth.append(openapi.Parameter('object_id_root', openapi.IN_PATH, description="Object ID to be viewed.",
+                                  type=openapi.TYPE_STRING))
 
     # Anyone can view a published object
     authentication_classes = []
     permission_classes = []
 
-    def get(
-            self,
-            request,
-            object_id_root
-    ):
-        return (
-            GET_published_object_by_id(
-                object_id_root
-            )
-        )
+    @swagger_auto_schema(manual_parameters=auth, responses={
+            201: "Account has been authorized.",
+            208: "Account has already been authorized.",
+            403: "Requestor's credentials were rejected.",
+            424: "Account has not been registered."
+        }, tags=["BCO Management", "API Index"])
+    def get(self, request, object_id_root):
+        return GET_published_object_by_id(object_id_root)
 
 
 # Allow anyone to view published objects.
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
-class ObjectIdRootObjectIdVersion(
-    APIView
-):
-    # Description
-    # -----------
+class ObjectIdRootObjectIdVersion(APIView):
+    """
+    View Published BCO by ID and Version
 
-    # Read an object by URI.
+    --------------------
 
-    # GET
+    Reads and returns a published BCO based on an object ID and a version.
+
+    """
+
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
+
+    auth = []
+    auth.append(openapi.Parameter('object_id_root', openapi.IN_PATH, description="Object ID to be viewed.",
+                                  type=openapi.TYPE_STRING))
+    auth.append(openapi.Parameter('object_id_version', openapi.IN_PATH, description="Object version to be viewed.",
+                                  type=openapi.TYPE_STRING))
 
     # Anyone can view a published object
     authentication_classes = []
     permission_classes = []
 
-    def get(
-            self,
-            request,
-            object_id_root,
-            object_id_version
-    ):
-        return (
-            GET_published_object_by_id_with_version(
-                object_id_root,
-                object_id_version
-            )
-        )
+    @swagger_auto_schema(manual_parameters=auth, responses={
+            201: "Account has been authorized.",
+            208: "Account has already been authorized.",
+            403: "Requestor's credentials were rejected.",
+            424: "Account has not been registered."
+        }, tags=["BCO Management", "API Index"])
+    def get(self, request, object_id_root, object_id_version):
+        return GET_published_object_by_id_with_version(object_id_root, object_id_version)
