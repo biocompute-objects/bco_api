@@ -614,7 +614,7 @@ class ApiPrefixesCreate(APIView):
             200: "Creating a prefix is successful.",
             400: "Bad request.",
             403: "Invalid token."
-        }, tags=["Prefix Management", "BCO Organization"])
+        }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_create)
 
@@ -646,7 +646,7 @@ class ApiPrefixesDelete(APIView):
             200: "Deleting a prefix is successful.",
             400: "Bad request.",
             403: "Invalid token."
-        }, tags=["Prefix Management", "BCO Organization"])
+        }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_delete)
 
@@ -674,7 +674,7 @@ class ApiPrefixesPermissionsSet(APIView):
             200: "Setting prefix permissions is successful.",
             400: "Bad request.",
             403: "Invalid token."
-        }, tags=["Prefix Management", "BCO Organization"])
+        }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_permissions_set)
 
@@ -696,7 +696,7 @@ class ApiPrefixesToken(APIView):
             200: "Fetch prefixes is successful.",
             400: "Bad request.",
             403: "Invalid token."
-        }, tags=["Prefix Management", "BCO Organization"])
+        }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         if 'Authorization' in request.headers:
             # Pass the request to the handling function
@@ -744,7 +744,7 @@ class ApiPrefixesUpdate(APIView):
             200: "Updating prefix is successful.",
             400: "Bad request.",
             403: "Invalid token."
-        }, tags=["Prefix Management", "BCO Organization"])
+        }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_modify)
 
