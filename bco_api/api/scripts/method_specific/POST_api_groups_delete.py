@@ -15,9 +15,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_groups_delete(
-        request
-):
+def POST_api_groups_delete(request):
     # Instantiate any necessary imports.
     db = DbUtils.DbUtils()
     uu = UserUtils.UserUtils()
