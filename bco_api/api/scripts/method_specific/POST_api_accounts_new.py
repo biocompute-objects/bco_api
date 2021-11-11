@@ -30,135 +30,121 @@ import uuid
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_api_accounts_new(
-	bulk_request
-):
+def POST_api_accounts_new(request):
+    # An e-mail is provided, and if the e-mail already exists
+    # as an account, then return 403.
 
-	# An e-mail is provided, and if the e-mail already exists
-	# as an account, then return 403.
-	
-	# Instantiate any necessary imports.
-	db = DbUtils.DbUtils()
+    bulk_request = request.data
+    # Instantiate any necessary imports.
+    db = DbUtils.DbUtils()
 
-	# Does the account associated with this e-mail already
-	# exist in either a temporary or a permanent user profile?
-	if db.check_user_exists(
-		p_app_label = 'api',
-		p_model_name = 'new_users',
-		p_email = bulk_request['email']
-	) is None:
+    # Does the account associated with this e-mail already
+    # exist in either a temporary or a permanent user profile?
+    if db.check_user_exists( p_app_label='api', p_model_name='new_users', p_email=bulk_request['email']) is None:
+        if User.objects.filter(email=bulk_request['email']).exists():
+            # Account has already been activated.
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
-		if User.objects.filter(
-			email = bulk_request['email']
-		).exists():
+        # The email has not already been asked for and
+        # it has not been activated.
 
-			# Account has already been activated.
-			return(
-				Response(
-					status = status.HTTP_403_FORBIDDEN
-				)
-			)
-		
-		else:
+        # Generate a temp ID to use so that the account can
+        # be activated.
 
-			# The email has not already been asked for and
-			# it has not been activated.
+        # The data is based on whether or not a token was provided.
 
-			# Generate a temp ID to use so that the account can
-			# be activated.
+        # Create a temporary identifier.
+        temp_identifier = uuid.uuid4().hex
 
-			# The data is based on whether or not a token was provided.
+        if 'token' in bulk_request and 'hostname' in bulk_request:
 
-			# Create a temporary identifier.
-			temp_identifier = uuid.uuid4().hex
+            p_data = {
+                'email': bulk_request['email'],
+                'temp_identifier': temp_identifier,
+                'hostname': bulk_request['hostname'],
+                'token': bulk_request['token']
+            }
 
-			if 'token' in bulk_request and 'hostname' in bulk_request:
+        else:
 
-				p_data = {
-					'email': bulk_request['email'],
-					'temp_identifier': temp_identifier,
-					'hostname': bulk_request['hostname'],
-					'token': bulk_request['token']
-				}
+            p_data = {
+                'email': bulk_request['email'],
+                'temp_identifier': temp_identifier
+            }
 
-			else:
+        db.write_object(
+            p_app_label='api',
+            p_model_name='new_users',
+            p_fields=['email', 'temp_identifier', 'hostname', 'token'],
+            p_data=p_data
+        )
 
-				p_data = {
-					'email': bulk_request['email'],
-					'temp_identifier': temp_identifier
-				}
+        # Send an e-mail to let the requestor know that they
+        # need to follow the activation link within 10 minutes.
 
-			db.write_object(
-				p_app_label = 'api', 
-				p_model_name = 'new_users',
-				p_fields = ['email', 'temp_identifier', 'hostname', 'token'],
-				p_data = p_data
-			)
+        # Source: https://realpython.com/python-send-email/#sending-fancy-emails
 
-			# Send an e-mail to let the requestor know that they
-			# need to follow the activation link within 10 minutes.
+        activation_link = ''
+        template = ''
 
-			# Source: https://realpython.com/python-send-email/#sending-fancy-emails
+        if settings.PRODUCTION == 'True':
 
-			activation_link = ''
-			template = ''
+            activation_link = 'https://' + settings.ALLOWED_HOSTS[
+                0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
 
-			if settings.PRODUCTION == 'True':
-			
-				activation_link = 'https://' + settings.ALLOWED_HOSTS[0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
+            template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(
+                activation_link, activation_link)
 
-				template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(activation_link, activation_link)
+            try:
+                send_mail(
+                    subject='Registration for BioCompute Portal',
+                    message='Testing.',
+                    html_message=template,
+                    from_email='mail_sender@portal.aws.biochemistry.gwu.edu',
+                    recipient_list=[
+                        bulk_request['email']
+                    ],
+                    fail_silently=False,
+                )
 
-				try:
-					send_mail(
-							subject = 'Registration for BioCompute Portal',
-							message = 'Testing.',
-							html_message = template,
-							from_email = 'mail_sender@portal.aws.biochemistry.gwu.edu',
-							recipient_list = [
-								bulk_request['email']
-							],
-							fail_silently = False,
-					)
+            except Exception as e:
+                pass
 
-				except Exception as e:
-						pass
-				
-				return(
-					Response(
-						status = status.HTTP_201_CREATED
-					)
-				)
-			
-			elif settings.PRODUCTION == 'False':
+            return (
+                Response(
+                    status=status.HTTP_201_CREATED
+                )
+            )
 
-				# Go straight to account activation.
-				straight_activated = GET_activate_account(
-					username = bulk_request['email'],
-					temp_identifier = temp_identifier
-				)
-				
-				# Get the user's token via the user ID.
-				user_token = Token.objects.get(
-					user_id = User.objects.get(
-						username = straight_activated.data['data']['username']
-					)
-				).key
+        elif settings.PRODUCTION == 'False':
 
-				return Response(
-					data = {
-						'message': 'New account succesfully created on development server ' + settings.PUBLIC_HOSTNAME + '.  Parse the \'token\' key for your new token.',
-						'token': user_token,
-						'username': straight_activated.data['data']['username']
-					},
-					status = status.HTTP_201_CREATED
-				)
-			
-	else:
+            # Go straight to account activation.
+            straight_activated = GET_activate_account(
+                username=bulk_request['email'],
+                temp_identifier=temp_identifier
+            )
 
-		# Account has already been asked for.
-		return(
-			Response(
-				status = status.HTTP_403_FORBIDDEN
-			)
-		)
+            # Get the user's token via the user ID.
+            user_token = Token.objects.get(
+                user_id=User.objects.get(
+                    username=straight_activated.data['data']['username']
+                )
+            ).key
+
+            return Response(
+                data={
+                    'message': 'New account succesfully created on development server ' + settings.PUBLIC_HOSTNAME + '.  Parse the \'token\' key for your new token.',
+                    'token': user_token,
+                    'username': straight_activated.data['data']['username']
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+    else:
+
+        # Account has already been asked for.
+        return (
+            Response(
+                status=status.HTTP_403_FORBIDDEN
+            )
+        )
