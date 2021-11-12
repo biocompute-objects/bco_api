@@ -343,6 +343,7 @@ class ApiAccountsNew(APIView):
         type=openapi.TYPE_OBJECT,
         title="Account Creation Schema",
         description="Account creation schema description.",
+        required=['hostname', 'email', 'token'],
         properties={
             'hostname': openapi.Schema(type=openapi.TYPE_STRING, description='Hostname of the User Database.'),
             'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email address of user.'),
@@ -356,8 +357,6 @@ class ApiAccountsNew(APIView):
         403: "Invalid token."
     }, tags=["Account Management"])
     def post(self, request) -> Response:
-        import pdb;
-        pdb.set_trace()
         print("Request: {}".format(request))
         return check_post_and_process(request, POST_api_accounts_new)
 
