@@ -43,7 +43,7 @@ def POST_api_accounts_new(request):
     if db.check_user_exists( p_app_label='api', p_model_name='new_users', p_email=bulk_request['email']) is None:
         if User.objects.filter(email=bulk_request['email']).exists():
             # Account has already been activated.
-            return Response(status=status.HTTP_403_FORBIDDEN)
+            return Response(status=status.HTTP_409_CONFLICT, data={"message": "Account has already been activated."})
 
         # The email has not already been asked for and
         # it has not been activated.
@@ -57,7 +57,6 @@ def POST_api_accounts_new(request):
         temp_identifier = uuid.uuid4().hex
 
         if 'token' in bulk_request and 'hostname' in bulk_request:
-
             p_data = {
                 'email': bulk_request['email'],
                 'temp_identifier': temp_identifier,
@@ -66,18 +65,21 @@ def POST_api_accounts_new(request):
             }
 
         else:
-
             p_data = {
                 'email': bulk_request['email'],
                 'temp_identifier': temp_identifier
             }
 
-        db.write_object(
+        objects_written = db.write_object(
             p_app_label='api',
             p_model_name='new_users',
             p_fields=['email', 'temp_identifier', 'hostname', 'token'],
             p_data=p_data
         )
+
+        if objects_written < 1:
+            # There is a problem with the write.
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data="Not able to save the new account.")
 
         # Send an e-mail to let the requestor know that they
         # need to follow the activation link within 10 minutes.
@@ -108,16 +110,12 @@ def POST_api_accounts_new(request):
                 )
 
             except Exception as e:
-                pass
+                # TODO: Should handle when the send_mail function fails?
+                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": "Not able to send authentication email."})
 
-            return (
-                Response(
-                    status=status.HTTP_201_CREATED
-                )
-            )
+            return Response(status=status.HTTP_201_CREATED)
 
         elif settings.PRODUCTION == 'False':
-
             # Go straight to account activation.
             straight_activated = GET_activate_account(
                 username=bulk_request['email'],
@@ -133,7 +131,8 @@ def POST_api_accounts_new(request):
 
             return Response(
                 data={
-                    'message': 'New account succesfully created on development server ' + settings.PUBLIC_HOSTNAME + '.  Parse the \'token\' key for your new token.',
+                    'message': 'New account successfully created on development server ' + settings.PUBLIC_HOSTNAME + '.  Parse the \'token\' key for your '
+                                                                                                                      'new token.',
                     'token': user_token,
                     'username': straight_activated.data['data']['username']
                 },
@@ -143,8 +142,5 @@ def POST_api_accounts_new(request):
     else:
 
         # Account has already been asked for.
-        return (
-            Response(
-                status=status.HTTP_403_FORBIDDEN
-            )
-        )
+        return Response(status=status.HTTP_409_CONFLICT, data={"message": "Account has already been requested."})
+
