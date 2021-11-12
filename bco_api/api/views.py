@@ -2,17 +2,30 @@
 
 # For instructions on calling class methods from other classes, see https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
 
-# For helper functions
-from .scripts.utilities import UserUtils
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+# By-view permissions
+from rest_framework.permissions import IsAuthenticated
+# Message page
+# Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
+from rest_framework.renderers import TemplateHTMLRenderer
+from rest_framework.response import Response
+# Views
+from rest_framework.views import APIView
 
+from .permissions import RequestorInPrefixAdminsGroup
+# FIX
+from .scripts.method_specific.GET_activate_account import GET_activate_account
+from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
+from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
+from .scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
 # Request-specific methods
 from .scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
 from .scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
-
 from .scripts.method_specific.POST_api_groups_create import POST_api_groups_create
 from .scripts.method_specific.POST_api_groups_delete import POST_api_groups_delete
 from .scripts.method_specific.POST_api_groups_modify import POST_api_groups_modify
-
 from .scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create
 from .scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
 from .scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
@@ -20,43 +33,69 @@ from .scripts.method_specific.POST_api_objects_drafts_permissions_set import POS
 from .scripts.method_specific.POST_api_objects_drafts_publish import POST_api_objects_drafts_publish
 from .scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
 from .scripts.method_specific.POST_api_objects_drafts_token import POST_api_objects_drafts_token
-
-from .scripts.method_specific.POST_api_objects_search import POST_api_objects_search
-
 from .scripts.method_specific.POST_api_objects_publish import POST_api_objects_publish
-
+from .scripts.method_specific.POST_api_objects_search import POST_api_objects_search
 from .scripts.method_specific.POST_api_objects_token import POST_api_objects_token
-
 from .scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
 from .scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
+from .scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify
 from .scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
-from .scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify, POST_api_prefixes_modify
 from .scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
 from .scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
+# For helper functions
+from .scripts.utilities import UserUtils
 
-# FIX
-from .scripts.method_specific.GET_activate_account import GET_activate_account
-from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
-from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
-from .scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
 
-# Views
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+################################################################################################
+# NOTES
+################################################################################################
+# Permissions
+#       We can't use the examples given in
+#       https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
+#       because our permissions system is not tied to
+#       the request type (DELETE, GET, PATCH, POST).
+################################################################################################
 
-# By-view permissions
-from rest_framework.permissions import IsAuthenticated
-from .permissions import RequestorInObjectOwnerGroup, RequestorInPrefixAdminsGroup, HasObjectGenericPermission, HasObjectChangePermission, \
-    HasObjectDeletePermission, HasObjectViewPermission
 
-# Message page
-# Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
-from rest_framework.renderers import TemplateHTMLRenderer
+# TODO: This is a helper function so might want to go somewhere else
+def check_post_and_process(request, PostFunction) -> Response:
+    """
+    Helper function to perform the verification that a request is a POST and to then
+    make a call to the callback function with the request body.
 
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.decorators import api_view
+    Returns: An HTTP Response Object
+    """
+    # checked is suppressed for the milestone.
+
+    # Check the request
+    # checked = RequestUtils.RequestUtils().check_request_templates(
+    #     method = 'POST',
+    #     request = request.data
+    # )
+
+    checked = None
+    if checked is None:
+        # Pass the request to the handling function.
+        return PostFunction(request)
+    else:
+        return Response(data=checked, status=status.HTTP_400_BAD_REQUEST)
+
+
+# TODO: This is currently commented out; need to see what checking is meant to do
+def check_get(request) -> Response:
+    """
+    Helper function to perform the verification that a request is a GET
+
+    Returns: An HTTP Response Object
+    """
+    # Check the request
+    # checked = RequestUtils.RequestUtils().check_request_templates(
+    #     method = 'GET',
+    #     request = request.data
+    # )
+
+    # Placeholder
+    return Response(status=status.HTTP_200_OK)
 
 
 class ApiAccountsActivateUsernameTempIdentifier(APIView):
@@ -75,1037 +114,830 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
 
     # For the success and error messages
     renderer_classes = [
-            TemplateHTMLRenderer
-            ]
+        TemplateHTMLRenderer
+    ]
     template_name = 'api/account_activation_message.html'
 
     auth = []
-    auth.append(openapi.Parameter('username', openapi.IN_PATH, description="Username to be authenticated.", type=openapi.TYPE_STRING))
-    auth.append(openapi.Parameter('temp_identifier', openapi.IN_PATH, description="The temporary identifier needed to authenticate the activation.  This is "
-                                                                                  "found in the temporary account table (i.e. where an account is staged).",
+    auth.append(openapi.Parameter('username', openapi.IN_PATH, description="Username to be authenticated.",
+                                  type=openapi.TYPE_STRING))
+    auth.append(openapi.Parameter('temp_identifier', openapi.IN_PATH,
+                                  description="The temporary identifier needed to authenticate the activation.  This "
+                                              "is found in the temporary account table (i.e. where an account is "
+                                              "staged).",
                                   type=openapi.TYPE_STRING))
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered."
-            }, tags=["Account Management", "API"])
-    def get(
-            self,
-            request,
-            username: str,
-            temp_identifier: str
-            ):
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'GET', 
-        #     request = request.data
-        # )
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["Account Management"])
+    def get(self, request, username: str, temp_identifier: str):
+        # Check the request to make sure it is valid - not sure what this is really doing though
+        # Placeholder
+        check_get(request)
         checked = None
-
         if checked is None:
-
             # Pass the request to the handling function
-            return (
-                    GET_activate_account(
-                            username=username,
-                            temp_identifier=temp_identifier
-                            )
-            )
-
+            return GET_activate_account(username=username, temp_identifier=temp_identifier)
         else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
+            return Response(data=checked, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 class ApiAccountsDescribe(APIView):
     """
-    Account Details.
-    
-    No schema for this request since only
-    the Authorization header is required.
+    Account details
 
-    Furthermore, if the token provided in the
-    Authorization header is bad, DRF will kick
-    back an invalid token response, so this section
-    of code is redundant, but explanatory.
+    --------------------
+    
+    No schema for this request since only the Authorization header is required.
+
+    Furthermore, if the token provided in the Authorization header is bad, DRF will kick back an invalid token
+    response, so this section of code is redundant, but explanatory.
     """
 
-    auth = openapi.Parameter('HTTP_AUTHORIZATION', openapi.IN_QUERY, description="test manual param", type=openapi.TYPE_BOOLEAN)
+    auth = [openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING)]
 
-    @swagger_auto_schema(manual_parameters=[auth])
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        200: "Authorization is successful.",
+        400: "Bad request.  Authorization is not provided in the request headers."
+    }, tags=["Account Management"])
     def post(self, request):
         if 'Authorization' in request.headers:
-
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
-            return POST_api_accounts_describe(
-                    token=request.META.get('HTTP_AUTHORIZATION')
-                    )
-
+            return POST_api_accounts_describe(token=request.META.get('HTTP_AUTHORIZATION'))
         else:
-
-            return Response(
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class ApiGroupsCreate(
-        APIView
-        ):
+class ApiGroupsCreate(APIView):
+    """
+    Create group
 
-    # Description
-    # -----------
+    --------------------
 
-    # Create a group.
+    This API call creates a BCO group in ths system.
+    """
+    POST_api_groups_create_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['name'],
+        properties={
+            'name': openapi.Schema(type=openapi.TYPE_STRING, description='The name of the group to create'),
+            'usernames': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                        items=openapi.Schema(type=openapi.TYPE_STRING),
+                                        description='List of users to add to the group.'),
+            'delete_members_on_group_deletion': openapi.Schema(type=openapi.TYPE_BOOLEAN,
+                                                               description='Delete the members of the group if the '
+                                                                           'group is deleted.'),
+            'description': openapi.Schema(type=openapi.TYPE_STRING, description='Description of the group.'),
+            'expiration': openapi.Schema(type=openapi.TYPE_STRING, description='Expiration date and time of the '
+                                                                               'group.  Note, this needs to be in a '
+                                                                               'Python DateTime compatible format.'),
+            'max_n_members': openapi.Schema(type=openapi.TYPE_INTEGER, description='Maximum number of members to '
+                                                                                   'allow in the group.'),
+        },
+        description="Groups to create along with associated information."
+    )
 
-    # POST
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Group Creation Schema",
+        description="Parameters that are supported when trying to create a group.",
+        required=['POST_api_groups_modify'],
+        properties={
+            'POST_api_groups_modify': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                     items=POST_api_groups_create_schema,
+                                                     description='Groups and actions to take on them.'),
+        })
 
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return POST_api_groups_create(
-                    request
-                    )
-
-        else:
-
-            return Response(
-                    data=checked,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
-
-
-class ApiGroupsDelete(
-        APIView
-        ):
-
-    # Description
-    # -----------
-
-    # Delete groups.
-
-    # POST
-
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return POST_api_groups_delete(
-                    request
-                    )
-
-        else:
-
-            return Response(
-                    data=checked,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Group creation is successful.",
+        400: "Bad request.",
+        403: "Invalid token.",
+        409: "Group conflict.  There is already a group with this name."
+    }, tags=["Group Management"])
+    def post(self, request):
+        return check_post_and_process(request, POST_api_groups_create)
 
 
-class ApiGroupsModify(
-        APIView
-        ):
+class ApiGroupsDelete(APIView):
+    """
+    Delete group
 
-    # Description
-    # -----------
+    --------------------
 
-    # Modify groups.
+    Deletes a group from the BCO API database.
+    """
+    POST_api_groups_delete_schema = openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                   required=['names'],
+                                                   properties={
+                                                       'names': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                               description='List of groups to delete.',
+                                                                               items=openapi.Schema(
+                                                                                   type=openapi.TYPE_STRING)),
+                                                   })
 
-    # POST
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Group Deletion Schema",
+        description="Parameters that are supported when trying to delete one or more groups.",
+        required=['POST_api_groups_delete'],
+        properties={
+            'POST_api_groups_delete': POST_api_groups_delete_schema
+        })
 
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return POST_api_groups_modify(
-                    request
-                    )
-
-        else:
-
-            return Response(
-                    data=checked,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Group deletion is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Group Management"])
+    def post(self, request):
+        return check_post_and_process(request, POST_api_groups_delete)
 
 
-class ApiAccountsNew(
-        APIView
-        ):
-    # Description
-    # -----------
+class ApiGroupsModify(APIView):
+    """
+    Modify group
 
-    # Ask for a new account.  Sends an e-mail to
-    # the provided e-mail, which must then be clicked
-    # to activate the account.
+    --------------------
 
-    # POST
+    Modifies an already existing BCO group.
+    """
+
+    POST_api_groups_modify_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['name'],
+        properties={
+            'name': openapi.Schema(type=openapi.TYPE_STRING,
+                                   description='The name of the group to create'),
+            'actions': openapi.Schema(type=openapi.TYPE_OBJECT,
+                                      properties={
+                                          'rename': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                   description=""),
+                                          'redescribe': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                       description="Change the description of the "
+                                                                                   "group to this."),
+                                          'owner_user': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                       description="Change the owner of the group to "
+                                                                                   "this user."),
+                                          'remove_users': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                         items=openapi.Schema(type=openapi.TYPE_STRING),
+                                                                         description="Users to remove from the group."),
+                                          'disinherit_from': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                            items=openapi.Schema(
+                                                                                type=openapi.TYPE_STRING),
+                                                                            description="Groups to disinherit "
+                                                                                        "permissions from."),
+                                          'add_users': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                      items=openapi.Schema(type=openapi.TYPE_STRING),
+                                                                      description="Users to add to the group."),
+                                          'inherit_from': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                         items=openapi.Schema(type=openapi.TYPE_STRING),
+                                                                         description="Groups to inherit permissions "
+                                                                                     "from."),
+                                      },
+                                      description="Actions to take upon the group.")
+        }
+
+    )
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Group Modification Schema",
+        description="Parameters that are supported when trying to modify one or more groups.",
+        required=['POST_api_groups_modify'],
+        properties={
+            'POST_api_groups_modify': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                     items=POST_api_groups_modify_schema,
+                                                     description='Groups and actions to take on them.'),
+        })
+
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Group modification is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Group Management"])
+    def post(self, request):
+        return check_post_and_process(request, POST_api_groups_modify)
+
+
+class ApiAccountsNew(APIView):
+    """
+    Account creation request
+
+    --------------------
+
+    Ask for a new account.  Sends an e-mail to the provided e-mail, which must then be clicked to activate the account.
+
+    The account create depends on creation of an account in the associated user database.  The authentication as
+    well as the user database host information is used to make this request.
+    """
 
     # Anyone can ask for a new account
     authentication_classes = []
     permission_classes = []
 
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function.
-            return POST_api_accounts_new(
-                    request.data
-                    )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
-
-
-class ApiObjectsDraftsCreate(
-        APIView
-        ):
-
-    # Description
-    # -----------
-
-    # Draft an object.
-
-    # POST
-
-    # Permissions
-
-    # Note: We can't use the examples given in
-    # https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
-    # because our permissions system is not tied to
-    # the request type (DELETE, GET, PATCH, POST).
-
-    def post(
-            self,
-            request
-            ):
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return POST_api_objects_drafts_create(
-                    request
-                    )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
-
-
-class ApiObjectsDraftsModify(
-        APIView
-        ):
-
-    # Description
-    # -----------
-
-    # Modify an object.
-
-    # POST
-
-    # Permissions
-
-    # Note: We can't use the examples given in
-    # https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
-    # because our permissions system is not tied to
-    # the request type (DELETE, GET, PATCH, POST).
-
-    def post(
-            self,
-            request
-            ):
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return POST_api_objects_drafts_modify(
-                    request
-                    )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
-
-
-class ApiObjectsDraftsPermissions(
-        APIView
-        ):
-
-    # Description
-    # -----------
-
-    # Set the permissions for an object.
-
-    # POST
-
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Call the handler.
-            return POST_api_objects_drafts_permissions(
-                    request
-                    )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
-
-
-class ApiObjectsDraftsPermissionsSet(
-        APIView
-        ):
-
-    # Description
-    # -----------
-
-    # Set the permissions for an object.
-
-    # POST
-
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Call the handler.
-            return POST_api_objects_drafts_permissions_set(
-                    request
-                    )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
-
-
-class ApiObjectsDraftsPublish(
-        APIView
-        ):
-    # Description
-    # -----------
-
-    # Publish an object.
-
-    # POST
-
-    # Permissions
-
-    # Note: We can't use the examples given in
-    # https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
-    # because our permissions system is not tied to
-    # the request type (DELETE, GET, PATCH, POST).
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Account Creation Schema",
+        description="Account creation schema description.",
+        required=['hostname', 'email', 'token'],
+        properties={
+            'hostname': openapi.Schema(type=openapi.TYPE_STRING, description='Hostname of the User Database.'),
+            'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email address of user.'),
+            'token': openapi.Schema(type=openapi.TYPE_STRING, description='Token returned with new user being '
+                                                                          'generated in the User Database.'),
+        })
+
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Account creation is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Account Management"])
+    def post(self, request) -> Response:
+        print("Request: {}".format(request))
+        return check_post_and_process(request, POST_api_accounts_new)
+
+
+class ApiObjectsDraftsCreate(APIView):
+    """
+    Create BCO Draft
+
+    --------------------
+
+    Creates a new BCO draft object.
+    """
+
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Create BCO Draft Schema",
+        description="BCO draft creation description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
+
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Creation of BCO draft is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_objects_drafts_create)
+
+
+class ApiObjectsDraftsModify(APIView):
+    """
+    Modify a BCO Object
+
+    --------------------
+
+    Modifies a BCO object.  The BCO object must be a draft in order to be modifiable.
+    """
+
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Modify BCO Draft Schema",
+        description="BCO draft modification description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
+
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Modification of BCO draft is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_objects_drafts_modify)
+
+
+class ApiObjectsDraftsPermissions(APIView):
+    """
+    Get Permissions for a BCO Object
+
+    --------------------
+
+    Gets the permissions for a BCO object.  The BCO object must be in draft form.
+    """
+
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Get BCO Permissions Schema",
+        description="Get BCO permissions description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
+
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Checking BCO permissions is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_objects_drafts_permissions)
+
+
+class ApiObjectsDraftsPermissionsSet(APIView):
+    """
+    Set Permissions for a BCO Object
+
+    --------------------
+
+    Sets the permissions for a BCO object.  The BCO object must be in draft form.
+    """
+
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Set BCO Permissions Schema",
+        description="Set BCO permissions description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
+
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Setting BCO permissions is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_objects_drafts_permissions_set)
+
+
+# TODO: What is the difference between this and ApiObjectsPublish?
+class ApiObjectsDraftsPublish(APIView):
+    """
+    Publish a BCO
+
+    --------------------
+
+    Publish a draft BCO object.  Once published, a BCO object becomes immutable.
+    """
+
+    # TODO: What is this for?
     permission_classes = [IsAuthenticated]
 
-    def post(
-            self,
-            request
-            ):
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="BCO Publication Schema",
+        description="Publish description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
 
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return (
-                    POST_api_objects_drafts_publish(
-                            request
-                            )
-            )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "BCO Publication is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_objects_drafts_publish)
 
 
-class ApiObjectsDraftsRead(
-        APIView
-        ):
+class ApiObjectsDraftsRead(APIView):
+    """
+    Read BCO
 
-    # Description
-    # -----------
+    --------------------
 
-    # Read draft objects
+    Reads a draft BCO object.
+    """
 
-    # POST
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="BCO Publication Schema",
+        description="Publish description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
 
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Call the handler.
-            POST_api_objects_drafts_read(
-                    request
-                    )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Read BCO is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_objects_drafts_read)
 
 
-class ApiObjectsDraftsToken(
-        APIView
-        ):
+# TODO: This should probably also be a GET (or only a GET)
+class ApiObjectsDraftsToken(APIView):
+    """
+    Get Draft BCOs
 
-    # Description
-    # -----------
+    --------------------
 
-    # Get all the draft objects for a given token.
+    Get all the draft objects for a given token.
+    """
 
-    # POST
+    auth = []
+    auth.append(
+        openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
 
-    def post(
-            self,
-            request
-            ):
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        200: "Fetch BCO drafts is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        # TODO: Not checking for authorization here?
         # No schema for this request since only
         # the Authorization header is required.
+        return POST_api_objects_drafts_token(rqst=request)
 
-        # Pass the request to the handling function
-        # Source: https://stackoverflow.com/a/31813810
-        return POST_api_objects_drafts_token(
-                rqst=request
-                )
+    # TODO: Should change to GET?
 
 
-class ApiObjectsPublish(
-        APIView
-        ):
-    # Description
-    # -----------
+class ApiObjectsPublish(APIView):
+    """
+    Publish an Object
 
-    # Publish an object.
+    --------------------
 
-    # POST
+    Reads a draft BCO object.
+    """
 
-    # Permissions
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="BCO Publication Schema",
+        description="Publish description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
 
-    # Note: We can't use the examples given in
-    # https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
-    # because our permissions system is not tied to
-    # the request type (DELETE, GET, PATCH, POST).
-    permission_classes = [IsAuthenticated]
-
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return (
-                    POST_api_objects_publish(
-                            request
-                            )
-            )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "BCO publication is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_objects_publish)
 
 
-class ApiObjectsSearch(
-        APIView
-        ):
+class ApiObjectsSearch(APIView):
+    """
+    Search for BCO
 
-    # Description
-    # -----------
+    --------------------
 
-    # Search for objects
+    Search for available BCO objects that match criteria.
+    """
 
-    # POST
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="BCO Publication Schema",
+        description="Publish description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
 
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Call the handler.
-            POST_api_objects_search(
-                    request
-                    )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "BCO publication is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_objects_search)
 
 
-class ApiObjectsToken(
-        APIView
-        ):
+class ApiObjectsToken(APIView):
+    """
+    Get BCOs
 
-    # Description
-    # -----------
+    --------------------
 
-    # Get all the objects for a given token.
+    Get all BCOs available for a specific token.
+    """
 
-    # POST
+    auth = []
+    auth.append(
+        openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
 
-    def post(
-            self,
-            request
-            ):
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        200: "Fetch BCOs is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        # TODO: Not checking for authorization? eg. if 'Authorization' in request.headers:
         # No schema for this request since only
         # the Authorization header is required.
+        return POST_api_objects_token(rqst=request)
 
-        # import pdb;pdb.set_trace()
-        # Pass the request to the handling function
-        # Source: https://stackoverflow.com/a/31813810
-        return POST_api_objects_token(
-                rqst=request
-                )
+    # TODO: Should change to get?
 
 
-class ApiPrefixesCreate(
-        APIView
-        ):
-    # Description
-    # -----------
+class ApiPrefixesCreate(APIView):
+    """
+    Create a Prefix
 
-    # Create a prefix.
+    --------------------
 
-    # POST
+    Creates a prefix to be used to classify BCOs and to determine permissions.
+    """
 
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="BCO Publication Schema",
+        description="Publish description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
+
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Creating a prefix is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_prefixes_create)
+
+
+class ApiPrefixesDelete(APIView):
+    """
+    Delete a Prefix
+
+    --------------------
+
+    Deletes a prefix for BCOs.
+    """
+
+    # TODO: Not sure if this actually does anything?
     # Permissions - prefix admins only
     permission_classes = [RequestorInPrefixAdminsGroup]
 
-    def post(
-            self,
-            request
-            ):
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Prefix Delete Schema",
+        description="Prefix delete description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
 
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return (
-                    POST_api_prefixes_create(
-                            request
-                            )
-            )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Deleting a prefix is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_prefixes_delete)
 
 
-class ApiPrefixesDelete(
-        APIView
-        ):
-    # Description
-    # -----------
+class ApiPrefixesPermissionsSet(APIView):
+    """
+    Set Prefix Permissions
 
-    # Delete a prefix.
+    --------------------
 
-    # POST
+    Sets the permissions available for a specified prefix.
+    """
 
-    # Permissions - prefix admins only
-    permission_classes = [RequestorInPrefixAdminsGroup]
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Prefix Permissions Schema",
+        description="Prefix permissions description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
 
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return (
-                    POST_api_prefixes_delete(
-                            request
-                            )
-            )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Setting prefix permissions is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_prefixes_permissions_set)
 
 
-class ApiPrefixesPermissionsSet(
-        APIView
-        ):
+class ApiPrefixesToken(APIView):
+    """
+    Get Prefixes
 
-    # Description
-    # -----------
+    --------------------
 
-    # Delete a prefix.
+    Get all available prefixes for a given token.
+    """
 
-    # POST
+    auth = []
+    auth.append(
+        openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
 
-    def post(
-            self,
-            request
-            ):
-
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return (
-                    POST_api_prefixes_permissions_set(
-                            request
-                            )
-            )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
-
-
-class ApiPrefixesToken(
-        APIView
-        ):
-
-    # Description
-    # -----------
-
-    # Get the prefix permissions for a given token.
-
-    # POST
-
-    # Open permissions - anyone can request.
-
-    def post(
-            self,
-            request
-            ):
-
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        200: "Fetch prefixes is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
+    def post(self, request) -> Response:
         if 'Authorization' in request.headers:
-
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
-            return POST_api_prefixes_token(
-                    request=request
-                    )
-
+            return POST_api_prefixes_token(request=request)
         else:
-
-            return Response(
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class ApiPrefixesTokenFlat(
-        APIView
-        ):
+# TODO: What does this do?  Appears to flatten the prefixes (not sure what for)
+class ApiPrefixesTokenFlat(APIView):
 
-    def post(
-            self,
-            request
-            ):
-
+    def post(self, request):
         if 'Authorization' in request.headers:
-
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
-            return POST_api_prefixes_token_flat(
-                    request=request
-                    )
-
+            return POST_api_prefixes_token_flat(request=request)
         else:
-
-            return Response(
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class ApiPrefixesUpdate(
-        APIView
-        ):
-    # Description
-    # -----------
+class ApiPrefixesUpdate(APIView):
+    """
+    Update a Prefix
 
-    # Update a prefix.
+    --------------------
 
-    # POST
+    Updates a prefix with additional or new information.
+    """
 
     # Permissions - prefix admins only
     permission_classes = [RequestorInPrefixAdminsGroup]
 
-    def post(
-            self,
-            request
-            ):
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Prefix Update Schema",
+        description="Prefix update description.",
+        properties={
+            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+        })
 
-        # checked is suppressed for the milestone.
-
-        # Check the request
-        # checked = RequestUtils.RequestUtils().check_request_templates(
-        #     method = 'POST', 
-        #     request = request.data
-        # )
-
-        checked = None
-
-        if checked is None:
-
-            # Pass the request to the handling function
-            return (
-                    POST_api_prefixes_modify(
-                            request
-                            )
-            )
-
-        else:
-
-            return (
-                    Response(
-                            data=checked,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Updating prefix is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_prefixes_modify)
 
 
-class ApiPublicDescribe(
-        APIView
-        ):
-    # Description
-    # -----------
+class ApiPublicDescribe(APIView):
+    """
+    Describe API
 
-    # Describe what's on the API.
-    # *** DOES NOT REQUIRE A TOKEN ***.
+    --------------------
 
-    # GET
+    Returns information about the API.
 
-    # Anyone can ask for an API description.
+    """
     authentication_classes = []
     permission_classes = []
 
-    def get(
-            self,
-            request
-            ):
-        # Instantiate UserUtils
-        uu = UserUtils.UserUtils()
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
 
+    auth = []
+
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["API Management"])
+    def get(self, request):
         # Pass the request to the handling function
-        return Response(
-                uu.get_user_info(
-                        username='anon'
-                        )
-                )
+        return Response(UserUtils.UserUtils().get_user_info(username='anon'))
 
 
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
-class DraftObjectId(
-        APIView
-        ):
+class DraftObjectId(APIView):
+    """
+    Read Object by URI
 
-    # Description
-    # -----------
+    --------------------
 
-    # Read an object by URI.
+    Reads and returns and object based on a URI.
 
-    # GET
+    """
 
-    def get(
-            self,
-            request,
-            draft_object_id
-            ):
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
+
+    auth = []
+    auth.append(openapi.Parameter('draft_object_id', openapi.IN_PATH, description="Object ID to be viewed.",
+                                  type=openapi.TYPE_STRING))
+
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["BCO Management"])
+    def get(self, request, draft_object_id):
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).
 
-        # Pass straight to the handler.        
-        return GET_draft_object_by_id(
-                do_id=request.build_absolute_uri(),
-                rqst=request
-                )
+        # Pass straight to the handler.
+        # TODO: This is not dealing with the draft_object_id parameter being passed in?
+        return GET_draft_object_by_id(do_id=request.build_absolute_uri(), rqst=request)
 
 
 # Allow anyone to view published objects.
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
-class ObjectIdRootObjectId(
-        APIView
-        ):
-    # Description
-    # -----------
+class ObjectIdRootObjectId(APIView):
+    """
+    View Published BCO by ID
 
-    # Read an object by URI.
+    --------------------
 
-    # GET
+    Reads and returns a published BCO based on an object ID.
+
+    """
+
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
+
+    auth = []
+    auth.append(openapi.Parameter('object_id_root', openapi.IN_PATH, description="Object ID to be viewed.",
+                                  type=openapi.TYPE_STRING))
 
     # Anyone can view a published object
     authentication_classes = []
     permission_classes = []
 
-    def get(
-            self,
-            request,
-            object_id_root
-            ):
-        return (
-                GET_published_object_by_id(
-                        object_id_root
-                        )
-        )
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["BCO Management"])
+    def get(self, request, object_id_root):
+        return GET_published_object_by_id(object_id_root)
 
 
 # Allow anyone to view published objects.
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
-class ObjectIdRootObjectIdVersion(
-        APIView
-        ):
-    # Description
-    # -----------
+class ObjectIdRootObjectIdVersion(APIView):
+    """
+    View Published BCO by ID and Version
 
-    # Read an object by URI.
+    --------------------
 
-    # GET
+    Reads and returns a published BCO based on an object ID and a version.
+
+    """
+
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
+
+    auth = []
+    auth.append(openapi.Parameter('object_id_root', openapi.IN_PATH, description="Object ID to be viewed.",
+                                  type=openapi.TYPE_STRING))
+    auth.append(openapi.Parameter('object_id_version', openapi.IN_PATH, description="Object version to be viewed.",
+                                  type=openapi.TYPE_STRING))
 
     # Anyone can view a published object
     authentication_classes = []
     permission_classes = []
 
-    def get(
-            self,
-            request,
-            object_id_root,
-            object_id_version
-            ):
-        return (
-                GET_published_object_by_id_with_version(
-                        object_id_root,
-                        object_id_version
-                        )
-        )
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["BCO Management"])
+    def get(self, request, object_id_root, object_id_version):
+        return GET_published_object_by_id_with_version(object_id_root, object_id_version)
