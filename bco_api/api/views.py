@@ -45,6 +45,7 @@ from .scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefi
 # For helper functions
 from .scripts.utilities import UserUtils
 
+
 ################################################################################################
 # NOTES
 ################################################################################################
@@ -127,11 +128,11 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
                                   type=openapi.TYPE_STRING))
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered."
-        }, tags=["Account Management"])
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["Account Management"])
     def get(self, request, username: str, temp_identifier: str):
         # Check the request to make sure it is valid - not sure what this is really doing though
         # Placeholder
@@ -160,9 +161,9 @@ class ApiAccountsDescribe(APIView):
     auth = [openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING)]
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Authorization is successful.",
-            400: "Bad request.  Authorization is not provided in the request headers."
-        }, tags=["Account Management"])
+        200: "Authorization is successful.",
+        400: "Bad request.  Authorization is not provided in the request headers."
+    }, tags=["Account Management"])
     def post(self, request):
         if 'Authorization' in request.headers:
             # Pass the request to the handling function
@@ -180,12 +181,8 @@ class ApiGroupsCreate(APIView):
 
     This API call creates a BCO group in ths system.
     """
-
-    # TODO: Need to get the schema that is being sent here from FE
-    request_body = openapi.Schema(
+    POST_api_groups_create_schema = openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        title="Group Creation Schema",
-        description="Parameters that are supported when trying to create a group.",
         required=['name'],
         properties={
             'name': openapi.Schema(type=openapi.TYPE_STRING, description='The name of the group to create'),
@@ -201,14 +198,27 @@ class ApiGroupsCreate(APIView):
                                                                                'Python DateTime compatible format.'),
             'max_n_members': openapi.Schema(type=openapi.TYPE_INTEGER, description='Maximum number of members to '
                                                                                    'allow in the group.'),
+        },
+        description="Groups to create along with associated information."
+    )
+
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Group Creation Schema",
+        description="Parameters that are supported when trying to create a group.",
+        required=['POST_api_groups_modify'],
+        properties={
+            'POST_api_groups_modify': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                     items=POST_api_groups_create_schema,
+                                                     description='Groups and actions to take on them.'),
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Group creation is successful.",
-            400: "Bad request.",
-            403: "Invalid token.",
-            409: "Group conflict.  There is already a group with this name."
-        }, tags=["Group Management"])
+        200: "Group creation is successful.",
+        400: "Bad request.",
+        403: "Invalid token.",
+        409: "Group conflict.  There is already a group with this name."
+    }, tags=["Group Management"])
     def post(self, request):
         return check_post_and_process(request, POST_api_groups_create)
 
@@ -221,23 +231,29 @@ class ApiGroupsDelete(APIView):
 
     Deletes a group from the BCO API database.
     """
+    POST_api_groups_delete_schema = openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                   required=['names'],
+                                                   properties={
+                                                       'names': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                               description='List of groups to delete.',
+                                                                               items=openapi.Schema(
+                                                                                   type=openapi.TYPE_STRING)),
+                                                   })
 
-    # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Group Deletion Schema",
         description="Parameters that are supported when trying to delete one or more groups.",
+        required=['POST_api_groups_delete'],
         properties={
-            'names': openapi.Schema(type=openapi.TYPE_ARRAY,
-                                    description='List of groups to delete.',
-                                    items=openapi.Schema(type=openapi.TYPE_STRING)),
+            'POST_api_groups_delete': POST_api_groups_delete_schema
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Group deletion is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["Group Management"])
+        200: "Group deletion is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Group Management"])
     def post(self, request):
         return check_post_and_process(request, POST_api_groups_delete)
 
@@ -251,21 +267,58 @@ class ApiGroupsModify(APIView):
     Modifies an already existing BCO group.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_groups_modify_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['name'],
+        properties={
+            'name': openapi.Schema(type=openapi.TYPE_STRING,
+                                   description='The name of the group to create'),
+            'actions': openapi.Schema(type=openapi.TYPE_OBJECT,
+                                      properties={
+                                          'rename': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                   description=""),
+                                          'redescribe': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                       description="Change the description of the "
+                                                                                   "group to this."),
+                                          'owner_user': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                       description="Change the owner of the group to "
+                                                                                   "this user."),
+                                          'remove_users': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                         items=openapi.Schema(type=openapi.TYPE_STRING),
+                                                                         description="Users to remove from the group."),
+                                          'disinherit_from': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                            items=openapi.Schema(
+                                                                                type=openapi.TYPE_STRING),
+                                                                            description="Groups to disinherit "
+                                                                                        "permissions from."),
+                                          'add_users': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                      items=openapi.Schema(type=openapi.TYPE_STRING),
+                                                                      description="Users to add to the group."),
+                                          'inherit_from': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                         items=openapi.Schema(type=openapi.TYPE_STRING),
+                                                                         description="Groups to inherit permissions "
+                                                                                     "from."),
+                                      },
+                                      description="Actions to take upon the group.")
+        }
+
+    )
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Group Modification Schema",
-        description="Group modification schema description.",
+        description="Parameters that are supported when trying to modify one or more groups.",
+        required=['POST_api_groups_modify'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_groups_modify': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                     items=POST_api_groups_modify_schema,
+                                                     description='Groups and actions to take on them.'),
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Group modification is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["Group Management"])
+        200: "Group modification is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Group Management"])
     def post(self, request):
         return check_post_and_process(request, POST_api_groups_modify)
 
@@ -298,12 +351,13 @@ class ApiAccountsNew(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Account creation is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["Account Management"])
+        200: "Account creation is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Account Management"])
     def post(self, request) -> Response:
-        import pdb;pdb.set_trace()
+        import pdb;
+        pdb.set_trace()
         print("Request: {}".format(request))
         return check_post_and_process(request, POST_api_accounts_new)
 
@@ -328,10 +382,10 @@ class ApiObjectsDraftsCreate(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Creation of BCO draft is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "Creation of BCO draft is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_create)
 
@@ -356,10 +410,10 @@ class ApiObjectsDraftsModify(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Modification of BCO draft is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "Modification of BCO draft is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_modify)
 
@@ -384,10 +438,10 @@ class ApiObjectsDraftsPermissions(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Checking BCO permissions is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "Checking BCO permissions is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_permissions)
 
@@ -412,10 +466,10 @@ class ApiObjectsDraftsPermissionsSet(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Setting BCO permissions is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "Setting BCO permissions is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_permissions_set)
 
@@ -444,10 +498,10 @@ class ApiObjectsDraftsPublish(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "BCO Publication is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "BCO Publication is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_publish)
 
@@ -472,10 +526,10 @@ class ApiObjectsDraftsRead(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Read BCO is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "Read BCO is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_read)
 
@@ -495,10 +549,10 @@ class ApiObjectsDraftsToken(APIView):
         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Fetch BCO drafts is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "Fetch BCO drafts is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         # TODO: Not checking for authorization here?
         # No schema for this request since only
@@ -528,10 +582,10 @@ class ApiObjectsPublish(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "BCO publication is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "BCO publication is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_publish)
 
@@ -556,10 +610,10 @@ class ApiObjectsSearch(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "BCO publication is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "BCO publication is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_search)
 
@@ -578,10 +632,10 @@ class ApiObjectsToken(APIView):
         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Fetch BCOs is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["BCO Management"])
+        200: "Fetch BCOs is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         # TODO: Not checking for authorization? eg. if 'Authorization' in request.headers:
         # No schema for this request since only
@@ -611,10 +665,10 @@ class ApiPrefixesCreate(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Creating a prefix is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["Prefix Management"])
+        200: "Creating a prefix is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_create)
 
@@ -643,10 +697,10 @@ class ApiPrefixesDelete(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Deleting a prefix is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["Prefix Management"])
+        200: "Deleting a prefix is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_delete)
 
@@ -671,10 +725,10 @@ class ApiPrefixesPermissionsSet(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Setting prefix permissions is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["Prefix Management"])
+        200: "Setting prefix permissions is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_permissions_set)
 
@@ -693,10 +747,10 @@ class ApiPrefixesToken(APIView):
         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Fetch prefixes is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["Prefix Management"])
+        200: "Fetch prefixes is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         if 'Authorization' in request.headers:
             # Pass the request to the handling function
@@ -741,10 +795,10 @@ class ApiPrefixesUpdate(APIView):
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Updating prefix is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-        }, tags=["Prefix Management"])
+        200: "Updating prefix is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_modify)
 
@@ -770,11 +824,11 @@ class ApiPublicDescribe(APIView):
     auth = []
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered."
-        }, tags=["API Management"])
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["API Management"])
     def get(self, request):
         # Pass the request to the handling function
         return Response(UserUtils.UserUtils().get_user_info(username='anon'))
@@ -802,11 +856,11 @@ class DraftObjectId(APIView):
                                   type=openapi.TYPE_STRING))
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered."
-        }, tags=["BCO Management"])
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["BCO Management"])
     def get(self, request, draft_object_id):
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).
@@ -843,11 +897,11 @@ class ObjectIdRootObjectId(APIView):
     permission_classes = []
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered."
-        }, tags=["BCO Management"])
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["BCO Management"])
     def get(self, request, object_id_root):
         return GET_published_object_by_id(object_id_root)
 
@@ -881,10 +935,10 @@ class ObjectIdRootObjectIdVersion(APIView):
     permission_classes = []
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered."
-        }, tags=["BCO Management"])
+        201: "Account has been authorized.",
+        208: "Account has already been authorized.",
+        403: "Requestor's credentials were rejected.",
+        424: "Account has not been registered."
+    }, tags=["BCO Management"])
     def get(self, request, object_id_root, object_id_version):
         return GET_published_object_by_id_with_version(object_id_root, object_id_version)

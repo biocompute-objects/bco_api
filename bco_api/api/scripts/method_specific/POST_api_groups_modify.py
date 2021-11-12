@@ -12,10 +12,7 @@ from ..utilities import UserUtils
 from ...models import group_info
 
 
-# TODO: Flesh out the if-else statements below to find out if there is an error state we are missing
-def POST_api_groups_modify(
-        request
-):
+def POST_api_groups_modify(request):
     # Instantiate any necessary imports.
     db = DbUtils.DbUtils()
     uu = UserUtils.UserUtils()
@@ -69,6 +66,8 @@ def POST_api_groups_modify(
                     # simply get skipped over.
 
                     # First do the "easy" tasks - name and description.
+
+                    # Change name of group if set in actions
                     if 'rename' in action_set:
                         # Simply re-name to whatever we've been provided,
                         # assuming the group doesn't already exist.
@@ -76,11 +75,15 @@ def POST_api_groups_modify(
                             grouped.name = action_set['rename']
                             grouped.save()
 
+                    # Change description of group if set in actions.
                     if 'redescribe' in action_set:
                         group_information.description = action_set['redescribe']
                         group_information.save()
 
                     # Now the ownership tasks.
+                    # TODO: Is owner_group defined for this type of object?
+                    #       Does not appear to be set, also does not appear to be inherited.
+                    # WARNING: This could cause an error if this is sent in!
                     if 'owner_group' in action_set:
                         # Make sure the provided owner group exists.
                         if uu.check_group_exists(n=action_set['owner_group']):
@@ -91,9 +94,7 @@ def POST_api_groups_modify(
                         else:
                             # TODO: This seems to be some type of error state
                             pass
-                    else:
-                        # Don't think we actually need to do anything here
-                        pass
+
                     if 'owner_user' in action_set:
                         # Make sure the provided owner user exists.
                         if uu.check_user_exists(un=action_set['owner_user']):
@@ -104,9 +105,6 @@ def POST_api_groups_modify(
                         else:
                             # TODO: This seems to be some type of error state
                             pass
-                    else:
-                        # Don't think we actually need to do anything here
-                        pass
 
                     # Finally, perform the set logic to add and remove
                     # users and groups.
@@ -164,7 +162,6 @@ def POST_api_groups_modify(
                     else:
                         pass
                 returning.append(db.messages(parameters={'group': grouped.name})['200_OK_group_modify'])
-
             else:
                 # Requestor is not the admin.
                 # TODO: This is invalid permissions not exactly invalid token; might want to change
