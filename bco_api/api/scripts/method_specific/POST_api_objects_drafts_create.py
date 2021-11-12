@@ -58,6 +58,7 @@ def POST_api_objects_drafts_create(incoming):
 
     # Construct an array to return the objects.
     returning = []
+    any_failed = False
 
     # Since bulk_request is an array, go over each
     # item in the array.
@@ -131,12 +132,17 @@ def POST_api_objects_drafts_create(incoming):
                 creation_object['last_update'] = timezone.now()
 
                 # Write to the database.
-                db.write_object(
+                objects_written = db.write_object(
                     p_app_label = 'api', 
                     p_model_name = 'bco',
                     p_fields = ['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data = creation_object
                 )
+
+                if objects_written < 1:
+                    # Issue with writing out to DB
+                    returning.append(db.messages(parameters={ })['400_bad_request'])
+                    any_failed = True
 
                 # Object creator automatically has full permissions
                 # on the object.  This is checked by checking whether
@@ -150,38 +156,24 @@ def POST_api_objects_drafts_create(incoming):
                 # receiver in models.py
                 
                 # Update the request status.
-                returning.append(
-                    db.messages(
-                        parameters = creation_object
-                    )['201_create']
-                )
+                returning.append(db.messages(parameters = creation_object)['201_create'])
 
             else:
-
                 # Update the request status.
-                returning.append(
-                    db.messages(
-                        parameters = {}
-                    )['400_bad_request']
-                )
+                returning.append(db.messages(parameters = {})['400_bad_request'])
+                any_failed = True
             
         else:
-            
             # Update the request status.
-            returning.append(
-                db.messages(
-                    parameters = {
-                        'prefix': creation_object['prefix']
-                    }
-                )['401_prefix_unauthorized']
-            )
+            returning.append(db.messages(parameters = {'prefix': creation_object['prefix']})['401_prefix_unauthorized'])
+            any_failed = True
     
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
     # For example, a table may not have been found for the first
     # requested draft.
-    return Response(
-        status = status.HTTP_200_OK,
-        data = returning
-    )
+    if any_failed:
+        return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+
+    return Response(status = status.HTTP_200_OK, data = returning)

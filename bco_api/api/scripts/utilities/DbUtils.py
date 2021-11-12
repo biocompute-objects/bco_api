@@ -636,6 +636,11 @@ class DbUtils:
                 'status_code': '403',
                 'message': 'The token provided was not able to be used on this object.'
             },
+            '404_missing_bulk_parameters': {
+                'request_status': 'FAILURE',
+                'status_code'   : '404',
+                'message'       : 'One or more missing optional parameters are required for this call to have an effect.'
+            },
             '404_missing_prefix': {
                 'request_status': 'FAILURE', 
                 'status_code': '404',
@@ -660,6 +665,11 @@ class DbUtils:
                 'request_status': 'FAILURE', 
                 'status_code': '409',
                 'message': 'The provided prefix \'' + parameters['prefix'] + '\' has already been created on this server.'
+            },
+            '418_too_many_deleted': {
+                'request_status': 'FAILURE',
+                'status_code'   : '418',
+                'message'       : 'Only one object was expected to be deleted, but multiple were removed.'
             },
         }
     
@@ -811,7 +821,7 @@ class DbUtils:
                 p_data = publishable
             )
 
-            # Successfuly saved the object.
+            # Successfully saved the object.
             return {
                 'published_id': published['object_id']
             }
@@ -841,21 +851,18 @@ class DbUtils:
             incoming_fields = p_fields
         )
 
-        serialized = serializer(
-            data = p_data
-        )
+        serialized = serializer(data = p_data)
         
         # Save (update) it.
         if p_update is False:
-
             # Write a new object.
             if serialized.is_valid():
                 serialized.save()
+                return 1
             else:
                 print(serialized.errors)
-        
+                return -1
         else:
-
             # Update an existing object.
             # apps.get_model(
             #     app_label = p_app_label, 
@@ -866,7 +873,7 @@ class DbUtils:
             #     contents = p_data['contents']
             # )
 
-            apps.get_model(
+            objects_modified = apps.get_model(
                 app_label = p_app_label, 
                 model_name = p_model_name
             ).objects.filter(
@@ -874,5 +881,8 @@ class DbUtils:
             ).update(
                 contents = p_data['contents']
             )
+
+            return objects_modified
+
     def convert_id_form(oi_root):
         return oi_root.split("_")[0] +  '{:06d}'.format(int(oi_root.split("_")[1]))

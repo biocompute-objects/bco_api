@@ -179,7 +179,8 @@ class ApiGroupsCreate(APIView):
 
     --------------------
 
-    This API call creates a BCO group in ths system.
+    This API call creates a BCO group in ths system.  The name of the group is required but all other parameters
+    are optional.
     """
     POST_api_groups_create_schema = openapi.Schema(
         type=openapi.TYPE_OBJECT,
@@ -229,7 +230,9 @@ class ApiGroupsDelete(APIView):
 
     --------------------
 
-    Deletes a group from the BCO API database.
+    Deletes one or more groups from the BCO API database.  Even if not all requests are successful, the API
+    can return success.  If a 300 response is returned then the caller should loop through the response
+    to understand which deletes failed and why.
     """
     POST_api_groups_delete_schema = openapi.Schema(type=openapi.TYPE_OBJECT,
                                                    required=['names'],
@@ -251,8 +254,11 @@ class ApiGroupsDelete(APIView):
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Group deletion is successful.",
+        300: "Mixture of successes and failures in a bulk delete.",
         400: "Bad request.",
-        403: "Invalid token."
+        403: "Invalid token.",
+        404: "Missing optional bulk parameters, this request has no effect.",
+        418: "More than the expected one group was deleted."
     }, tags=["Group Management"])
     def post(self, request):
         return check_post_and_process(request, POST_api_groups_delete)
@@ -264,7 +270,22 @@ class ApiGroupsModify(APIView):
 
     --------------------
 
-    Modifies an already existing BCO group.
+    Modifies an already existing BCO group.  An array of objects are taken where each of these objects
+    represents the instructions to modify a specific group.  Within each of these objects, along with the
+    group name, the set of modifications to that group exists in a dictionary as defined below.
+
+    Example request body which encodes renaming a group named `myGroup1` to `myGroup2`:
+    ```
+    request_body = ['POST_api_groups_modify' : {
+                        'name': 'myGroup1',
+                        'actions': {
+                            'rename': 'myGroup2'
+                            }
+                        }
+                    ]
+    ```
+
+    More than one action can be included for a specific group name.
     """
 
     POST_api_groups_modify_schema = openapi.Schema(
@@ -301,8 +322,8 @@ class ApiGroupsModify(APIView):
                                       },
                                       description="Actions to take upon the group.")
         }
-
     )
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Group Modification Schema",
@@ -317,7 +338,7 @@ class ApiGroupsModify(APIView):
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Group modification is successful.",
         400: "Bad request.",
-        403: "Invalid token."
+        403: "Insufficient privileges."
     }, tags=["Group Management"])
     def post(self, request):
         return check_post_and_process(request, POST_api_groups_modify)
@@ -354,7 +375,9 @@ class ApiAccountsNew(APIView):
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Account creation is successful.",
         400: "Bad request.",
-        403: "Invalid token."
+        403: "Invalid token.",
+        409: "Account has already been authenticated or requested.",
+        500: "Unable to save the new account or send authentication email."
     }, tags=["Account Management"])
     def post(self, request) -> Response:
         print("Request: {}".format(request))
@@ -370,18 +393,36 @@ class ApiObjectsDraftsCreate(APIView):
     Creates a new BCO draft object.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_objects_draft_create_schema = openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['prefix', 'owner_group', 'object_id', 'schema', 'contents'],
+            properties={
+                    'prefix'   : openapi.Schema(type=openapi.TYPE_STRING,
+                                              description='BCO Prefix to use'),
+                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING,
+                                             description='Group which owns the BCO draft.'),
+                    'object_id': openapi.Schema(type=openapi.TYPE_STRING,
+                                                  description='BCO Object ID.'),
+                    'schema': openapi.Schema(type=openapi.TYPE_STRING,
+                                                description='Which schema the BCO satisfies.'),
+                    'contents': openapi.Schema(type=openapi.TYPE_OBJECT, additional_properties=True, description="Contents of the BCO.")
+                    }
+            )
+
     request_body = openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        title="Create BCO Draft Schema",
-        description="BCO draft creation description.",
-        properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
-        })
+            type=openapi.TYPE_OBJECT,
+            title="Create BCO Draft Schema",
+            description="Parameters that are supported when trying to create a draft BCO.",
+            required=['POST_api_objects_draft_create'],
+            properties={
+                    'POST_api_objects_draft_create': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                             items=POST_api_objects_draft_create_schema,
+                                                             description='BCO Drafts to create.'),
+                    })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Creation of BCO draft is successful.",
+        300: "Some requests failed and some succeeded.",
         400: "Bad request.",
         403: "Invalid token."
     }, tags=["BCO Management"])

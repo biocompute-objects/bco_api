@@ -40,6 +40,7 @@ def POST_api_groups_delete(request):
     # Construct an array to return information about processing
     # the request.
     returning = []
+    any_failed = False
 
     # Since bulk_request is an array, go over each
     # item in the array.
@@ -60,18 +61,35 @@ def POST_api_groups_delete(request):
                     # Delete all members of the group.
                     User.objects.filter(groups__name=grouped.name).delete()
                 # Delete the group itself.
-                grouped.delete()
+                deleted_count, deleted_info = grouped.delete()
+                if deleted_count < 1:
+                    # Too few deleted, error with this delete
+                    returning.append(db.messages(parameters={
+                            'group': grouped.name })['404_missing_bulk_parameters'])
+                    any_failed = True
+                    continue
+                elif deleted_count > 1:
+                    # We don't expect there to be duplicates, so while this was successful it should throw a warning
+                    returning.append(db.messages(parameters={
+                            'group': grouped.name })['418_too_many_deleted'])
+                    any_failed = True
+                    continue
+                # Everything looks OK
                 returning.append(db.messages(parameters={'group': grouped.name})['200_OK_group_delete'])
             else:
                 # Requestor is not the admin.
-                returning.append(db.messages(parameters={})['403_invalid_token'])
+                returning.append(db.messages(parameters={})['403_insufficient_permissions'])
+                any_failed = True
         else:
             # Update the request status.
             returning.append(db.messages(parameters={})['400_bad_request'])
+            any_failed = True
 
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
-    return (
-        Response(status=status.HTTP_200_OK, data=returning)
-    )
+    if any_failed:
+        return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+
+    return Response(status=status.HTTP_200_OK, data=returning)
+

@@ -164,8 +164,7 @@ def POST_api_groups_modify(request):
                 returning.append(db.messages(parameters={'group': grouped.name})['200_OK_group_modify'])
             else:
                 # Requestor is not the admin.
-                # TODO: This is invalid permissions not exactly invalid token; might want to change
-                returning.append(db.messages(parameters={})['403_invalid_token'])
+                returning.append(db.messages(parameters={})['403_insufficient_permissions'])
         else:
             # Update the request status.
             returning.append(db.messages(parameters={})['400_bad_request'])
