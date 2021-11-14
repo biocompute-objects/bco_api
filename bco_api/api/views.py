@@ -714,21 +714,35 @@ class ApiObjectsPublish(APIView):
 
     --------------------
 
-    Take the bulk request and publish objects directly.
+    Take the bulk request and publish objects directly.  This can bypass the draft stage by providing
+    the contents directly through the request body.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_objects_publish_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['prefix', 'contents'],
+        properties={
+            'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object Prefix.'),
+            'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
+            'contents': openapi.Schema(type=openapi.TYPE_OBJECT, additional_properties=True,
+                                       description="Contents of the BCO."),
+        }
+    )
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        title="BCO Publication Schema",
-        description="Publish description.",
+        title="Publish BCOs Directly Schema",
+        description="Parameters that are supported when directly publishing BCOs.",
+        required=['POST_api_objects_publish'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_objects_publish': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                       items=POST_api_objects_publish_schema,
+                                                       description='BCOs to publish.'),
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "BCO publication is successful.",
+        300: "Mixture of successful and failed publications.",
         400: "Bad request.",
         403: "Invalid token."
     }, tags=["BCO Management"])
