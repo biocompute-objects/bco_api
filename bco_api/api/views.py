@@ -1136,6 +1136,7 @@ class ApiPublicDescribe(APIView):
 
 
 # Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
+# TODO: I'm not sure that this actually works - or at least it isn't clear how the draft_object_id is being used
 class DraftObjectId(APIView):
     """
     Read Object by URI

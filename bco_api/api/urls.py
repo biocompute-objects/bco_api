@@ -146,6 +146,7 @@ if PUBLISH_ONLY == 'True':
         re_path(r'^api/doc(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
         path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
         path('api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+        path('<str:object_id_root>', ObjectIdRootObjectId.as_view()),
         path('<str:object_id_root>/<str:object_id_version>', ObjectIdRootObjectIdVersion.as_view()),
         path('api/objects/publish/', ApiObjectsPublish.as_view()),
         path('api/public/describe/', ApiPublicDescribe.as_view())
