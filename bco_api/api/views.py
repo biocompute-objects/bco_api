@@ -1017,19 +1017,15 @@ class ApiPrefixesToken(APIView):
 
     --------------------
 
-    Get all available prefixes for a given token.
+    Get all available prefixes for a given token.  The permissions are returned non-flattened.
     """
 
-    auth = []
-    auth.append(
-        openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
-
-    @swagger_auto_schema(manual_parameters=auth, responses={
+    @swagger_auto_schema(responses={
         200: "Fetch prefixes is successful.",
-        400: "Bad request.",
-        403: "Invalid token."
+        400: "Bad request, invalid authorization."
     }, tags=["Prefix Management"])
     def post(self, request) -> Response:
+        # TODO: This isn't checked elsewhere, is this specially needed here?
         if 'Authorization' in request.headers:
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
@@ -1038,9 +1034,16 @@ class ApiPrefixesToken(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-# TODO: What does this do?  Appears to flatten the prefixes (not sure what for)
+# TODO: Doesn't seem like we need a separate call from the above one; can add a param to the body to
+#       support both of these.
 class ApiPrefixesTokenFlat(APIView):
+    """
+    Get Prefixes
 
+    --------------------
+
+    Get all available prefixes for a given token.  The permissions are returned flattened.
+    """
     def post(self, request):
         if 'Authorization' in request.headers:
             # Pass the request to the handling function
