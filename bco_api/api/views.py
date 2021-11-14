@@ -1124,9 +1124,7 @@ class ApiPublicDescribe(APIView):
     # ]
     # template_name = 'api/account_activation_message.html'
 
-    auth = []
-
-    @swagger_auto_schema(manual_parameters=auth, responses={
+    @swagger_auto_schema(responses={
         201: "Account has been authorized.",
         208: "Account has already been authorized.",
         403: "Requestor's credentials were rejected.",
