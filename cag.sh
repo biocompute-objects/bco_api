@@ -197,7 +197,7 @@ then
 	# Switch back to beta_portal_user's home directory
 	# and change the ownership.
 	cd ~
-	chown beta_portal_user:nginx * -R
+	chown bco_api_user:nginx * -R
 
 	# Restart the service.
 	systemctl restart bco_api	
@@ -205,7 +205,7 @@ then
 else
 
 	# Wrong user.
-	echo "SCRIPT FAILURE.  You must run this script as beta_portal_user."
+	echo "SCRIPT FAILURE.  You must run this script as bco_api_user."
 	exit 1
 
 fi

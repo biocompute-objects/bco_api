@@ -133,9 +133,11 @@ dmypy.json
 # The settings file.
 # bco_api/bco_api/settings.py
 
+# IDE
+.idea/
 # The server configuration file.
 # bco_api/bco_api/server.conf
 
 # The migrations folder.
 # bco_api/api/migrations/
-.DS_Store
+.DS_Store*

@@ -1,57 +1,61 @@
-# For getting the model
-from django.apps import apps
+# The BCO model
+from ...models import bco
 
-# For interacting with the database
-from .. import DbUtils
+# User information
+from ..utilities import UserUtils
 
-# For the available tables
-from django.conf import settings
+# Responses
+from rest_framework import status
+from rest_framework.response import Response
 
-# TODO: Integrate this into one function with POST_read_object.
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def GET_draft_object_by_id(do_id):
+def GET_draft_object_by_id(do_id, rqst):
+    """
+    Get a draft object.
+    See if the object even exists, and if so,
+    see if the requestor has view permissions
+    on it.
+    """
 
-	# Get a draft object given a token.
+    # First, filter.
+    filtered = bco.objects.filter(object_id=do_id, state="DRAFT")
+    print('filtered: ', filtered)
+    # Was the object found?
+    if filtered.exists():
 
-	print('GET_draft_object_by_id')
+        # Instatiate UserUtils.
+        uu = UserUtils.UserUtils()
 
-	# Instantiate any necessary imports.
-	db = DbUtils.DbUtils()
+        # Get the requestor's info.
+        ui = uu.user_from_request(rq=rqst)
+        print('user info: ', ui)
+        # Does the requestor have view permissions
+        # on the object?
+        objected = bco.objects.get(object_id=do_id)
+        print('objected: ', objected.owner_user)
+        print(ui.groups)
+        # if ui.has_perm('view_' + do_id, objected):
+        # Kick it back.
+        return Response(
+            data=objected.contents,
+            status=status.HTTP_200_OK
+        )
 
-	# First, get the table based on the requested draft object.
-	table_name = '_'.join(do_id.split('/')[-1].split('_')[0:2]).lower()
+        # else:
+        #
+        #     # Insufficient permissions.
+        #     return Response(
+        #         data = 'The contents of the draft could not be sent back because the requestor did not have appropriate permissions.',
+        #         status = status.HTTP_403_FORBIDDEN
+        #     )
 
-	# Does the table exist?
-	available_tables = settings.MODELS['json_object']
-	print(do_id)
-	print(table_name)
+    else:
 
-	if table_name in available_tables:
-
-		# Does the object exist in the table?
-		if apps.get_model(
-				app_label = 'api', 
-				model_name = table_name
-		).objects.filter(object_id = do_id).exists():
-
-			# Kick back the object.
-			return apps.get_model(
-					app_label = 'api', 
-					model_name = table_name
-			).objects.get(object_id = do_id)		
-		
-		else:
-
-			# No object.
-			return(
-				None
-			)
-	
-	else:
-
-		# No table.
-		return(
-			None
-		)
+        # If all_versions has 0 length, then the
+        # the root ID does not exist at all.
+        return Response(
+            data='The draft could not be found on the server.',
+            status=status.HTTP_400_BAD_REQUEST
+        )
