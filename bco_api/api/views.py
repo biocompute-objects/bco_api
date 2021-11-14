@@ -650,7 +650,7 @@ class ApiObjectsDraftsToken(APIView):
 
     --------------------
 
-    Get all the draft objects for a given token.
+    Get all the draft objects for a given token.  You can specify which information should be returned with this.
     """
 
     request_body = openapi.Schema(
@@ -664,28 +664,13 @@ class ApiObjectsDraftsToken(APIView):
                             required=['fields'],
                             properties={
                                     'fields': openapi.Schema(
-                                            type=openapi.TYPE_OBJECT,
-                                            properties={
-                                                    'contents'    : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="BCO Contents."),
-                                                    'last_update' : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="When the last update was."),
-                                                    'object_class': openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="BCO Class."),
-                                                    'object_id'   : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="BCO Id."),
-                                                    'owner_group' : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="Group having ownership."),
-                                                    'owner_user'  : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="User having ownership."),
-                                                    'prefix'      : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="Prefix."),
-                                                    'schema'      : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="Schema."),
-                                                    'state'       : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="State."),
-                                                    },
-                                            description="Fields to filter by.")
+                                            type=openapi.TYPE_ARRAY,
+                                            items=openapi.Schema(
+                                                type=openapi.TYPE_STRING,
+                                                description="Field to return",
+                                                enum=['contents', 'last_update', 'object_class', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state']
+                                            ),
+                                            description="Fields to return.")
                                     })})
 
     # auth = []
@@ -762,18 +747,39 @@ class ApiObjectsSearch(APIView):
 
 class ApiObjectsToken(APIView):
     """
-    Get BCOs
+    Get Published BCOs
 
     --------------------
 
-    Get all BCOs available for a specific token.
+    Get all BCOs available for a specific token, including published ones.
     """
 
-    auth = []
-    auth.append(
-            openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
+    # auth = []
+    # auth.append(
+    #         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
 
-    @swagger_auto_schema(manual_parameters=auth, responses={
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Get BCO Schema",
+        description="Parameters that are supported when fetching a BCOs.",
+        required=['POST_api_objects_token'],
+        properties={
+            'POST_api_objects_token': openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                required=['fields'],
+                properties={
+                    'fields': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Field to return",
+                            enum=['contents', 'last_update', 'object_class', 'object_id', 'owner_group', 'owner_user',
+                                  'prefix', 'schema', 'state']
+                        ),
+                        description="Fields to return.")
+                })})
+
+    @swagger_auto_schema(request_body=request_body, responses={
             200: "Fetch BCOs is successful.",
             400: "Bad request.",
             403: "Invalid token."
