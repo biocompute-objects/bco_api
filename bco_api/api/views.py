@@ -151,7 +151,7 @@ class ApiAccountsDescribe(APIView):
     Account details
 
     --------------------
-    
+
     No schema for this request since only the Authorization header is required.
 
     Furthermore, if the token provided in the Authorization header is bad, DRF will kick back an invalid token
@@ -394,31 +394,32 @@ class ApiObjectsDraftsCreate(APIView):
     """
 
     POST_api_objects_draft_create_schema = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['prefix', 'owner_group', 'object_id', 'schema', 'contents'],
-            properties={
-                    'prefix'   : openapi.Schema(type=openapi.TYPE_STRING,
-                                              description='BCO Prefix to use'),
-                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING,
-                                             description='Group which owns the BCO draft.'),
-                    'object_id': openapi.Schema(type=openapi.TYPE_STRING,
-                                                  description='BCO Object ID.'),
-                    'schema': openapi.Schema(type=openapi.TYPE_STRING,
-                                                description='Which schema the BCO satisfies.'),
-                    'contents': openapi.Schema(type=openapi.TYPE_OBJECT, additional_properties=True, description="Contents of the BCO.")
-                    }
-            )
+        type=openapi.TYPE_OBJECT,
+        required=['prefix', 'owner_group', 'object_id', 'schema', 'contents'],
+        properties={
+            'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                                     description='BCO Prefix to use'),
+            'owner_group': openapi.Schema(type=openapi.TYPE_STRING,
+                                          description='Group which owns the BCO draft.'),
+            'object_id': openapi.Schema(type=openapi.TYPE_STRING,
+                                        description='BCO Object ID.'),
+            'schema': openapi.Schema(type=openapi.TYPE_STRING,
+                                     description='Which schema the BCO satisfies.'),
+            'contents': openapi.Schema(type=openapi.TYPE_OBJECT, additional_properties=True,
+                                       description="Contents of the BCO.")
+        }
+    )
 
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Create BCO Draft Schema",
-            description="Parameters that are supported when trying to create a draft BCO.",
-            required=['POST_api_objects_draft_create'],
-            properties={
-                    'POST_api_objects_draft_create': openapi.Schema(type=openapi.TYPE_ARRAY,
-                                                             items=POST_api_objects_draft_create_schema,
-                                                             description='BCO Drafts to create.'),
-                    })
+        type=openapi.TYPE_OBJECT,
+        title="Create BCO Draft Schema",
+        description="Parameters that are supported when trying to create a draft BCO.",
+        required=['POST_api_objects_draft_create'],
+        properties={
+            'POST_api_objects_draft_create': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                            items=POST_api_objects_draft_create_schema,
+                                                            description='BCO Drafts to create.'),
+        })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Creation of BCO draft is successful.",
@@ -436,17 +437,29 @@ class ApiObjectsDraftsModify(APIView):
 
     --------------------
 
-    Modifies a BCO object.  The BCO object must be a draft in order to be modifiable.
+    Modifies a BCO object.  The BCO object must be a draft in order to be modifiable.  The contents of the BCO will be replaced with the
+    new contents provided in the request body.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_objects_drafts_modify_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['object_id', 'contents'],
+        properties={
+            'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
+            'contents': openapi.Schema(type=openapi.TYPE_OBJECT, additional_properties=True,
+                                       description="Contents of the BCO."),
+        }
+    )
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Modify BCO Draft Schema",
-        description="BCO draft modification description.",
+        description="Parameters that are supported when trying to modify a draft BCO.",
+        required=['POST_api_objects_drafts_modify'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_objects_drafts_modify': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                             items=POST_api_objects_drafts_modify_schema,
+                                                             description='BCO Drafts to modify.'),
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
@@ -464,21 +477,33 @@ class ApiObjectsDraftsPermissions(APIView):
 
     --------------------
 
-    Gets the permissions for a BCO object.  The BCO object must be in draft form.
+    Gets the permissions for a BCO object.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_objects_drafts_permissions_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['object_id', 'contents'],
+        properties={
+            'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
+            'contents': openapi.Schema(type=openapi.TYPE_OBJECT, additional_properties=True,
+                                       description="Contents of the BCO."),
+        }
+    )
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Get BCO Permissions Schema",
-        description="Get BCO permissions description.",
+        description="Parameters that are supported when fetching draft BCO permissions.",
+        required=['POST_api_objects_drafts_permissions'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_objects_drafts_permissions': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                  items=POST_api_objects_drafts_permissions_schema,
+                                                                  description='BCO Drafts to fetch permissions for.'),
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Checking BCO permissions is successful.",
+        300: "Some requests failed.",
         400: "Bad request.",
         403: "Invalid token."
     }, tags=["BCO Management"])
@@ -493,20 +518,44 @@ class ApiObjectsDraftsPermissionsSet(APIView):
     --------------------
 
     Sets the permissions for a BCO object.  The BCO object must be in draft form.
+
+    NOTE: This is currently a work in progress and may not yet work.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    # TODO: The POST_api_objects_draft_permissions_set call needs to be fixed, doesn't appear to work
+    POST_api_objects_drafts_permissions_set_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['object_id'],
+        properties={
+            'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
+            'actions': openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'remove_permissions': openapi.Schema(type=openapi.TYPE_STRING,
+                                                         description="Remove permissions from these users."),
+                    'full_permissions': openapi.Schema(type=openapi.TYPE_STRING,
+                                                       description="Give users full permissions."),
+                    'add_permissions': openapi.Schema(type=openapi.TYPE_STRING,
+                                                      description="Add permissions to these users."),
+                },
+                description="Actions to modify BCO permissions.")
+        }
+    )
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Set BCO Permissions Schema",
-        description="Set BCO permissions description.",
+        description="Parameters that are supported when setting draft BCO permissions.",
+        required=['POST_api_objects_drafts_permissions_set'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_objects_drafts_permissions_set': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                      items=POST_api_objects_drafts_permissions_set_schema,
+                                                                      description='BCO Drafts to set permissions for.'),
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Setting BCO permissions is successful.",
+        300: "Some requests failed.",
         400: "Bad request.",
         403: "Invalid token."
     }, tags=["BCO Management"])
@@ -524,20 +573,35 @@ class ApiObjectsDraftsPublish(APIView):
     Publish a draft BCO object.  Once published, a BCO object becomes immutable.
     """
 
+    # TODO: This seems to be missing group, which I would expect to be part of the publication
     permission_classes = [IsAuthenticated]
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_objects_drafts_publish_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['draft_id', 'prefix'],
+        properties={
+            'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Prefix to publish with.'),
+            'draft_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object Draft ID.'),
+            'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
+            'delete_draft': openapi.Schema(type=openapi.TYPE_BOOLEAN,
+                                           description='Whether or not to delete the draft.  False by default.'),
+        }
+    )
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        title="BCO Publication Schema",
-        description="Publish description.",
+        title="Publish Draft BCO Schema",
+        description="Parameters that are supported when setting publishing BCOs.",
+        required=['POST_api_objects_drafts_publish'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_objects_drafts_publish': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                              items=POST_api_objects_drafts_publish_schema,
+                                                              description='BCO drafts to publish.'),
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "BCO Publication is successful.",
+        300: "Some requests failed.",
         400: "Bad request.",
         403: "Invalid token."
     }, tags=["BCO Management"])
@@ -555,30 +619,30 @@ class ApiObjectsDraftsRead(APIView):
     """
 
     POST_api_objects_drafts_read_schema = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['object_id'],
-            properties={
-                    'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
-                    }
-            )
+        type=openapi.TYPE_OBJECT,
+        required=['object_id'],
+        properties={
+            'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
+        }
+    )
 
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Read BCO Schema",
-            description="Parameters that are supported when reading BCOs.",
-            required=['POST_api_objects_drafts_read'],
-            properties={
-                    'POST_api_objects_drafts_read': openapi.Schema(type=openapi.TYPE_ARRAY,
-                                                                   items=POST_api_objects_drafts_read_schema,
-                                                                   description='BCO objects to read.'),
-                    })
+        type=openapi.TYPE_OBJECT,
+        title="Read BCO Schema",
+        description="Parameters that are supported when reading BCOs.",
+        required=['POST_api_objects_drafts_read'],
+        properties={
+            'POST_api_objects_drafts_read': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                           items=POST_api_objects_drafts_read_schema,
+                                                           description='BCO objects to read.'),
+        })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Read BCO is successful.",
-            300: "Some requests failed.",
-            400: "Bad request.",
-            403: "Invalid token."
-            }, tags=["BCO Management"])
+        200: "Read BCO is successful.",
+        300: "Some requests failed.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_read)
 
@@ -592,50 +656,51 @@ class ApiObjectsDraftsToken(APIView):
 
     Get all the draft objects for a given token.
     """
+
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Get Draft BCO Schema",
-            description="Parameters that are supported when fetching a draft BCO.",
-            required=['POST_api_objects_drafts_token'],
-            properties={
-                    'POST_api_objects_drafts_token': openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            required=['fields'],
-                            properties={
-                                    'fields': openapi.Schema(
-                                            type=openapi.TYPE_OBJECT,
-                                            properties={
-                                                    'contents'    : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="BCO Contents."),
-                                                    'last_update' : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="When the last update was."),
-                                                    'object_class': openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="BCO Class."),
-                                                    'object_id'   : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="BCO Id."),
-                                                    'owner_group' : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="Group having ownership."),
-                                                    'owner_user'  : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="User having ownership."),
-                                                    'prefix'      : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="Prefix."),
-                                                    'schema'      : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="Schema."),
-                                                    'state'       : openapi.Schema(type=openapi.TYPE_STRING,
-                                                                                   description="State."),
-                                                    },
-                                            description="Fields to filter by.")
-                                    })})
+        type=openapi.TYPE_OBJECT,
+        title="Get Draft BCO Schema",
+        description="Parameters that are supported when fetching a draft BCO.",
+        required=['POST_api_objects_drafts_token'],
+        properties={
+            'POST_api_objects_drafts_token': openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                required=['fields'],
+                properties={
+                    'fields': openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'contents': openapi.Schema(type=openapi.TYPE_STRING,
+                                                       description="BCO Contents."),
+                            'last_update': openapi.Schema(type=openapi.TYPE_STRING,
+                                                          description="When the last update was."),
+                            'object_class': openapi.Schema(type=openapi.TYPE_STRING,
+                                                           description="BCO Class."),
+                            'object_id': openapi.Schema(type=openapi.TYPE_STRING,
+                                                        description="BCO Id."),
+                            'owner_group': openapi.Schema(type=openapi.TYPE_STRING,
+                                                          description="Group having ownership."),
+                            'owner_user': openapi.Schema(type=openapi.TYPE_STRING,
+                                                         description="User having ownership."),
+                            'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                                                     description="Prefix."),
+                            'schema': openapi.Schema(type=openapi.TYPE_STRING,
+                                                     description="Schema."),
+                            'state': openapi.Schema(type=openapi.TYPE_STRING,
+                                                    description="State."),
+                        },
+                        description="Fields to filter by.")
+                })})
 
     # auth = []
     # auth.append(
     #         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Fetch BCO drafts is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-            }, tags=["BCO Management"])
+        200: "Fetch BCO drafts is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+    }, tags=["BCO Management"])
     def post(self, request) -> Response:
         # TODO: Not checking for authorization here?
         # No schema for this request since only
