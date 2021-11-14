@@ -1038,12 +1038,16 @@ class ApiPrefixesToken(APIView):
 #       support both of these.
 class ApiPrefixesTokenFlat(APIView):
     """
-    Get Prefixes
+    Get Prefixes (Flattened)
 
     --------------------
 
     Get all available prefixes for a given token.  The permissions are returned flattened.
     """
+    @swagger_auto_schema(responses={
+        200: "Fetch prefixes is successful.",
+        400: "Bad request, invalid authorization."
+    }, tags=["Prefix Management"])
     def post(self, request):
         if 'Authorization' in request.headers:
             # Pass the request to the handling function
