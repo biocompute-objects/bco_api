@@ -524,7 +524,6 @@ class ApiObjectsDraftsPublish(APIView):
     Publish a draft BCO object.  Once published, a BCO object becomes immutable.
     """
 
-    # TODO: What is this for?
     permission_classes = [IsAuthenticated]
 
     # TODO: Need to get the schema that is being sent here from FE
@@ -555,21 +554,31 @@ class ApiObjectsDraftsRead(APIView):
     Reads a draft BCO object.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_objects_drafts_read_schema = openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['object_id'],
+            properties={
+                    'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
+                    }
+            )
+
     request_body = openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        title="BCO Publication Schema",
-        description="Publish description.",
-        properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
-        })
+            type=openapi.TYPE_OBJECT,
+            title="Read BCO Schema",
+            description="Parameters that are supported when reading BCOs.",
+            required=['POST_api_objects_drafts_read'],
+            properties={
+                    'POST_api_objects_drafts_read': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                   items=POST_api_objects_drafts_read_schema,
+                                                                   description='BCO objects to read.'),
+                    })
 
     @swagger_auto_schema(request_body=request_body, responses={
-        200: "Read BCO is successful.",
-        400: "Bad request.",
-        403: "Invalid token."
-    }, tags=["BCO Management"])
+            200: "Read BCO is successful.",
+            300: "Some requests failed.",
+            400: "Bad request.",
+            403: "Invalid token."
+            }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_read)
 
@@ -583,32 +592,64 @@ class ApiObjectsDraftsToken(APIView):
 
     Get all the draft objects for a given token.
     """
+    request_body = openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            title="Get Draft BCO Schema",
+            description="Parameters that are supported when fetching a draft BCO.",
+            required=['POST_api_objects_drafts_token'],
+            properties={
+                    'POST_api_objects_drafts_token': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            required=['fields'],
+                            properties={
+                                    'fields': openapi.Schema(
+                                            type=openapi.TYPE_OBJECT,
+                                            properties={
+                                                    'contents'    : openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description="BCO Contents."),
+                                                    'last_update' : openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description="When the last update was."),
+                                                    'object_class': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description="BCO Class."),
+                                                    'object_id'   : openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description="BCO Id."),
+                                                    'owner_group' : openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description="Group having ownership."),
+                                                    'owner_user'  : openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description="User having ownership."),
+                                                    'prefix'      : openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description="Prefix."),
+                                                    'schema'      : openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description="Schema."),
+                                                    'state'       : openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description="State."),
+                                                    },
+                                            description="Fields to filter by.")
+                                    })})
 
-    auth = []
-    auth.append(
-        openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
+    # auth = []
+    # auth.append(
+    #         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
 
-    @swagger_auto_schema(manual_parameters=auth, responses={
-        200: "Fetch BCO drafts is successful.",
-        400: "Bad request.",
-        403: "Invalid token."
-    }, tags=["BCO Management"])
+    @swagger_auto_schema(request_body=request_body, responses={
+            200: "Fetch BCO drafts is successful.",
+            400: "Bad request.",
+            403: "Invalid token."
+            }, tags=["BCO Management"])
     def post(self, request) -> Response:
         # TODO: Not checking for authorization here?
         # No schema for this request since only
         # the Authorization header is required.
         return POST_api_objects_drafts_token(rqst=request)
 
-    # TODO: Should change to GET?
-
 
 class ApiObjectsPublish(APIView):
     """
-    Publish an Object
+    Directly publish a BCO
 
     --------------------
 
-    Reads a draft BCO object.
+    Take the bulk request and publish objects directly.
     """
 
     # TODO: Need to get the schema that is being sent here from FE
