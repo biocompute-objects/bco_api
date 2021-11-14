@@ -819,11 +819,46 @@ class ApiObjectsToken(APIView):
     Get all BCOs available for a specific token.
     """
 
-    auth = []
-    auth.append(
-        openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Get All BCOs Schema",
+        description="Parameters that are supported when fetching all BCOs for a given token.",
+        required=['POST_api_objects_token'],
+        properties={
+            'POST_api_objects_token': openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                required=['fields'],
+                properties={
+                    'fields': openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'contents': openapi.Schema(type=openapi.TYPE_STRING,
+                                                       description="BCO Contents."),
+                            'last_update': openapi.Schema(type=openapi.TYPE_STRING,
+                                                          description="When the last update was."),
+                            'object_class': openapi.Schema(type=openapi.TYPE_STRING,
+                                                           description="BCO Class."),
+                            'object_id': openapi.Schema(type=openapi.TYPE_STRING,
+                                                        description="BCO Id."),
+                            'owner_group': openapi.Schema(type=openapi.TYPE_STRING,
+                                                          description="Group having ownership."),
+                            'owner_user': openapi.Schema(type=openapi.TYPE_STRING,
+                                                         description="User having ownership."),
+                            'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                                                     description="Prefix."),
+                            'schema': openapi.Schema(type=openapi.TYPE_STRING,
+                                                     description="Schema."),
+                            'state': openapi.Schema(type=openapi.TYPE_STRING,
+                                                    description="State."),
+                        },
+                        description="Fields to filter by.")
+                })})
 
-    @swagger_auto_schema(manual_parameters=auth, responses={
+    # auth = []
+    # auth.append(
+    #     openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
+
+    @swagger_auto_schema(request_body=request_body, responses={
         200: "Fetch BCOs is successful.",
         400: "Bad request.",
         403: "Invalid token."
@@ -833,8 +868,6 @@ class ApiObjectsToken(APIView):
         # No schema for this request since only
         # the Authorization header is required.
         return POST_api_objects_token(rqst=request)
-
-    # TODO: Should change to get?
 
 
 class ApiPrefixesCreate(APIView):
