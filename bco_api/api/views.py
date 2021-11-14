@@ -864,7 +864,6 @@ class ApiObjectsToken(APIView):
         403: "Invalid token."
     }, tags=["BCO Management"])
     def post(self, request) -> Response:
-        # TODO: Not checking for authorization? eg. if 'Authorization' in request.headers:
         # No schema for this request since only
         # the Authorization header is required.
         return POST_api_objects_token(rqst=request)
@@ -878,19 +877,36 @@ class ApiPrefixesCreate(APIView):
 
     Creates a prefix to be used to classify BCOs and to determine permissions.
     """
+    POST_api_prefixes_create_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['prefix'],
+        properties={
+            'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                                     description="Prefixes to create."),
+            'owner_group': openapi.Schema(type=openapi.TYPE_STRING,
+                                          description="Group having ownership."),
+            'owner_user': openapi.Schema(type=openapi.TYPE_STRING,
+                                         description="User having ownership."),
+        },
+        description="Prefixes to create.")
 
-    # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        title="BCO Publication Schema",
-        description="Publish description.",
+        title="Create Prefixes Schema",
+        description="Parameters that are supported when creating one or more Prefixes.",
+        required=['POST_api_prefixes_create'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_prefixes_create': openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                       required=['prefixes'],
+                                                       properties={
+                                                           'prefixes': POST_api_prefixes_create_schema
+                                                       })
+
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Creating a prefix is successful.",
+        300: "Mixture of success and failures with Prefix generation.",
         400: "Bad request.",
         403: "Invalid token."
     }, tags=["Prefix Management"])
