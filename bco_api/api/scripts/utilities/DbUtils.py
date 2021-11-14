@@ -582,6 +582,11 @@ class DbUtils:
                 'status_code': '200',
                 'message': 'The object with ID \'' + parameters['object_id'] + '\' was updated.'
             },
+            '200_delete_multiple_identical_prefixes': {
+                'request_status': 'SUCCESS',
+                'status_code': '200',
+                'message': 'The prefix was deleted but multiple entries matched (and were deleted).'
+            },
             '201_create': {
                 'request_status': 'SUCCESS',
                 'status_code': '201',
@@ -623,6 +628,11 @@ class DbUtils:
                 'request_status': 'FAILURE',
                 'status_code': '400',
                 'message': 'An unspecified error occurred.'
+            },
+            '400_failure_to_delete_prefix': {
+                'request_status': 'FAILURE',
+                'status_code': '400',
+                'message': 'An unspecified error occurred preventing deletion of the prefix.'
             },
             '401_prefix_unauthorized': {
                 'request_status': 'FAILURE',

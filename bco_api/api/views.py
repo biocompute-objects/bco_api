@@ -920,25 +920,40 @@ class ApiPrefixesDelete(APIView):
 
     --------------------
 
-    Deletes a prefix for BCOs.
+    Deletes a prefix for BCOs.  This is restricted to BCO API administrators currently.
     """
 
-    # TODO: Not sure if this actually does anything?
+    # TODO: Not sure if this actually does anything?  Seems to restrict this to only admins - can the owner
+    #       of a prefix not delete it?
     # Permissions - prefix admins only
     permission_classes = [RequestorInPrefixAdminsGroup]
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_prefixes_delete_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['prefix'],
+        properties={
+            'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                                     description="Prefixes to delete."),
+        },
+        description="Prefixes to create.")
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        title="Prefix Delete Schema",
-        description="Prefix delete description.",
+        title="Delete Prefixes Schema",
+        description="Parameters that are supported when deleting one or more Prefixes.",
+        required=['POST_api_prefixes_delete'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_prefixes_delete': openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                       required=['prefixes'],
+                                                       properties={
+                                                           'prefixes': POST_api_prefixes_delete_schema
+                                                       })
+
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Deleting a prefix is successful.",
+        300: "Mixture of success and failure with deletes.",
         400: "Bad request.",
         403: "Invalid token."
     }, tags=["Prefix Management"])
