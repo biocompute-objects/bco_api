@@ -574,6 +574,18 @@ class DbUtils:
                 'message': 'Successfully published  \'' + parameters['published_id'] + '\' on the server.',
                 'published_id': parameters['published_id']
             },
+            '200_OK_object_publish_draft_deleted': {
+                'request_status': 'SUCCESS',
+                'status_code'   : '200',
+                'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server and the draft was deleted.',
+                'published_id'  : parameters['published_id']
+            },
+            '200_OK_object_publish_draft_failed_delete': {
+                'request_status': 'SUCCESS',
+                'status_code'   : '200',
+                'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server but the draft failed to delete.',
+                'published_id'  : parameters['published_id']
+            },
             '200_prefix_update': {
                 'request_status': 'SUCCESS', 
                 'status_code': '200',
@@ -620,6 +632,11 @@ class DbUtils:
                 'request_status': 'FAILURE',
                 'status_code': '400',
                 'message': 'The provided object ID does not contain a URI with a valid prefix.'
+            },
+            '400_unspecified_error': {
+                'request_status': 'FAILURE',
+                'status_code'   : '400',
+                'message'       : 'An unspecified error occurred.'
             },
             '401_prefix_unauthorized': {
                 'request_status': 'FAILURE',
