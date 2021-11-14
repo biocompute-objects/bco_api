@@ -1063,26 +1063,44 @@ class ApiPrefixesUpdate(APIView):
 
     --------------------
 
-    Updates a prefix with additional or new information.
+    Updates a prefix with new ownership users or groups.
     """
 
     # Permissions - prefix admins only
     permission_classes = [RequestorInPrefixAdminsGroup]
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_prefixes_modify_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['prefix'],
+        properties={
+            'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                                     description="Prefixes to update."),
+            'owner_group': openapi.Schema(type=openapi.TYPE_STRING,
+                                          description="Group having ownership."),
+            'owner_user': openapi.Schema(type=openapi.TYPE_STRING,
+                                         description="User having ownership."),
+        },
+        description="Prefixes to update.")
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        title="Prefix Update Schema",
-        description="Prefix update description.",
+        title="BCO Prefix Update Schema",
+        description="Parameters that are supported when updating BCO prefixes.",
+        required=['POST_api_prefixes_modify'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_prefixes_modify': openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                       required=['prefixes'],
+                                                       properties={
+                                                           'prefixes': POST_api_prefixes_modify_schema
+                                                       })
+
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Updating prefix is successful.",
+        300: "Not all requests were successful.",
         400: "Bad request.",
-        403: "Invalid token."
+        404: "Missing prefix."
     }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_modify)
