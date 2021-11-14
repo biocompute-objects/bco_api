@@ -970,18 +970,40 @@ class ApiPrefixesPermissionsSet(APIView):
     Sets the permissions available for a specified prefix.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_prefixes_permissions_set_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['prefix', 'permissions'],
+        properties={
+            'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                                     description="BCO Prefix."),
+            'username': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                       items=openapi.Schema(type=openapi.TYPE_STRING, description='User name.'),
+                                       description="Users to add prefix permissions to."),
+            'group': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING, description='Group name.'),
+                                    description="Groups to add prefix permissions to."),
+            'permissions': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                          items=openapi.Schema(
+                                              type=openapi.TYPE_STRING,
+                                              enum=['add', 'change', 'delete', 'view', 'draft', 'publish'],
+                                              description='Permission to grant.'),
+                                          description="What permissions to grant."),
+        })
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        title="Prefix Permissions Schema",
-        description="Prefix permissions description.",
+        title="BCO Prefix Permission Schema",
+        description="Parameters that are supported when setting permissions for BCO prefixes.",
+        required=['POST_api_prefixes_permissions_set'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_prefixes_permissions_set': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                items=POST_api_prefixes_permissions_set_schema,
+                                                                description='Permissions to grant for the prefix.'),
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
         200: "Setting prefix permissions is successful.",
+        300: "Failed in setting some permissions.",
         400: "Bad request.",
         403: "Invalid token."
     }, tags=["Prefix Management"])
