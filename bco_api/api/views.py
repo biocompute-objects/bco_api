@@ -750,27 +750,59 @@ class ApiObjectsPublish(APIView):
         return check_post_and_process(request, POST_api_objects_publish)
 
 
+# TODO: This is currently not implemented.
 class ApiObjectsSearch(APIView):
     """
     Search for BCO
 
     --------------------
+    NOTE: This is currently not implemented.
 
     Search for available BCO objects that match criteria.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_objects_search_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['fields'],
+        properties={
+            'fields': openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'contents': openapi.Schema(type=openapi.TYPE_STRING,
+                                               description="BCO Contents."),
+                    'last_update': openapi.Schema(type=openapi.TYPE_STRING,
+                                                  description="When the last update was."),
+                    'object_class': openapi.Schema(type=openapi.TYPE_STRING,
+                                                   description="BCO Class."),
+                    'object_id': openapi.Schema(type=openapi.TYPE_STRING,
+                                                description="BCO Id."),
+                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING,
+                                                  description="Group having ownership."),
+                    'owner_user': openapi.Schema(type=openapi.TYPE_STRING,
+                                                 description="User having ownership."),
+                    'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                                             description="Prefix."),
+                    'schema': openapi.Schema(type=openapi.TYPE_STRING,
+                                             description="Schema."),
+                    'state': openapi.Schema(type=openapi.TYPE_STRING,
+                                            description="State."),
+                },
+                description="Fields to filter by.")
+        })
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        title="BCO Publication Schema",
-        description="Publish description.",
+        title="BCO Object Search Schema",
+        description="Parameters that are supported when searching for specific BCOs.",
+        required=['POST_api_objects_search'],
         properties={
-            'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-            'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+            'POST_api_objects_search': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                      items=POST_api_objects_search_schema,
+                                                      description='Criteria to search BCOs for.'),
         })
 
     @swagger_auto_schema(request_body=request_body, responses={
-        200: "BCO publication is successful.",
+        200: "BCO search is successful.",
         400: "Bad request.",
         403: "Invalid token."
     }, tags=["BCO Management"])
