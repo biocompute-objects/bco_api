@@ -95,6 +95,10 @@ class bco(models.Model):
     # Field is automatically generated.
     last_update = models.DateTimeField()
 
+    def __str__(self):
+        """String for representing the BCO model (in Admin site etc.)."""
+        return self.object_id
+
 
 # Some additional information for Group.
 # This information is stored separately from
