@@ -89,55 +89,30 @@ def POST_api_accounts_new(request):
         activation_link = ''
         template = ''
 
-        if settings.PRODUCTION == 'True':
+        activation_link = 'https://' + settings.ALLOWED_HOSTS[
+            0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
 
-            activation_link = 'https://' + settings.ALLOWED_HOSTS[
-                0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
+        template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(
+            activation_link, activation_link)
 
-            template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(
-                activation_link, activation_link)
-
-            try:
-                send_mail(
-                    subject='Registration for BioCompute Portal',
-                    message='Testing.',
-                    html_message=template,
-                    from_email='mail_sender@portal.aws.biochemistry.gwu.edu',
-                    recipient_list=[
-                        bulk_request['email']
-                    ],
-                    fail_silently=False,
-                )
-
-            except Exception as e:
-                # TODO: Should handle when the send_mail function fails?
-                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": "Not able to send authentication email."})
-
-            return Response(status=status.HTTP_201_CREATED)
-
-        elif settings.PRODUCTION == 'False':
-            # Go straight to account activation.
-            straight_activated = GET_activate_account(
-                username=bulk_request['email'],
-                temp_identifier=temp_identifier
+        try:
+            send_mail(
+                subject='Registration for BioCompute Portal',
+                message='Testing.',
+                html_message=template,
+                from_email='mail_sender@portal.aws.biochemistry.gwu.edu',
+                recipient_list=[
+                    bulk_request['email']
+                ],
+                fail_silently=False,
             )
 
-            # Get the user's token via the user ID.
-            user_token = Token.objects.get(
-                user_id=User.objects.get(
-                    username=straight_activated.data['data']['username']
-                )
-            ).key
+        except Exception as e:
+            print('activation_link', activation_link)
+            # TODO: Should handle when the send_mail function fails?
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": "Not able to send authentication email."})
 
-            return Response(
-                data={
-                    'message': 'New account successfully created on development server ' + settings.PUBLIC_HOSTNAME + '.  Parse the \'token\' key for your '
-                                                                                                                      'new token.',
-                    'token': user_token,
-                    'username': straight_activated.data['data']['username']
-                },
-                status=status.HTTP_201_CREATED
-            )
+        return Response(status=status.HTTP_201_CREATED)
 
     else:
 
