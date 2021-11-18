@@ -721,21 +721,26 @@ class DbUtils:
             # Define a variable which will hold the constructed name.
             constructed_name = ''
 
+            
+            # This section was breaking the production/test Db. The contents of `object_naming_info`
+            # are modifies somewhere else before here so that this IF/ELSE is not needed and causes 
+            # a break in the code. 
+            
             # Create the constructed name based on whether or not
             # we're on a production server.
-            if settings.PRODUCTION == 'True':
+            # if settings.PRODUCTION == 'True':
+            
+            #     constructed_name = object_naming_info['uri_regex'].replace(
+            #     'prod_root_uri', # WTF MAAAN
+            #     object_naming_info['prod_root_uri']
+            #     )
 
-                constructed_name = object_naming_info['uri_regex'].replace(
-                'prod_root_uri', 
-                object_naming_info['prod_root_uri']
-                )
-
-            elif settings.PRODUCTION == 'False':
-
-                constructed_name = object_naming_info['uri_regex'].replace(
-                'root_uri', 
-                object_naming_info['root_uri']
-                )
+            # elif settings.PRODUCTION == 'False':
+            
+            constructed_name = object_naming_info['uri_regex'].replace(
+            'root_uri', 
+            object_naming_info['root_uri']
+            )
             
             constructed_name = constructed_name.replace(
                 'prefix', 
