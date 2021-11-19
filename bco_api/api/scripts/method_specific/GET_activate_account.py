@@ -41,7 +41,7 @@ def GET_activate_account(
             p_model_name='new_users',
             p_email=username,
             p_temp_identifier=temp_identifier
-            ) is 1:
+            ):
 
         # The credentials match, so activate the account.
         credential_try = db.activate_account(

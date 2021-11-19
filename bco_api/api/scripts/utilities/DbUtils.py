@@ -289,11 +289,13 @@ class DbUtils:
             p_model_name,
             p_email,
             p_temp_identifier
-            ):
+            ) -> bool:
+        """
+        Simple existence check.
 
-        # Simple existence check.
-        # Source: https://stackoverflow.com/a/9089028
-        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+        Source: https://stackoverflow.com/a/9089028
+        Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+        """
 
         user_info = apps.get_model(
                 app_label=p_app_label,
@@ -328,7 +330,7 @@ class DbUtils:
             if datetime.datetime.now(datetime.timezone.utc) < time_check:
 
                 # We can return that this user is OK to be activated.
-                return 1
+                return True
 
             else:
 
@@ -337,11 +339,11 @@ class DbUtils:
                 user_info.delete()
 
                 # We can't activate this user.
-                return None
+                return False
 
         else:
 
-            return None
+            return False
 
     def get_api_models(
             self
