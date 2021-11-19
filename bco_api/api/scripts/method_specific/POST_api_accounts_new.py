@@ -89,11 +89,12 @@ def POST_api_accounts_new(request):
         activation_link = ''
         template = ''
 
-        activation_link = 'https://' + settings.ALLOWED_HOSTS[
-            0] + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
+        activation_link = settings.PUBLIC_HOSTNAME + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
 
         template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(
             activation_link, activation_link)
+        import pdb; pdb.set_trace()
+
 
         try:
             send_mail(
@@ -109,9 +110,10 @@ def POST_api_accounts_new(request):
 
         except Exception as e:
             print('activation_link', activation_link)
+            print('ERROR: ', e)
             # TODO: Should handle when the send_mail function fails?
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": "Not able to send authentication email."})
-
+            import pdb; pdb.set_trace()
         return Response(status=status.HTTP_201_CREATED)
 
     else:
