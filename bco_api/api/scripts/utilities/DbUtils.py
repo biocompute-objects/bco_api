@@ -308,7 +308,7 @@ class DbUtils:
             # The credentials exist, but is the request timely?
             # Source: https://stackoverflow.com/a/7503368
 
-            # Take the time and add 10 minutes.
+            # Take the time and add 2 days.
             time_check = list(
                     user_info.values_list(
                             'created',
@@ -318,7 +318,7 @@ class DbUtils:
 
             # Source: https://www.kite.com/python/answers/how-to-add-hours-to-the-current-time-in-python
             time_check = time_check + datetime.timedelta(
-                    minutes=10
+                    hours=48
                     )
 
             # Crappy timezone problems.
@@ -379,7 +379,7 @@ class DbUtils:
         # of the e-mail and assign a random number.
         valid_username = False
 
-        while valid_username == False:
+        while not valid_username:
 
             # TODO: We shoudl change this to a hash instead of random number
 
