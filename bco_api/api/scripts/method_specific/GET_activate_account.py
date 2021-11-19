@@ -22,9 +22,17 @@ def GET_activate_account(
 
     # Does the account associated with this e-mail already
     # exist in either a temporary or a permanent user profile?
-    if User.objects.filter(email=username).exists():
-        # Account has already been activated.
-        return (Response(status=status.HTTP_208_ALREADY_REPORTED))
+    # if User.objects.filter(email=username).exists():
+    #     # TODO: This doesn't work since the username is the prefix of the email plus a random seed
+    #     #       (so we can't actually check).  So this can only be true if there is a clash.
+    #     # Account has already been activated.
+    #     return (Response({
+    #                 'previously_activated': True,
+    #                 'username'          : username,
+    #                 'status'            : status.HTTP_208_ALREADY_REPORTED,
+    #             },
+    #             status=status.HTTP_208_ALREADY_REPORTED)
+    #     )
 
     # The account has not been activated, but does it exist
     # in the temporary table?
@@ -41,18 +49,16 @@ def GET_activate_account(
                 )
 
         if len(credential_try) > 0:
-
             # Everything went fine.
             return (
                     Response(
                             {
-                                    'data'  : {
-                                            'activation_success': True,
-                                            'username'          : credential_try[0]
-                                            },
+                                    'activation_success': True,
+                                    'username'          : credential_try[0],
                                     'status': status.HTTP_201_CREATED,
 
-                                    }
+                                    },
+                            status=status.HTTP_201_CREATED
                             )
             )
 
@@ -64,7 +70,8 @@ def GET_activate_account(
                             {
                                     'activation_success': False,
                                     'status'            : status.HTTP_403_FORBIDDEN
-                                    }
+                                    },
+                            status=status.HTTP_403_FORBIDDEN
                             )
             )
 
@@ -75,6 +82,7 @@ def GET_activate_account(
                         {
                                 'activation_success': False,
                                 'status'            : status.HTTP_424_FAILED_DEPENDENCY
-                                }
+                                },
+                        status=status.HTTP_424_FAILED_DEPENDENCY
                         )
         )
