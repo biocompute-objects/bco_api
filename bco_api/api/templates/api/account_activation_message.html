@@ -34,7 +34,7 @@
         {% else %}
             <p>Unsuccessful activation!  The account may not have been requested or may have already been activated.  Please request another activation e-mail on the Portal.</p>
         {% endif %}
-            <button type = 'button'><a href = 'http://beta.portal.aws.biochemistry.gwu.edu/login/' target = '_blank'>Open Portal in new tab</a></button>
+            <button type = 'button'><a href = {{ activation_url }}>Open Portal in new tab</a></button>
         </div>
   </body>
 </html>

@@ -3,7 +3,8 @@ from ..utilities import DbUtils
 
 # For the user lookup
 from django.contrib.auth.models import User
-
+# For url
+from django.conf import settings
 # Responses
 from rest_framework import status
 from rest_framework.response import Response
@@ -11,10 +12,7 @@ from rest_framework.response import Response
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def GET_activate_account(
-        username,
-        temp_identifier
-        ):
+def GET_activate_account(username,temp_identifier):
     # Activate an account that is stored in the temporary table.
 
     # Instantiate any necessary imports.
@@ -44,45 +42,27 @@ def GET_activate_account(
             ):
 
         # The credentials match, so activate the account.
-        credential_try = db.activate_account(
-                p_email=username
-                )
+        credential_try = db.activate_account(p_email=username)
 
         if len(credential_try) > 0:
             # Everything went fine.
-            return (
-                    Response(
-                            {
-                                    'activation_success': True,
-                                    'username'          : credential_try[0],
-                                    'status': status.HTTP_201_CREATED,
-
-                                    },
-                            status=status.HTTP_201_CREATED
-                            )
-            )
+            return (Response({
+                        'activation_success': True,
+                        'activation_url': settings.PUBLIC_HOSTNAME+'/login/',
+                        'username': credential_try[0],
+                        'status': status.HTTP_201_CREATED,
+                        },
+                        status=status.HTTP_201_CREATED))
 
         else:
-
             # The credentials weren't good.
-            return (
-                    Response(
-                            {
-                                    'activation_success': False,
-                                    'status'            : status.HTTP_403_FORBIDDEN
-                                    },
-                            status=status.HTTP_403_FORBIDDEN
-                            )
-            )
+            return(Response({
+                        'activation_success': False,
+                        'status' : status.HTTP_403_FORBIDDEN},
+                        status=status.HTTP_403_FORBIDDEN))
 
     else:
-
-        return (
-                Response(
-                        {
-                                'activation_success': False,
-                                'status'            : status.HTTP_424_FAILED_DEPENDENCY
-                                },
-                        status=status.HTTP_424_FAILED_DEPENDENCY
-                        )
-        )
+        return(Response({
+                        'activation_success': False,
+                        'status': status.HTTP_424_FAILED_DEPENDENCY},
+                        status=status.HTTP_424_FAILED_DEPENDENCY))
