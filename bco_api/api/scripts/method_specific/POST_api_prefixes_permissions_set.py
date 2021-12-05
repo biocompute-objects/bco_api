@@ -15,125 +15,156 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_prefixes_permissions_set(request):
-    """
-    Set the permissions for prefixes.
-    """
 
-    # Instantiate any necessary imports.
-    db = DbUtils.DbUtils()
-    uu = UserUtils.UserUtils()
 
-    # First, get which user we're dealing with.
-    user = uu.user_from_request(
-        rq=request
-    )
+def POST_api_prefixes_permissions_set(
+	request
+):
 
-    # Define the bulk request.
-    bulk_request = request.data['POST_api_prefixes_permissions_set']
+	# Set the permissions for prefixes.
 
-    # Get all existing prefixes.
-    available_prefixes = list(
-        prefixes.objects.all().values_list(
-            'prefix',
-            flat=True
-        )
-    )
+	# Instantiate any necessary imports.
+	db = DbUtils.DbUtils()
+	uu = UserUtils.UserUtils()
+	
+	# First, get which user we're dealing with.
+	user = uu.user_from_request(
+		rq = request
+	)
 
-    # Construct an array to return information about processing
-    # the request.
-    returning = []
-    any_failed = False
+	# Define the bulk request.
+	bulk_request = request.data['POST_api_prefixes_permissions_set']
 
-    # Since bulk_request is an array, go over each
-    # item in the array.
-    for creation_object in bulk_request:
+	# Get all existing prefixes.
+	available_prefixes = list(
+		prefixes.objects.all().values_list(
+				'prefix', 
+				flat = True
+			)
+		)
 
-        # Standardize the prefix name.
-        standardized = creation_object['prefix'].upper()
+	# Construct an array to return information about processing
+	# the request.
+	returning = []
 
-        if standardized in available_prefixes:
+	# Since bulk_request is an array, go over each
+	# item in the array.
+	for creation_object in bulk_request:
+		
+		# Standardize the prefix name.
+		standardized = creation_object['prefix'].upper()
 
-            # The prefix exists, but is the requestor the owner?
-            if uu.check_user_owns_prefix(un=user.username, prfx=standardized) == True:
+		if standardized in available_prefixes:
 
-                # Split out the permissions assignees into users and groups.
-                assignees = {
-                    'group': [],
-                    'username': []
-                }
+			# The prefix exists, but is the requestor the owner?
+			if uu.check_user_owns_prefix(un = user.username, prfx = standardized) == True:
 
-                if 'username' in creation_object:
-                    assignees['username'] = creation_object['username']
+				# Split out the permissions assignees into users and groups.
+				assignees = {
+					'group': [],
+					'username': []
+				}
 
-                if 'group' in creation_object:
-                    assignees['group'] = creation_object['group']
+				if 'username' in creation_object:
+					assignees['username'] = creation_object['username']
+				
+				if 'group' in creation_object:
+					assignees['group'] = creation_object['group']
 
-                # Go through each one.
-                for un in assignees['username']:
+				
+				# Go through each one.
+				for un in assignees['username']:
+					
+					# Get the user whose permissions are being assigned.
+					if uu.check_user_exists(un = un):
+						
+						assignee = User.objects.get(username = un)
 
-                    # Get the user whose permissions are being assigned.
-                    if uu.check_user_exists(un=un):
-                        assignee = User.objects.get(username=un)
+						# Permissions are defined directly as they are
+						# in the POST request.
 
-                        # Permissions are defined directly as they are
-                        # in the POST request.
+						# Assumes permissions are well-formed...
 
-                        # Assumes permissions are well-formed...
+						# Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
+						assignee.user_permissions.set([Permission.objects.get(codename = i + '_' + creation_object['prefix']) for i in creation_object['permissions']])
 
-                        # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
-                        assignee.user_permissions.set(
-                            [Permission.objects.get(codename=i + '_' + creation_object['prefix']) for i in
-                             creation_object['permissions']])
+						# Permissions assigned.
+						returning.append(
+							db.messages(
+								parameters = {
+									'prefix': standardized
+								}
+							)['200_prefix_update']
+						)
+					
+					else:
 
-                        # Permissions assigned.
-                        returning.append(
-                            db.messages(
-                                parameters={
-                                    'prefix': standardized
-                                }
-                            )['200_prefix_update']
-                        )
-                    else:
-                        # Bad request
-                        returning.append(db.messages(parameters={})['400_bad_request'])
-                        any_failed = True
+						# Bad request
+						returning.append(
+							db.messages(
+								parameters = {}
+							)['400_bad_request']
+						)
+				
+				for g in assignees['group']:
+					
+					# Get the user whose permissions are being assigned.
+					if uu.check_group_exists(n = g):
+						
+						assignee = Group.objects.get(name = g)
 
-                for g in assignees['group']:
-                    # Get the user whose permissions are being assigned.
-                    if uu.check_group_exists(n=g):
+						# Permissions are defined directly as they are
+						# in the POST request.
 
-                        assignee = Group.objects.get(name=g)
+						# Assumes permissions are well-formed...
 
-                        # Permissions are defined directly as they are
-                        # in the POST request.
+						# Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
+						assignee.permissions.set([Permission.objects.get(codename = i + '_' + creation_object['prefix']) for i in creation_object['permissions']])
 
-                        # Assumes permissions are well-formed...
+						# Permissions assigned.
+						returning.append(
+							db.messages(
+								parameters = {
+									'prefix': standardized
+								}
+							)['200_prefix_update']
+						)
+				
+					else:
 
-                        # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
-                        assignee.permissions.set(
-                            [Permission.objects.get(codename=i + '_' + creation_object['prefix']) for i in
-                             creation_object['permissions']])
+						# Bad request
+						returning.append(
+							db.messages(
+								parameters = {}
+							)['400_bad_request']
+						)
+			
+			else:
 
-                        # Permissions assigned.
-                        returning.append(db.messages(parameters={'prefix': standardized})['200_prefix_update'])
-                    else:
-                        # Bad request
-                        returning.append(db.messages(parameters={})['400_bad_request'])
-                        any_failed = True
-            else:
-                # Bad request, the user isn't the owner.
-                returning.append(db.messages(parameters={})['400_bad_request'])
-                any_failed = True
-        else:
-            # Update the request status.
-            returning.append(
-                db.messages(parameters={'prefix': standardized.upper()})['404_missing_prefix'])
-            any_failed = True
-
-    # As this view is for a bulk operation, status 200
-    # means that the request was successfully processed,
-    # but NOT necessarily each item in the request.
-    if any_failed:
-        return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
-    return Response(status=status.HTTP_200_OK,data=returning)
+				# Bad request, the user isn't the owner.
+				returning.append(
+					db.messages(
+						parameters = {}
+					)['400_bad_request']
+				)
+		
+		else:
+		
+			# Update the request status.
+			returning.append(
+				db.messages(
+					parameters = {
+						'prefix': standardized.upper()
+					}
+				)['404_missing_prefix']
+			)
+	
+	# As this view is for a bulk operation, status 200
+	# means that the request was successfully processed,
+	# but NOT necessarily each item in the request.
+	return(
+		Response(
+			status = status.HTTP_200_OK,
+			data = returning
+		)
+	)

@@ -53,7 +53,7 @@ class DbUtils:
             p_app_label,
             p_model_name,
             p_object_id
-    ):
+            ):
 
         # Simple existence check.
         # Source: https://stackoverflow.com/a/9089028
@@ -62,10 +62,9 @@ class DbUtils:
         if apps.get_model(
                 app_label=p_app_label,
                 model_name=p_model_name
-
-        ).objects.filter(
-            object_id=p_object_id
-        ).exists():
+                ).objects.filter(
+                object_id=p_object_id
+                ).exists():
             return None
         else:
             return 1
@@ -76,7 +75,7 @@ class DbUtils:
             p_app_label,
             p_model_name,
             p_email
-    ):
+            ):
 
         # Simple existence check.
         # Source: https://stackoverflow.com/a/9089028
@@ -85,18 +84,21 @@ class DbUtils:
         if apps.get_model(
                 app_label=p_app_label,
                 model_name=p_model_name
-        ).objects.filter(
-            email=p_email
-        ).exists():
+                ).objects.filter(
+                email=p_email
+                ).exists():
+
             return 1
+
         else:
+
             return None
 
     # Check version rules
     def check_version_rules(
             self,
             published_id
-    ):
+            ):
 
         # Potentially publishing a new version
         # of a published object, but we have to check to 
@@ -110,7 +112,7 @@ class DbUtils:
         # Does the provided object ID exist?
         if bco.objects.filter(
                 object_id=published_id
-        ).exists():
+                ).exists():
 
             # The provided published object ID
             # was found, and will be used to create
@@ -164,7 +166,7 @@ class DbUtils:
             if re.match(
                     r"(.*?)/[A-Z]+_(\d+)$",
                     published_id
-            ):
+                    ):
 
                 # Only the root ID was passed.
                 root_uri = published_id
@@ -172,7 +174,8 @@ class DbUtils:
             elif re.match(
                     r"(.*?)/[A-Z]+_(\d+)/(\d+)\.(\d+)$",
                     published_id
-            ):
+                    ):
+
                 # The root ID and the version were passed.
                 split_up = published_id.split('/')
 
@@ -190,15 +193,14 @@ class DbUtils:
             # http://127.0.0.1:8000/BCO_5 if we did not have the trailing
             # slash).
             all_versions = list(
-
-                bco.objects.filter(
-                    object_id__regex=rf'{root_uri}/',
-                    state='PUBLISHED'
-                ).values_list(
-                    'object_id',
-                    flat=True
-                )
-            )
+                    bco.objects.filter(
+                            object_id__regex=rf'{root_uri}/',
+                            state='PUBLISHED'
+                            ).values_list(
+                            'object_id',
+                            flat=True
+                            )
+                    )
 
             # Get the latest version for this object if we have any.
             if len(all_versions) > 0:
@@ -262,12 +264,14 @@ class DbUtils:
 
                     # The version was valid.
                     return {
-                        'published_id': published_id
-                    }
+                            'published_id': published_id
+                            }
+
                 else:
 
                     # Bad request.
                     return 'bad_version_number'
+
             else:
 
                 # If all_versions has 0 length, then the
@@ -301,32 +305,33 @@ class DbUtils:
                 temp_identifier=p_temp_identifier
                 )
 
-
         if user_info.exists():
 
             # The credentials exist, but is the request timely?
             # Source: https://stackoverflow.com/a/7503368
 
-            # Take the time and add 10 minutes.
+            # Take the time and add 2 days.
             time_check = list(
-                user_info.values_list(
-                    'created',
-                    flat=True
-                )
-            )[0]
+                    user_info.values_list(
+                            'created',
+                            flat=True
+                            )
+                    )[0]
 
             # Source: https://www.kite.com/python/answers/how-to-add-hours-to-the-current-time-in-python
             time_check = time_check + datetime.timedelta(
-                minutes=10
-            )
+                    hours=48
+                    )
 
             # Crappy timezone problems.
             # Source: https://stackoverflow.com/a/25662061
 
             # Is the time now less than the time check?
             if datetime.datetime.now(datetime.timezone.utc) < time_check:
+
                 # We can return that this user is OK to be activated.
                 return True
+
             else:
 
                 # The time stamp has expired, so delete
@@ -335,13 +340,14 @@ class DbUtils:
 
                 # We can't activate this user.
                 return False
+
         else:
+
             return False
 
     def get_api_models(
             self
             ):
-
 
         # Get all the ACCESSIBLE models in the API.
         # Source: https://stackoverflow.com/a/9407979
@@ -364,7 +370,7 @@ class DbUtils:
     def activate_account(
             self,
             p_email
-    ):
+            ):
 
         # p_email: which e-mail to activate.
 
@@ -392,12 +398,10 @@ class DbUtils:
                             )
                     )
 
-
             # Does this username exist (not likely)?
             if User.objects.filter(
                     username=new_username
-
-            ):
+                    ):
 
                 valid_username = False
 
@@ -432,16 +436,15 @@ class DbUtils:
 
         # Automatically add the user to the bco_drafter and bco_publisher groups.
         user.groups.add(
-
-            Group.objects.get(
-                name='bco_drafter'
-            )
-        )
+                Group.objects.get(
+                        name='bco_drafter'
+                        )
+                )
         user.groups.add(
-            Group.objects.get(
-                name='bco_publisher'
-            )
-        )
+                Group.objects.get(
+                        name='bco_publisher'
+                        )
+                )
 
         # (OPTIONAL) Make a request to userdb on the portal so that
         # the user's information can be stored there.
@@ -449,14 +452,14 @@ class DbUtils:
         # If a token was provided with the initial request,
         # use it to make the update call to userdb.
         token = apps.get_model(
-
-            app_label='api',
-            model_name='new_users'
-        ).objects.get(
-            email=p_email
-        ).token
+                app_label='api',
+                model_name='new_users'
+                ).objects.get(
+                email=p_email
+                ).token
 
         if token is not None:
+
             # Send the new information to userdb.
 
             # Get the user's information from the database.
@@ -472,24 +475,23 @@ class DbUtils:
             # Set the data properly.
             # Source: https://stackoverflow.com/a/56562567
             r = requests.post(
-
-                data=json.dumps(
-                    uu.get_user_info(
-                        username=new_username
-                    ),
-                    default=str
-                ),
-                headers=headers,
-                url='http://127.0.0.1:8080/users/add_api/'
-            )
+                    data=json.dumps(
+                            uu.get_user_info(
+                                    username=new_username
+                                    ),
+                            default=str
+                            ),
+                    headers=headers,
+                    url='http://127.0.0.1:8080/users/add_api/'
+                    )
 
         # Delete the record in the temporary table.
         apps.get_model(
-            app_label='api',
-            model_name='new_users'
-        ).objects.filter(
-            email=p_email
-        ).delete()
+                app_label='api',
+                model_name='new_users'
+                ).objects.filter(
+                email=p_email
+                ).delete()
 
         # Return the username in a list, as this is
         # easily checked for upstream (as opposed to
@@ -502,8 +504,7 @@ class DbUtils:
             self,
             parameters,
             p_content=False
-
-    ):
+            ):
 
         # Define the return messages, if they don't
         # come in defined.
@@ -514,190 +515,172 @@ class DbUtils:
                 parameters[i] = ''
 
         return {
-
-            '200_found': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'The object with ID \'' + parameters['object_id'] + '\' was found on table \'' + parameters[
-                    'table'] + '\'.',
-                'content': p_content
-            },
-            '200_OK_group_delete': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'The group \'' + parameters['group'] + '\' was deleted.'
-            },
-            '200_OK_group_modify': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'The group \'' + parameters['group'] + '\' was succesfully modified.'
-            },
-            '200_OK_object_delete': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'The object with ID \'' + parameters['object_id'] + '\' was deleted.'
-            },
-            '200_OK_object_read': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'contents': parameters['contents'],
-                'message': 'The object with ID \'' + parameters['object_id'] + '\' was found on the server.'
-            },
-            '200_OK': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'The prefix \'' + parameters['prefix'] + '\' was deleted.'
-            },
-            '200_OK_object_permissions': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'Permissions for the object with ID \'' + parameters[
-                    'object_id'] + '\' were found on the server.',
-                'object_id': parameters['object_id'],
-                'permissions': parameters['object_perms']
-            },
-            '200_OK_object_permissions_set': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'Permissions for the object with ID \'' + parameters[
-                    'object_id'] + '\' were set on the server.',
-                'object_id': parameters['object_id']
-            },
-            '200_OK_object_publish': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'Successfully published  \'' + parameters['published_id'] + '\' on the server.',
-                'published_id': parameters['published_id']
-            },
-            '200_OK_object_publish_draft_deleted': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'Successfully published  \'' + parameters[
-                    'published_id'] + '\' on the server and the draft was deleted.',
-                'published_id': parameters['published_id']
-            },
-            '200_OK_object_publish_draft_failed_delete': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'Successfully published  \'' + parameters[
-                    'published_id'] + '\' on the server but the draft failed to delete.',
-                'published_id': parameters['published_id']
-            },
-            '200_prefix_update': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'The prefix \'' + parameters['prefix'] + '\' was updated.'
-            },
-            '200_update': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'The object with ID \'' + parameters['object_id'] + '\' was updated.'
-            },
-            '200_delete_multiple_identical_prefixes': {
-                'request_status': 'SUCCESS',
-                'status_code': '200',
-                'message': 'The prefix was deleted but multiple entries matched (and were deleted).'
-            },
-            '201_create': {
-                'request_status': 'SUCCESS',
-                'status_code': '201',
-                'message': 'The object with ID \'' + parameters['object_id'] + '\' was created on the server.',
-                'object_id': parameters['object_id']
-            },
-            '201_group_create': {
-                'request_status': 'SUCCESS',
-                'status_code': '201',
-                'message': 'The group \'' + parameters['group'] + '\' was successfully created.'
-            },
-            '201_prefix_create': {
-                'request_status': 'SUCCESS',
-                'status_code': '201',
-                'message': 'The prefix \'' + parameters['prefix'] + '\' was successfully created.'
-            },
-            '400_bad_request': {
-                'request_status': 'FAILURE',
-                'status_code': '400',
-                'message': 'The request could not be processed with the parameters provided.'
-            },
-            '400_bad_version_number': {
-                'request_status': 'FAILURE',
-                'status_code': '400',
-                'message': 'The provided version number for this object is not greater than the number that would be generated automatically and therefore the request to publish was denied.'
-            },
-            '400_non_publishable_object': {
-                'request_status': 'FAILURE',
-                'status_code': '400',
-                'message': 'The object provided was not valid against the schema provided.  See key \'errors\' for specifics of the non-compliance.',
-                'errors': parameters['errors']
-            },
-            '400_non_root_id': {
-                'request_status': 'FAILURE',
-                'status_code': '400',
-                'message': 'The provided object ID does not contain a URI with a valid prefix.'
-            },
-            '400_unspecified_error': {
-                'request_status': 'FAILURE',
-                'status_code': '400',
-                'message': 'An unspecified error occurred.'
-            },
-            '400_failure_to_delete_prefix': {
-                'request_status': 'FAILURE',
-                'status_code': '400',
-                'message': 'An unspecified error occurred preventing deletion of the prefix.'
-            },
-            '401_prefix_unauthorized': {
-                'request_status': 'FAILURE',
-                'status_code': '401',
-                'message': 'The token provided does not have draft permissions for prefix \'' + parameters[
-                    'prefix'] + '\'.'
-            },
-            '403_insufficient_permissions': {
-                'request_status': 'FAILURE',
-                'status_code': '403',
-                'message': 'The token provided does not have sufficient permissions for the requested object.'
-            },
-            '403_invalid_token': {
-                'request_status': 'FAILURE',
-                'status_code': '403',
-                'message': 'The token provided was not able to be used on this object.'
-            },
-            '404_missing_bulk_parameters': {
-                'request_status': 'FAILURE',
-                'status_code': '404',
-                'message': 'One or more missing optional parameters are required for this call to have an effect.'
-            },
-            '404_missing_prefix': {
-                'request_status': 'FAILURE',
-                'status_code': '404',
-                'message': 'The prefix \'' + parameters['prefix'] + '\' was not found on the server.'
-            },
-            '404_object_id': {
-                'request_status': 'FAILURE',
-                'status_code': '404',
-                'message': 'The object ID \'' + parameters['object_id'] + '\' was not found on the server.'
-            },
-            '404_table': {
-                'request_status': 'FAILURE',
-                'status_code': '404',
-                'message': 'The table with name \'' + parameters['table'] + '\' was not found on the server.'
-            },
-            '409_group_conflict': {
-                'request_status': 'FAILURE',
-                'status_code': '409',
-                'message': 'The provided group \'' + parameters['group'] + '\' has already been created on this server.'
-            },
-            '409_prefix_conflict': {
-                'request_status': 'FAILURE',
-                'status_code': '409',
-                'message': 'The provided prefix \'' + parameters[
-                    'prefix'] + '\' has already been created on this server.'
-            },
-            '418_too_many_deleted': {
-                'request_status': 'FAILURE',
-                'status_code': '418',
-                'message': 'Only one object was expected to be deleted, but multiple were removed.'
-            },
-        }
+                '200_found'                                : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'The object with ID \'' + parameters['object_id'] + '\' was found on table \'' + parameters['table'] + '\'.',
+                        'content'       : p_content
+                        },
+                '200_OK_group_delete'                      : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'The group \'' + parameters['group'] + '\' was deleted.'
+                        },
+                '200_OK_group_modify'                      : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'The group \'' + parameters['group'] + '\' was succesfully modified.'
+                        },
+                '200_OK_object_delete'                     : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'The object with ID \'' + parameters['object_id'] + '\' was deleted.'
+                        },
+                '200_OK_object_read'                       : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'contents'      : parameters['contents'],
+                        'message'       : 'The object with ID \'' + parameters['object_id'] + '\' was found on the server.'
+                        },
+                '200_OK'                                   : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'The prefix \'' + parameters['prefix'] + '\' was deleted.'
+                        },
+                '200_OK_object_permissions'                : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'Permissions for the object with ID \'' + parameters['object_id'] + '\' were found on the server.',
+                        'object_id'     : parameters['object_id'],
+                        'permissions'   : parameters['object_perms']
+                        },
+                '200_OK_object_permissions_set'            : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'Permissions for the object with ID \'' + parameters['object_id'] + '\' were set on the server.',
+                        'object_id'     : parameters['object_id']
+                        },
+                '200_OK_object_publish'                    : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server.',
+                        'published_id'  : parameters['published_id']
+                        },
+                '200_OK_object_publish_draft_deleted'      : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server and the draft was deleted.',
+                        'published_id'  : parameters['published_id']
+                        },
+                '200_OK_object_publish_draft_failed_delete': {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server but the draft failed to delete.',
+                        'published_id'  : parameters['published_id']
+                        },
+                '200_prefix_update'                        : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'The prefix \'' + parameters['prefix'] + '\' was updated.'
+                        },
+                '200_update'                               : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'The object with ID \'' + parameters['object_id'] + '\' was updated.'
+                        },
+                '201_create'                               : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '201',
+                        'message'       : 'The object with ID \'' + parameters['object_id'] + '\' was created on the server.',
+                        'object_id'     : parameters['object_id']
+                        },
+                '201_group_create'                         : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '201',
+                        'message'       : 'The group \'' + parameters['group'] + '\' was successfully created.'
+                        },
+                '201_prefix_create'                        : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '201',
+                        'message'       : 'The prefix \'' + parameters['prefix'] + '\' was successfully created.'
+                        },
+                '400_bad_request'                          : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '400',
+                        'message'       : 'The request could not be processed with the parameters provided.'
+                        },
+                '400_bad_version_number'                   : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '400',
+                        'message'       : 'The provided version number for this object is not greater than the number that would be generated automatically and therefore the request to publish was denied.'
+                        },
+                '400_non_publishable_object'               : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '400',
+                        'message'       : 'The object provided was not valid against the schema provided.  See key \'errors\' for specifics of the non-compliance.',
+                        'errors'        : parameters['errors']
+                        },
+                '400_non_root_id'                          : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '400',
+                        'message'       : 'The provided object ID does not contain a URI with a valid prefix.'
+                        },
+                '400_unspecified_error'                    : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '400',
+                        'message'       : 'An unspecified error occurred.'
+                        },
+                '401_prefix_unauthorized'                  : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '401',
+                        'message'       : 'The token provided does not have draft permissions for prefix \'' + parameters['prefix'] + '\'.'
+                        },
+                '403_insufficient_permissions'             : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '403',
+                        'message'       : 'The token provided does not have sufficient permissions for the requested object.'
+                        },
+                '403_invalid_token'                        : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '403',
+                        'message'       : 'The token provided was not able to be used on this object.'
+                        },
+                '404_missing_bulk_parameters'              : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '404',
+                        'message'       : 'One or more missing optional parameters are required for this call to have an effect.'
+                        },
+                '404_missing_prefix'                       : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '404',
+                        'message'       : 'The prefix \'' + parameters['prefix'] + '\' was not found on the server.'
+                        },
+                '404_object_id'                            : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '404',
+                        'message'       : 'The object ID \'' + parameters['object_id'] + '\' was not found on the server.'
+                        },
+                '404_table'                                : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '404',
+                        'message'       : 'The table with name \'' + parameters['table'] + '\' was not found on the server.'
+                        },
+                '409_group_conflict'                       : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '409',
+                        'message'       : 'The provided group \'' + parameters['group'] + '\' has already been created on this server.'
+                        },
+                '409_prefix_conflict'                      : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '409',
+                        'message'       : 'The provided prefix \'' + parameters['prefix'] + '\' has already been created on this server.'
+                        },
+                '418_too_many_deleted'                     : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '418',
+                        'message'       : 'Only one object was expected to be deleted, but multiple were removed.'
+                        },
+                }
 
     # Publish an object.
     def publish(
@@ -707,8 +690,7 @@ class DbUtils:
             prfx,
             publishable,
             publishable_id
-
-    ):
+            ):
 
         # publishable is a draft object.
 
@@ -735,6 +717,7 @@ class DbUtils:
             # Create the constructed name based on whether or not
             # we're on a production server.
             # if settings.PRODUCTION == 'True':
+
             #     constructed_name = object_naming_info['uri_regex'].replace(
             #     'prod_root_uri', # WTF MAAAN
             #     object_naming_info['prod_root_uri']
@@ -799,16 +782,14 @@ class DbUtils:
                     p_data=published
                     )
 
-
             # Update the meta information about the prefix.
             prefix_counter.n_objects = prefix_counter.n_objects + 1
             prefix_counter.save()
 
             # Successfuly saved the object.
             return {
-
-                'published_id': published['object_id']
-            }
+                    'published_id': published['object_id']
+                    }
 
         else:
 
@@ -854,7 +835,6 @@ class DbUtils:
                     'published_id': published['object_id']
                     }
 
-
     # Write (update) either a draft or a published object to the database.
     def write_object(
             self,
@@ -864,20 +844,18 @@ class DbUtils:
             p_data,
             p_update=False,
             p_update_field=False
-
-    ):
+            ):
 
         # Source: https://docs.djangoproject.com/en/3.1/topics/db/queries/#topics-db-queries-update
 
         # Serialize our data.
         serializer = getGenericSerializer(
-
-            incoming_model=apps.get_model(
-                app_label=p_app_label,
-                model_name=p_model_name
-            ),
-            incoming_fields=p_fields
-        )
+                incoming_model=apps.get_model(
+                        app_label=p_app_label,
+                        model_name=p_model_name
+                        ),
+                incoming_fields=p_fields
+                )
 
         serialized = serializer(data=p_data)
 
@@ -902,14 +880,13 @@ class DbUtils:
             # )
 
             objects_modified = apps.get_model(
-
-                app_label=p_app_label,
-                model_name=p_model_name
-            ).objects.filter(
-                object_id=p_data['object_id']
-            ).update(
-                contents=p_data['contents']
-            )
+                    app_label=p_app_label,
+                    model_name=p_model_name
+                    ).objects.filter(
+                    object_id=p_data['object_id']
+                    ).update(
+                    contents=p_data['contents']
+                    )
 
             return objects_modified
 

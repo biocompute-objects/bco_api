@@ -14,24 +14,29 @@ from rest_framework.authtoken.models import Token
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_api_prefixes_token(request):
-    """
-    List prefixes that a token has access to
-    """
-    # Instantiate any necessary imports.
-    uu = UserUtils.UserUtils()
+def POST_api_prefixes_token(
+	request
+):
 
-    # The token has already been validated,
-    # so the user is guaranteed to exist.
+	# Instantiate any necessary imports.
+	uu = UserUtils.UserUtils()
+	
+	# The token has already been validated,
+	# so the user is guaranteed to exist.
 
-    # A little expensive, but use the utility
-    # we already have. Default will return flattened list of permissions
-    prefixes = uu.prefix_perms_for_user(
-        user_object=uu.user_from_request(
-            rq=request
-        ).username,
-        flatten=False
-    )
+	# A little expensive, but use the utility
+	# we already have. Default will return flattened list of permissions 
+	prefixes = uu.prefix_perms_for_user(
+		user_object = uu.user_from_request(
+			rq = request
+		).username,
+        flatten = False
+	)
 
-    return Response(status=status.HTTP_200_OK, data=prefixes)
 
+	return(
+		Response(
+			status = status.HTTP_200_OK,
+			data = prefixes
+		)
+	)
