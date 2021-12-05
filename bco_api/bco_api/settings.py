@@ -73,9 +73,12 @@ if(server_config['REQUESTS_FROM']['public'].strip() == 'false'):
     CORS_ORIGIN_WHITELIST = tuple(flattened)
     
 elif(server_config['REQUESTS_FROM']['public'].strip() == 'true'):
-
-    ALLOWED_HOSTS = [server_config['HOSTNAMES']['prod_names'].split(',')[0],'*']
-    CORS_ORIGIN_ALLOW_ALL = True
+    if server_config['PRODUCTION']['production'] == 'True':
+        ALLOWED_HOSTS = [server_config['HOSTNAMES']['prod_names'].split(',')[0],'*']
+        CORS_ORIGIN_ALLOW_ALL = True
+    elif server_config['PRODUCTION']['production'] == 'False':
+        ALLOWED_HOSTS = [server_config['HOSTNAMES']['names'].split(',')[0],'*']
+        CORS_ORIGIN_ALLOW_ALL = True
 
 # Use the REST framework
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#setting-the-authentication-scheme
@@ -213,11 +216,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
-
-STATICFILES_DIRS = [
-   os.path.join(BASE_DIR, "static"),
-   ]
+STATIC_URL = '/api/static/'
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = '/var/www/bcoeditor/bco_api/bco_api/static/'
 
 # ----- CUSTOM VARIABLES AND METHODS ----- #
 

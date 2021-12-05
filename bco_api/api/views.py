@@ -142,7 +142,12 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
             # Pass the request to the handling function
             return GET_activate_account(username=username, temp_identifier=temp_identifier)
         else:
-            return Response(data=checked, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                        {
+                                'activation_success': False,
+                                'status'            : status.HTTP_400_BAD_REQUEST
+                                }
+                        )
 
 
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
