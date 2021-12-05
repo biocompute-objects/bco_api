@@ -33,9 +33,6 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
     #       Might be a better idea to split prefix, bco name, and version into a three part get
     bco_prefix, bco_name = oi_root.split("_", maxsplit=1)
 
-    import pdb;
-    pdb.set_trace()
-
     # retrieved = list(
     #         bco.objects.filter(
     #                 # contents__search=bco_name,
