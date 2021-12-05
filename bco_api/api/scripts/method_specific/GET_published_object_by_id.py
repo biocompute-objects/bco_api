@@ -5,6 +5,7 @@ from ...models import bco
 from rest_framework import status
 from rest_framework.response import Response
 
+
 def GET_published_object_by_id(oi_root):
     """
     Get a published object given a root.
@@ -22,24 +23,24 @@ def GET_published_object_by_id(oi_root):
     slash).
 
     """
-    oi_root = oi_root.split("_")[0] +  '{:06d}'.format(int(oi_root.split("_")[1]))
+    oi_root = oi_root.split("_")[0] + '{:06d}'.format(int(oi_root.split("_")[1]))
     all_versions = list(
         bco.objects.filter(
-            object_id__regex = rf'(.*?)/{oi_root}/',
-            state = 'PUBLISHED'
+            object_id__regex=rf'(.*?)/{oi_root}/',
+            state='PUBLISHED'
         ).values_list(
             'object_id',
-            flat = True
+            flat=True
         )
     )
 
     # Get the latest version for this object if we have any.
     if len(all_versions) > 0:
-        
+
         # There was at least one version of the root ID,
         # so now perform some logic based on whether or
         # not a version was also passed.
-        
+
         # First find the latest version of the object.
         latest_major = 0
         latest_minor = 0
@@ -49,24 +50,24 @@ def GET_published_object_by_id(oi_root):
         ]
 
         for i in latest_version:
-            
+
             major_minor_split = i.split('.')
-            
+
             if int(major_minor_split[0]) >= latest_major:
                 if int(major_minor_split[1]) >= latest_minor:
                     latest_major = int(major_minor_split[0])
                     latest_minor = int(major_minor_split[1])
-        
+
         # Kick back the latest version.
         return Response(
-            data = bco.objects.filter(
-                object_id__regex = rf'{oi_root}/{latest_major}.{latest_minor}',
-                state = 'PUBLISHED'
+            data=bco.objects.filter(
+                object_id__regex=rf'{oi_root}/{latest_major}.{latest_minor}',
+                state='PUBLISHED'
             ).values_list(
                 'contents',
-                flat = True
+                flat=True
             ),
-            status = status.HTTP_200_OK
+            status=status.HTTP_200_OK
         )
 
     else:
@@ -75,6 +76,6 @@ def GET_published_object_by_id(oi_root):
         # the root ID does not exist at all.
         print('No objects were found for the root ID provided.')
         return Response(
-            data = 'No objects were found for the root ID provided.',
-            status = status.HTTP_400_BAD_REQUEST
+            data='No objects were found for the root ID provided.',
+            status=status.HTTP_400_BAD_REQUEST
         )

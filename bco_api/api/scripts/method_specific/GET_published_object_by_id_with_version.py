@@ -8,7 +8,11 @@ from rest_framework.response import Response
 
 def GET_published_object_by_id_with_version(oi_root, oi_version):
     """
+<<<<<<< HEAD
     Fetch a published BCO by the PREFIX, BCO NAME, and VERSION ID
+=======
+    Get a published BCO based on the ID and Version Number
+>>>>>>> master
     """
 
     ####
@@ -59,6 +63,7 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
     if len(retrieved) > 0:
         # Kick it back.
         return Response(data=retrieved, status=status.HTTP_200_OK)
+
     else:
         # If all_versions has 0 length, then the
         # the root ID does not exist at all.
@@ -70,6 +75,7 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
 
     # TODO: This code from here on down appears to be unreachable?  The above if/else will always return the request
     #       Maybe this is placeholder code for something?
+
     # Instantiate any necessary imports.
     db = DbUtils.DbUtils()
 
@@ -111,18 +117,11 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
                     status=status.HTTP_200_OK
                     )
 
+
         else:
-
-            return (
-                    Response(
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
-
+            return Response(status=status.HTTP_400_BAD_REQUEST)
     else:
 
-        return (
-                Response(
-                        status=status.HTTP_400_BAD_REQUEST
-                        )
-        )
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
