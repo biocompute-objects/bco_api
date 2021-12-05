@@ -27,7 +27,7 @@ from drf_yasg import openapi
 schema_view = get_schema_view(
     openapi.Info(
         title="BioCompute Object Data Base API (BCODB API)",
-        default_version='1.3.0',
+        default_version='2.0.0',
         description="A web application that can be used to create, store and edit BioCompute objects based on BioCompute schema described in the BCO "
                     "specification document.",
         terms_of_service="https://github.com/biocompute-objects/bco_api/blob/master/LICENSE",
