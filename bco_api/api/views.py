@@ -752,6 +752,52 @@ class ApiObjectsSearch(APIView):
 
 class ApiObjectsToken(APIView):
     """
+    Get User Draft and Published BCOs
+
+    --------------------
+
+    Get all BCOs available for a specific token, including published ones.
+    """
+
+    # auth = []
+    # auth.append(
+    #         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
+
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Get BCO Schema",
+        description="Parameters that are supported when fetching a BCOs.",
+        required=['POST_api_objects_token'],
+        properties={
+            'POST_api_objects_token': openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                required=['fields'],
+                properties={
+                    'fields': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Field to return",
+                            enum=['contents', 'last_update', 'object_class', 'object_id', 'owner_group', 'owner_user',
+                                  'prefix', 'schema', 'state']
+                        ),
+                        description="Fields to return.")
+                })})
+
+    @swagger_auto_schema(request_body=request_body, responses={
+            200: "Fetch BCOs is successful.",
+            400: "Bad request.",
+            403: "Invalid token."
+            }, tags=["BCO Management"])
+    def post(self, request) -> Response:
+        # No schema for this request since only
+        # the Authorization header is required.
+        return POST_api_objects_token(rqst=request)
+
+
+# TODO: in progress
+class ApiObjectsPublished(APIView):
+    """
     Get Published BCOs
 
     --------------------
