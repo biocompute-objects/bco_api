@@ -126,11 +126,6 @@ Get all prefix permissions (group and user) for a given token. Return with user 
 (POST) api/prefixes/token/
 """
 
-"""
-Get all prefix permissions (group and user) for a given token. Return a flat list of all permissions.
-(POST) api/prefixes/token/flat/
-"""
-
 # Update prefixes
 # (POST) api/prefixes/update/
 
@@ -167,6 +162,7 @@ elif PUBLISH_ONLY == 'False':
         path('draft/<str:draft_object_id>',
              DraftObjectId.as_view()
              ),
+
         path('<str:object_id_root>',
              ObjectIdRootObjectId.as_view()
              ),
@@ -174,14 +170,11 @@ elif PUBLISH_ONLY == 'False':
              ObjectIdRootObjectIdVersion.as_view()
              ),
         path('api/accounts/activate/<str:username>/<str:temp_identifier>',
-             ApiAccountsActivateUsernameTempIdentifier.as_view()
-             ),
+             ApiAccountsActivateUsernameTempIdentifier.as_view()),
         path('api/accounts/describe/',
-             ApiAccountsDescribe.as_view()
-             ),
+             ApiAccountsDescribe.as_view()),
         path('api/accounts/new/',
-             ApiAccountsNew.as_view()
-             ),
+             ApiAccountsNew.as_view()),
         path('api/groups/create/',
              ApiGroupsCreate.as_view()
              ),

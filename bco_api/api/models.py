@@ -49,10 +49,7 @@ class bco(models.Model):
     # purpose of the object)?
 
     # Field is optional.
-    object_class = models.TextField(
-        blank=True,
-        null=True
-    )
+    object_class = models.TextField(blank=True, null=True)
 
     # The unique object ID.
 
@@ -60,25 +57,15 @@ class bco(models.Model):
     object_id = models.TextField()
 
     # The object owner (should be a group).
-    owner_group = models.ForeignKey(
-        Group,
-        on_delete=models.CASCADE,
-        to_field='name'
-    )
+    owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
 
     # The object owner (should be a user).
-    owner_user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        to_field='username'
-    )
+    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
 
     # Which prefix the object falls under.
 
     # Field is required.
-    prefix = models.CharField(
-        max_length=5
-    )
+    prefix = models.CharField(max_length=5)
 
     # The schema under which the object falls.
 
@@ -106,38 +93,22 @@ class bco(models.Model):
 # anything relating to authentication.
 class group_info(models.Model):
     # Delete group members on group deletion?
-    delete_members_on_group_deletion = models.BooleanField(
-        default=False
-    )
+    delete_members_on_group_deletion = models.BooleanField(default=False)
 
     # Description of the group
     description = models.TextField()
 
     # Expiration date
-    expiration = models.DateTimeField(
-        blank=True,
-        null=True
-    )
+    expiration = models.DateTimeField(blank=True, null=True)
 
     # The group
-    group = models.ForeignKey(
-        Group,
-        on_delete=models.CASCADE,
-        to_field='name'
-    )
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
 
     # Size limit for the number of members
-    max_n_members = models.IntegerField(
-        blank=True,
-        null=True
-    )
+    max_n_members = models.IntegerField(blank=True, null=True)
 
     # Which user owns it?
-    owner_user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        to_field='username'
-    )
+    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
 
 
 # Generic meta data model
@@ -151,9 +122,7 @@ class meta_table(models.Model):
     # Which prefix the object falls under.
 
     # Field is required.
-    prefix = models.CharField(
-        max_length=5
-    )
+    prefix = models.CharField(max_length=5)
 
 
 # For registering new users.
@@ -161,51 +130,25 @@ class new_users(models.Model):
     # Instead of using the User model, just use
     # a crude table to store the temporary information
     # when someone asks for a new account.
-
     email = models.EmailField()
-
-    temp_identifier = models.TextField(
-        max_length=100
-    )
-
+    temp_identifier = models.TextField(max_length=100)
     # In case we are writing back to UserDB.
-    token = models.TextField(
-        blank=True,
-        null=True
-    )
+    token = models.TextField(blank=True, null=True)
 
     # Which host to send the activation back to (i.e. UserDB).
-    hostname = models.TextField(
-        blank=True,
-        null=True
-    )
-
+    hostname = models.TextField(blank=True, null=True)
     # Issue with time zone, so implement the fix.
     # Source: https://stackoverflow.com/a/32411560
-    created = models.DateTimeField(
-        default=timezone.now
-    )
+    created = models.DateTimeField(default=timezone.now)
 
 
 # Link prefixes to groups and users.
 class prefixes(models.Model):
     # Each prefix has exactly one group owner.
-    owner_group = models.ForeignKey(
-        Group,
-        on_delete=models.CASCADE,
-        to_field='name'
-    )
-
+    owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
     # Each prefix has exactly one user owner.
-    owner_user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        to_field='username'
-    )
-
-    prefix = models.CharField(
-        max_length=5
-    )
+    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
+    prefix = models.CharField(max_length=5)
 
 
 # def get_first_name(self):
