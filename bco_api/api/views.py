@@ -784,18 +784,19 @@ class ApiObjectsToken(APIView):
                         description="Fields to return.")
                 })})
 
+    # Anyone can view a published object
+    authentication_classes = []
+    permission_classes = []
+
     @swagger_auto_schema(request_body=request_body, responses={
             200: "Fetch BCOs is successful.",
             400: "Bad request.",
             403: "Invalid token."
             }, tags=["BCO Management"])
     def post(self, request) -> Response:
-        # TODO: Not checking for authorization? eg. if 'Authorization' in request.headers:
         # No schema for this request since only
         # the Authorization header is required.
         return POST_api_objects_token(rqst=request)
-
-    # TODO: Should change to get?
 
 
 class ApiPrefixesCreate(APIView):

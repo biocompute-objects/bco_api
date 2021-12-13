@@ -10,6 +10,7 @@ import re
 from semver import VersionInfo as Version
 from typing import Optional, Tuple
 
+# TODO: This should be put into a universal place to grab from - also duplicated in POST_api_objects_drafts_token.py
 
 BASEVERSION = re.compile(
     r"""[vV]?
