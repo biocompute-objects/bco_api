@@ -2,7 +2,7 @@ from django.urls import path, include, re_path
 from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, \
     ApiGroupsDelete, ApiGroupsModify, \
     ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, \
-    ApiObjectsDraftsPublish, ApiObjectsDraftsRead, \
+    ApiObjectsDraftsPublish, ApiObjectsDraftsRead, ApiObjectsPublished, \
     ApiObjectsSearch, ApiObjectsToken, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, \
     ApiPrefixesToken, ApiPrefixesTokenFlat, \
     ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsDraftsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectId, \
@@ -148,6 +148,7 @@ if PUBLISH_ONLY == 'True':
         path('api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
         path('<str:object_id_root>/<str:object_id_version>', ObjectIdRootObjectIdVersion.as_view()),
         path('api/objects/publish/', ApiObjectsPublish.as_view()),
+        path('api/objects/published/', ApiObjectsPublished.as_view()),
         path('api/public/describe/', ApiPublicDescribe.as_view())
     ]
 
@@ -219,6 +220,9 @@ elif PUBLISH_ONLY == 'False':
              ),
         path('api/objects/token/',
              ApiObjectsToken.as_view()
+             ),
+        path('api/objects/published/',
+             ApiObjectsPublished.as_view()
              ),
         path('api/prefixes/create/',
              ApiPrefixesCreate.as_view()
