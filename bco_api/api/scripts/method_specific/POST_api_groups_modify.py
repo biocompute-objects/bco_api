@@ -27,12 +27,7 @@ def POST_api_groups_modify(request):
 
     # This is a better solution than querying for
     # each individual group name.
-    groups = list(
-        Group.objects.all().values_list(
-            'name',
-            flat=True
-        )
-    )
+    groups = list(Group.objects.all().values_list('name', flat=True))
 
     # Construct an array to return information about processing
     # the request.
@@ -49,11 +44,14 @@ def POST_api_groups_modify(request):
 
             # Get the group and its information.
             grouped = Group.objects.get(name=standardized)
-            group_information = group_info.objects.get(group=grouped.name)
+            import pdb; pdb.set_trace()
 
             # Check that the requestor is the group admin.
-            if requestor_info.username == group_information.owner_user.username:
-
+            if requestor_info.is_superuser == True or grouped in requestor_info.groups.all():
+                try:
+                    group_information = group_info.objects.get(group=grouped)
+                except:
+                    group_information = group_info.objects.create(group=grouped, owner_user=requestor_info)
                 # Process the request.
                 # We only care about the actions at this point.
                 if 'actions' in modification_object:
