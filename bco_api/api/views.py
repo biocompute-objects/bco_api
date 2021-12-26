@@ -840,7 +840,6 @@ class ApiObjectsPublished(APIView):
     #         403: "Invalid token."
     #         }, tags=["BCO Management"])
     def get(self, request) -> Response:
-        # import pdb; pdb.set_trace()
         return POST_api_objects_published()
         # return POST_api_objects_token(rqst=request)
 
