@@ -833,12 +833,12 @@ class ApiObjectsPublished(APIView):
     # Anyone can view a published object
     authentication_classes = []
     permission_classes = []
+    auth = []
 
-    # @swagger_auto_schema(request_body=request_body, responses={
-    #         200: "Fetch BCOs is successful.",
-    #         400: "Bad request.",
-    #         403: "Invalid token."
-    #         }, tags=["BCO Management"])
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        200: "Success.",
+        400: "Internal Error.  BCO Name and Version are not properly formatted.",
+        }, tags=["BCO Management"])
     def get(self, request) -> Response:
         return POST_api_objects_published()
         # return POST_api_objects_token(rqst=request)
