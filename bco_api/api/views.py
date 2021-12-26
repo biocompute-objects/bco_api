@@ -753,7 +753,7 @@ class ApiObjectsSearch(APIView):
 
 class ApiObjectsToken(APIView):
     """
-    Get Published BCOs
+    Get User Draft and Published BCOs
 
     --------------------
 
@@ -791,7 +791,6 @@ class ApiObjectsToken(APIView):
             403: "Invalid token."
             }, tags=["BCO Management"])
     def post(self, request) -> Response:
-        # TODO: Not checking for authorization? eg. if 'Authorization' in request.headers:
         # No schema for this request since only
         # the Authorization header is required.
         return POST_api_objects_token(rqst=request)

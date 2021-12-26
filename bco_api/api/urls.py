@@ -23,11 +23,11 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 
-
+# TODO: Lets move the version to some type of general settings doc so its easier to find and update
 schema_view = get_schema_view(
     openapi.Info(
         title="BioCompute Object Data Base API (BCODB API)",
-        default_version='1.3.0',
+        default_version='2.0.0',
         description="A web application that can be used to create, store and edit BioCompute objects based on BioCompute schema described in the BCO "
                     "specification document.",
         terms_of_service="https://github.com/biocompute-objects/bco_api/blob/master/LICENSE",
@@ -146,6 +146,7 @@ if PUBLISH_ONLY == 'True':
         re_path(r'^api/doc(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
         path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
         path('api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+        path('<str:object_id_root>', ObjectIdRootObjectId.as_view()),
         path('<str:object_id_root>/<str:object_id_version>', ObjectIdRootObjectIdVersion.as_view()),
         path('api/objects/publish/', ApiObjectsPublish.as_view()),
         path('api/objects/published/', ApiObjectsPublished.as_view()),
@@ -164,7 +165,7 @@ elif PUBLISH_ONLY == 'False':
              schema_view.with_ui('redoc', cache_timeout=0),
              name='schema-redoc'
              ),
-        path('<str:draft_object_id>',
+        path('draft/<str:draft_object_id>',
              DraftObjectId.as_view()
              ),
         path('<str:object_id_root>',
