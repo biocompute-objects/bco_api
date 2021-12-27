@@ -2,7 +2,7 @@ from django.urls import path, include, re_path
 from .views import ApiAccountsActivateUsernameTempIdentifier, ApiAccountsDescribe, ApiAccountsNew, ApiGroupsCreate, \
     ApiGroupsDelete, ApiGroupsModify, \
     ApiObjectsDraftsCreate, ApiObjectsDraftsModify, ApiObjectsDraftsPermissions, ApiObjectsDraftsPermissionsSet, \
-    ApiObjectsDraftsPublish, ApiObjectsDraftsRead, \
+    ApiObjectsDraftsPublish, ApiObjectsDraftsRead, ApiObjectsPublished, \
     ApiObjectsSearch, ApiObjectsToken, ApiPrefixesCreate, ApiPrefixesDelete, ApiPrefixesPermissionsSet, \
     ApiPrefixesToken, ApiPrefixesTokenFlat, \
     ApiPrefixesUpdate, ApiObjectsPublish, ApiObjectsDraftsToken, ApiPublicDescribe, DraftObjectId, ObjectIdRootObjectId, \
@@ -141,9 +141,10 @@ if PUBLISH_ONLY == 'True':
         re_path(r'^api/doc(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
         path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
         path('api/redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-        path('<str:object_id_root>', ObjectIdRootObjectId.as_view()),
-        path('<str:object_id_root>/<str:object_id_version>', ObjectIdRootObjectIdVersion.as_view()),
+        path('bco/<str:object_id_root>', ObjectIdRootObjectId.as_view()),
+        path('bco/<str:object_id_root>/<str:object_id_version>', ObjectIdRootObjectIdVersion.as_view()),
         path('api/objects/publish/', ApiObjectsPublish.as_view()),
+        path('api/objects/published/', ApiObjectsPublished.as_view()),
         path('api/public/describe/', ApiPublicDescribe.as_view())
     ]
 
@@ -159,14 +160,13 @@ elif PUBLISH_ONLY == 'False':
              schema_view.with_ui('redoc', cache_timeout=0),
              name='schema-redoc'
              ),
-        path('draft/<str:draft_object_id>',
+        path('<str:draft_object_id>',
              DraftObjectId.as_view()
              ),
-
-        path('<str:object_id_root>',
+        path('bco/<str:object_id_root>',
              ObjectIdRootObjectId.as_view()
              ),
-        path('<str:object_id_root>/<str:object_id_version>',
+        path('bco/<str:object_id_root>/<str:object_id_version>',
              ObjectIdRootObjectIdVersion.as_view()
              ),
         path('api/accounts/activate/<str:username>/<str:temp_identifier>',
@@ -213,6 +213,9 @@ elif PUBLISH_ONLY == 'False':
              ),
         path('api/objects/token/',
              ApiObjectsToken.as_view()
+             ),
+        path('api/objects/published/',
+             ApiObjectsPublished.as_view()
              ),
         path('api/prefixes/create/',
              ApiPrefixesCreate.as_view()

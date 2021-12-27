@@ -164,7 +164,8 @@ def POST_api_objects_drafts_token(
         # import pdb; pdb.set_trace()
 
         published = bco.objects.filter(state='PUBLISHED').values()
-        unique_published = []
+        # unique_published = []
+        unique_published = set()
 
         # E.g.
         # published[0]["contents"]["object_id"] = 'http://127.0.0.1:8000/BCO_000010/1.0'
@@ -202,9 +203,14 @@ def POST_api_objects_drafts_token(
                         "bco_object": p
                         }
         for key, value in bcos.items():
-            unique_published.append(value["bco_object"])
+            # unique_published.append(value["bco_object"])
+            # import pdb;pdb.set_trace()
+            unique_published.add(value["bco_object"]["id"])
 
-        result_list = chain(user_objects.intersection(prefix_objects).values(*return_values), unique_published)
+        # result_list = chain(user_objects.intersection(prefix_objects).values(*return_values), unique_published(*return_values))
+        unique_published = bco.objects.filter(id__in = unique_published)
+        result_list = chain(user_objects.intersection(unique_published).values(*return_values), prefix_objects.values(*return_values))
+
 
         return Response(
                 data=result_list,

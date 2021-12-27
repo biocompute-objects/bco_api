@@ -139,3 +139,6 @@ dmypy.json
 # The migrations folder.
 # bco_api/api/migrations/
 .DS_Store*
+
+# JetBrains IDEs
+.idea/

@@ -34,6 +34,7 @@ from .scripts.method_specific.POST_api_objects_drafts_publish import POST_api_ob
 from .scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
 from .scripts.method_specific.POST_api_objects_drafts_token import POST_api_objects_drafts_token
 from .scripts.method_specific.POST_api_objects_publish import POST_api_objects_publish
+from .scripts.method_specific.POST_api_objects_published import POST_api_objects_published
 from .scripts.method_specific.POST_api_objects_search import POST_api_objects_search
 from .scripts.method_specific.POST_api_objects_token import POST_api_objects_token
 from .scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
@@ -794,6 +795,53 @@ class ApiObjectsToken(APIView):
         # the Authorization header is required.
         return POST_api_objects_token(rqst=request)
 
+
+class ApiObjectsPublished(APIView):
+    """
+    Get Published BCOs
+
+    --------------------
+
+    Get all BCOs available for a specific token, including published ones.
+    """
+
+    # auth = []
+    # auth.append(
+    #         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
+
+    # request_body = openapi.Schema(
+    #     type=openapi.TYPE_OBJECT,
+    #     title="Get BCO Schema",
+    #     description="Parameters that are supported when fetching a BCOs.",
+    #     required=['POST_api_objects_token'],
+    #     properties={
+    #         'POST_api_objects_token': openapi.Schema(
+    #             type=openapi.TYPE_OBJECT,
+    #             required=['fields'],
+    #             properties={
+    #                 'fields': openapi.Schema(
+    #                     type=openapi.TYPE_ARRAY,
+    #                     items=openapi.Schema(
+    #                         type=openapi.TYPE_STRING,
+    #                         description="Field to return",
+    #                         enum=['contents', 'last_update', 'object_class', 'object_id', 'owner_group', 'owner_user',
+    #                               'prefix', 'schema', 'state']
+    #                     ),
+    #                     description="Fields to return.")
+    #             })})
+
+    # Anyone can view a published object
+    authentication_classes = []
+    permission_classes = []
+    auth = []
+
+    @swagger_auto_schema(manual_parameters=auth, responses={
+        200: "Success.",
+        400: "Internal Error.  BCO Name and Version are not properly formatted.",
+        }, tags=["BCO Management"])
+    def get(self, request) -> Response:
+        return POST_api_objects_published()
+        # return POST_api_objects_token(rqst=request)
 
 class ApiPrefixesCreate(APIView):
     """
