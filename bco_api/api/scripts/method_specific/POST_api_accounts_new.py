@@ -110,10 +110,8 @@ def POST_api_accounts_new(request):
             print('activation_link', activation_link)
             # print('ERROR: ', e)
             # TODO: Should handle when the send_mail function fails?
-            # return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": "Not able to send authentication email: {}".format(e)})
-            return Response(status=status.HTTP_201_CREATED, data={"message": "Account has been requested. Activation email was not sent. Check with your database administrator for activation of your api account"})
-
-        return Response(status=status.HTTP_201_CREATED, data={"message": "Account has been requested. Activation email has been sent"})
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": "Not able to send authentication email: {}".format(e)})
+        return Response(status=status.HTTP_201_CREATED)
 
     else:
 
