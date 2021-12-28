@@ -11,7 +11,7 @@ coreapi==2.3.3
 coreschema==0.0.4
 distlib==0.3.0
 distro==1.4.0
-Django==3.2.4
+Django==3.2.10
 django-cors-headers==3.7.0
 django-guardian==2.3.0
 django-reset-migrations==0.4.0
@@ -54,6 +54,6 @@ six==1.14.0
 sqlparse==0.4.2
 toml==0.10.2
 uritemplate==3.0.1
-urllib3==1.25.11
+urllib3==1.26.5
 webencodings==0.5.1
 xmltodict==0.12.0
