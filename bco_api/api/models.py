@@ -86,7 +86,6 @@ class bco(models.Model):
         """String for representing the BCO model (in Admin site etc.)."""
         return self.object_id
 
-
 # Some additional information for Group.
 # This information is stored separately from
 # Group so as to not complicate or compromise
@@ -95,9 +94,12 @@ class group_info(models.Model):
     # Delete group members on group deletion?
     delete_members_on_group_deletion = models.BooleanField(default=False)
 
+    # The group
+    group = models.OneToOneField(Group, on_delete=models.CASCADE)
+    # Delete group members on group deletion?
+    delete_members_on_group_deletion = models.BooleanField(default=False)
     # Description of the group
-    description = models.TextField()
-
+    description = models.TextField(blank = True)
     # Expiration date
     expiration = models.DateTimeField(blank=True, null=True)
 
@@ -169,44 +171,19 @@ class prefixes(models.Model):
     post_save,
     sender=User
 )
-def associate_user_group(
-        sender,
-        instance,
-        created,
-        **kwargs
-):
+def associate_user_group(sender, instance, created, **kwargs):
     if created:
-
         # Create a group for this user.
         # Source: https://stackoverflow.com/a/55206382/5029459
-        Group.objects.create(
-            name=instance
-        )
-        group = Group.objects.get(
-            name=instance
-        )
-        group.user_set.add(
-            instance
-        )
+        Group.objects.create(name=instance)
+        group = Group.objects.get(name=instance)
+        group.user_set.add(instance)
 
         # Automatically add the user to the BCO drafters and publishers groups,
         # if the user isn't anon or the already existent bco_drafter or bco_publisher.
         if instance.username not in ['anon', 'bco_drafter', 'bco_publisher']:
-            User.objects.get(
-                username=instance
-            ).groups.add(
-                Group.objects.get(
-                    name='bco_drafter'
-                )
-            )
-            User.objects.get(
-                username=instance
-            ).groups.add(
-                Group.objects.get(
-                    name='bco_publisher'
-                )
-            )
-
+            User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_drafter'))
+            User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_publisher'))
 
 # Link user creation to token generation.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
@@ -331,45 +308,25 @@ def delete_permissions_for_prefix(
 
 
 # Link group creation to permission creation.
-@receiver(
-    post_save,
-    sender=group_info
-)
-def create_group_perms(
-        sender,
-        instance=None,
-        created=False,
-        **kwargs
-):
+@receiver(post_save, sender=group_info)
+def create_group_perms(sender, instance=None, created=False, **kwargs):
     if created:
-
         # Check to see whether or not the permissions
         # have already been created for this prefix.
         try:
-
-            # Create the permissions, then
-            # use group_info to give the group admin
+            # Create the permissions, then use group_info to give the group admin
             # the admin permissions.
-
             # Create the administrative permissions for the group.
             for perm in ['add_members_' + Group.objects.get(id=instance.group_id).name,
                          'delete_members_' + Group.objects.get(id=instance.group_id).name]:
                 Permission.objects.create(
                     name='Can ' + perm,
-                    content_type=ContentType.objects.get(
-                        app_label='auth',
-                        model='group'
-                    ),
-                    codename=perm
-                )
-
+                    content_type=ContentType.objects.get(app_label='auth', model='group'),
+                    codename=perm)
                 # Give the administrative permissions to the user
                 # creating this group.
-                User.objects.get(id=instance.owner_user_id).user_permissions.add(
-                    Permission.objects.get(
-                        codename=perm
-                    )
-                )
+                import pdb; pdb.set_trace()
+                User.objects.get(id=instance.owner_user_id).user_permissions.add(Permission.objects.get(codename=perm))
 
         except PermErrors.IntegrityError:
 

@@ -79,13 +79,13 @@ def POST_api_groups_create(request):
             # Note the bool typecast for delete_members_on_group_deletion,
             # this is necessary since the request to create the group
             # doesn't have a concept of type bool.
+
+    
             if 'expiration' not in creation_object:
                 group_info.objects.create(
                     delete_members_on_group_deletion=bool(creation_object['delete_members_on_group_deletion']),
                     description=creation_object['description'],
-                    group=Group.objects.get(
-                        name=creation_object['name']
-                    ),
+                    group=Group.objects.get(name=creation_object['name']),
                     max_n_members=creation_object['max_n_members'],
                     owner_user=group_admin
                 )
