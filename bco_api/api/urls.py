@@ -126,6 +126,11 @@ Get all prefix permissions (group and user) for a given token. Return with user 
 (POST) api/prefixes/token/
 """
 
+"""
+Get all prefix permissions (group and user) for a given token. Return a flat list of all permissions.
+(POST) api/prefixes/token/flat/
+"""
+
 # Update prefixes
 # (POST) api/prefixes/update/
 
@@ -160,21 +165,24 @@ elif PUBLISH_ONLY == 'False':
              schema_view.with_ui('redoc', cache_timeout=0),
              name='schema-redoc'
              ),
-        path('<str:draft_object_id>',
+        path('<str:object_id>/DRAFT',
              DraftObjectId.as_view()
              ),
-        path('bco/<str:object_id_root>',
+        path('<str:object_id_root>',
              ObjectIdRootObjectId.as_view()
              ),
-        path('bco/<str:object_id_root>/<str:object_id_version>',
+        path('<str:object_id_root>/<str:object_id_version>',
              ObjectIdRootObjectIdVersion.as_view()
              ),
         path('api/accounts/activate/<str:username>/<str:temp_identifier>',
-             ApiAccountsActivateUsernameTempIdentifier.as_view()),
+             ApiAccountsActivateUsernameTempIdentifier.as_view()
+             ),
         path('api/accounts/describe/',
-             ApiAccountsDescribe.as_view()),
+             ApiAccountsDescribe.as_view()
+             ),
         path('api/accounts/new/',
-             ApiAccountsNew.as_view()),
+             ApiAccountsNew.as_view()
+             ),
         path('api/groups/create/',
              ApiGroupsCreate.as_view()
              ),

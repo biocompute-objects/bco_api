@@ -1030,6 +1030,14 @@ class ApiPublicDescribe(APIView):
     Returns information about the API.
 
     """
+    authentication_classes = []
+    permission_classes = []
+
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
 
     auth = []
 
