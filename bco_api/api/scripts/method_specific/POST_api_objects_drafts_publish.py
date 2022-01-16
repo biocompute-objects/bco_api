@@ -1,5 +1,5 @@
 # BCO model
-from ...models import bco
+from api.models import bco
 
 # For getting objects out of the database.
 from ..utilities import DbUtils
@@ -22,7 +22,7 @@ def POST_api_objects_drafts_publish(incoming):
     """
     Take the bulk request and publish objects from drafts.
     """
-
+    
     # Instantiate any necessary imports.
     db = DbUtils.DbUtils()
     uu = UserUtils.UserUtils()
@@ -225,6 +225,7 @@ def POST_api_objects_drafts_publish(incoming):
     # For example, a table may not have been found for the first
     # requested draft.
     if any_failed:
+        # import pdb; pdb.set_trace()
         return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
 
     return Response(status=status.HTTP_200_OK, data=returning)
