@@ -1,6 +1,13 @@
-# Based on the "Class Based API View" example at https://codeloop.org/django-rest-framework-course-for-beginners/
+#!/usr/bin/env python3
+"""BCODB views
 
-# For instructions on calling class methods from other classes, see https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
+Django views for BCODB API
+"""
+# Based on the "Class Based API View" example at
+# https://codeloop.org/django-rest-framework-course-for-beginners/
+
+# For instructions on calling class methods from other classes, see
+# https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -157,14 +164,18 @@ class ApiAccountsDescribe(APIView):
     Account details
 
     --------------------
-    
     No schema for this request since only the Authorization header is required.
-
     The word 'Token' must be included in the header. 
     For example: 'Token 627626823549f787c3ec763ff687169206626149' 
     """
 
-    auth = [openapi.Parameter('Authorization', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING)]
+    auth = [
+        openapi.Parameter('Authorization',
+            openapi.IN_HEADER, 
+            description="Authorization Token",
+            type=openapi.TYPE_STRING
+        )
+    ]
 
     @swagger_auto_schema(manual_parameters=auth, responses={
             200: "Authorization is successful.",
@@ -172,9 +183,11 @@ class ApiAccountsDescribe(APIView):
             401: "Unauthorized. Authentication credentials were not provided."
             }, tags=["Account Management"])
     def post(self, request):
+        """
+        Pass the request to the handling function
+        Source: https://stackoverflow.com/a/31813810 
+        """
         if 'Authorization' in request.headers:
-            # Pass the request to the handling function
-            # Source: https://stackoverflow.com/a/31813810
             return POST_api_accounts_describe(token=request.META.get('HTTP_AUTHORIZATION'))
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -185,30 +198,31 @@ class ApiGroupsCreate(APIView):
     Create group
 
     --------------------
-
-    This API call creates a BCO group in ths system.  The name of the group is required but all other parameters
-    are optional.
+    This API call creates a BCO group in ths system.  The name of the group is
+    required but all other parameters are optional.
     """
-    
+
     POST_api_groups_create_schema = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['name'],
-            properties={
-                    'name': openapi.Schema(type=openapi.TYPE_STRING, description='The name of the group to create'),
-                    'usernames': openapi.Schema(type=openapi.TYPE_ARRAY,
-                        items=openapi.Schema(type=openapi.TYPE_STRING),
-                        description='List of users to add to the group.'),
-                    'delete_members_on_group_deletion': openapi.Schema(type=openapi.TYPE_BOOLEAN,
-                        description='Delete the members of the group if the group is deleted.'),
-                    'description': openapi.Schema(type=openapi.TYPE_STRING, description='Description of the group.'),
-                    'expiration': openapi.Schema(type=openapi.TYPE_STRING, 
-                        description='Expiration date and time of the group.  Note, this needs to be in a '
-                        'Python DateTime compatible format.'),
-                    'max_n_members': openapi.Schema(type=openapi.TYPE_INTEGER, 
-                        description='Maximum number of members to allow in the group.'),
-                    },
-            description="Groups to create along with associated information."
-            )
+        type=openapi.TYPE_OBJECT,
+        required=['name'],
+        properties={
+            'name': openapi.Schema(type=openapi.TYPE_STRING,
+                description='The name of the group to create'),
+            'usernames': openapi.Schema(type=openapi.TYPE_ARRAY,
+                items=openapi.Schema(type=openapi.TYPE_STRING),
+                description='List of users to add to the group.'),
+            'delete_members_on_group_deletion': openapi.Schema(type=openapi.TYPE_BOOLEAN,
+                description='Delete the members of the group if the group is deleted.'),
+            'description': openapi.Schema(type=openapi.TYPE_STRING,
+                description='Description of the group.'),
+            'expiration': openapi.Schema(type=openapi.TYPE_STRING, 
+                description='Expiration date and time of the group.  Note, '
+                'this needs to be in a Python DateTime compatible format.'),
+            'max_n_members': openapi.Schema(type=openapi.TYPE_INTEGER, 
+                description='Maximum number of members to allow in the group.'),
+            },
+        description="Groups to create along with associated information."
+        )
 
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -236,46 +250,53 @@ class ApiGroupsDelete(APIView):
 
     --------------------
 
-    Deletes one or more groups from the BCO API database.  Even if not all requests are successful, the API
-    can return success.  If a 300 response is returned then the caller should loop through the response
-    to understand which deletes failed and why.
+    Deletes one or more groups from the BCO API database.  Even if not all
+    requests are successful, the API can return success.  If a 300 response is
+    returned then the caller should loop through the response to understand
+    which deletes failed and why.
     """
-    POST_api_groups_delete_schema = openapi.Schema(type=openapi.TYPE_OBJECT,
-                                                   required=['names'],
-                                                   properties={
-                                                           'names': openapi.Schema(type=openapi.TYPE_ARRAY,
-                                                                                   description='List of groups to delete.',
-                                                                                   items=openapi.Schema(
-                                                                                           type=openapi.TYPE_STRING)),
-                                                           })
+    POST_api_groups_delete_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['names'],
+        properties={
+            'names': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                description='List of groups to delete.',
+                items=openapi.Schema(
+                    type=openapi.TYPE_STRING
+                )
+            ),
+        }
+    )
 
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Group Deletion Schema",
-            description="Parameters that are supported when trying to delete one or more groups.",
-            required=['POST_api_groups_delete'],
-            properties={
-                    'POST_api_groups_delete': POST_api_groups_delete_schema
-                    })
+        type=openapi.TYPE_OBJECT,
+        title="Group Deletion Schema",
+        description="Parameters that are supported when trying to delete "
+            "one or more groups.",
+        required=['POST_api_groups_delete'],
+        properties={
+            'POST_api_groups_delete': POST_api_groups_delete_schema
+        }
+    )
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Group deletion is successful.",
-            300: "Mixture of successes and failures in a bulk delete.",
-            400: "Bad request.",
-            403: "Invalid token.",
-            404: "Missing optional bulk parameters, this request has no effect.",
-            418: "More than the expected one group was deleted."
-            }, tags=["Group Management"])
+        200: "Group deletion is successful.",
+        300: "Mixture of successes and failures in a bulk delete.",
+        400: "Bad request.",
+        403: "Invalid token.",
+        404: "Missing optional bulk parameters, this request has no effect.",
+        418: "More than the expected one group was deleted."
+        }, tags=["Group Management"])
+    
     def post(self, request):
         return check_post_and_process(request, POST_api_groups_delete)
 
 
 class ApiGroupsModify(APIView):
-    """
-    Modify group
+    """Modify group
 
     --------------------
-
     Modifies an already existing BCO group.  An array of objects are taken where each of these objects
     represents the instructions to modify a specific group.  Within each of these objects, along with the
     group name, the set of modifications to that group exists in a dictionary as defined below.
@@ -654,37 +675,45 @@ class ApiObjectsDraftsRead(APIView):
 
 # TODO: This should probably also be a GET (or only a GET)
 class ApiObjectsDraftsToken(APIView):
-    """
-    Get Draft BCOs
+    """Get Draft BCOs
 
     --------------------
-
-    Get all the draft objects for a given token.  You can specify which information should be returned with this.
+    Get all the draft objects for a given token.
+    You can specify which information should be returned with this.
     """
 
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Get Draft BCO Schema",
-            description="Parameters that are supported when fetching a draft BCO.",
-            required=['POST_api_objects_drafts_token'],
-            properties={
-                    'POST_api_objects_drafts_token': openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            required=['fields'],
-                            properties={
-                                    'fields': openapi.Schema(
-                                            type=openapi.TYPE_ARRAY,
-                                            items=openapi.Schema(
-                                                type=openapi.TYPE_STRING,
-                                                description="Field to return",
-                                                enum=['contents', 'last_update', 'object_class', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state']
-                                            ),
-                                            description="Fields to return.")
-                                    })})
-
-    # auth = []
-    # auth.append(
-    #         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
+        type=openapi.TYPE_OBJECT,
+        title="Get Draft BCO Schema",
+        description="Parameters that are supported when fetching a draft BCO.",
+        required=['POST_api_objects_drafts_token'],
+        properties={
+            'POST_api_objects_drafts_token': openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                required=['fields'],
+                properties={
+                    'fields': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Field to return",
+                            enum=[
+                                'contents',
+                                'last_update',
+                                'object_class',
+                                'object_id',
+                                'owner_group',
+                                'owner_user',
+                                'prefix',
+                                'schema',
+                                'state'
+                            ]
+                        ),
+                        description="Fields to return.")
+                    }
+                )
+            }
+        )
 
     @swagger_auto_schema(request_body=request_body, responses={
             200: "Fetch BCO drafts is successful.",
@@ -699,11 +728,9 @@ class ApiObjectsDraftsToken(APIView):
 
 
 class ApiObjectsPublish(APIView):
-    """
-    Directly publish a BCO
+    """Directly publish a BCO
 
     --------------------
-
     Take the bulk request and publish objects directly.
     """
 
