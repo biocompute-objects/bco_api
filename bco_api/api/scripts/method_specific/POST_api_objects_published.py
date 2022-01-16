@@ -80,7 +80,7 @@ def POST_api_objects_published():
         except Exception as e:
             print("Biocompute Name, Version, and URL not formatted as expected: {}".format(e))
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
+        import pdb; pdb.set_trace()
         if bco_url in bcos:
             # Other version of this BCO object exists
             current_version = bcos[bco_url]["bco_version"]
