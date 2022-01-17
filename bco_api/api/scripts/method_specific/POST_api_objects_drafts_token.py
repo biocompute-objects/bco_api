@@ -1,25 +1,27 @@
-# BCOs
-import semver
+#!/usr/bin/env python3
+"""Retrieve Draft From Token
 
-from ...models import bco
 
-# User information
-from ..utilities import UserUtils
-
-# Object-level permissions
-from guardian.shortcuts import get_objects_for_user
-
+"""
+import pdb
+import re
 # Concatenating QuerySets
 from itertools import chain
+from typing import Optional, Tuple
+from api.models import bco
+from api.scripts.utilities import UserUtils
+# Object-level permissions
+from guardian.shortcuts import get_objects_for_user
 
 # Responses
 from rest_framework import status
 from rest_framework.response import Response
 
-# Below is helper code to deal with how we are allowing non standard versions (i.e. 1.2 instead of 1.2.0, etc).
-import re
+# Below is helper code to deal with how we are allowing non standard 
+# versions (i.e. 1.2 instead of 1.2.0, etc).
+
+import semver
 from semver import VersionInfo as Version
-from typing import Optional, Tuple
 
 BASEVERSION = re.compile(
         r"""[vV]?
@@ -44,12 +46,19 @@ def coerce(version: str) -> Tuple[Version, Optional[str]]:
     * If not enough components can be found, missing components are
         set to zero to obtain a valid semver version.
 
-    :param str version: the version string to convert
-    :return: a tuple with a :class:`Version` instance (or ``None``
+    Parameters
+    ----------
+    version: str
+        the version string to convert
+
+    Returns
+    -------
+    tuple(:class:`Version` | None, str)
+        a tuple with a :class:`Version` instance (or ``None``
         if it's not a version) and the rest of the string which doesn't
         belong to a basic version.
-    :rtype: tuple(:class:`Version` | None, str)
     """
+
     match = BASEVERSION.search(version)
     if not match:
         return (None, version)
@@ -62,17 +71,22 @@ def coerce(version: str) -> Tuple[Version, Optional[str]]:
     return ver, rest
 
 
-def POST_api_objects_drafts_token(
-        rqst,
-        internal=False
-        ):
+def POST_api_objects_drafts_token(rqst, internal=False):
     """
     Get all DRAFT objects for a token.
 
-    rqst - the request object
-    internal - is the call being made to this handler
-    internally?
+    Parameters
+    ----------
+    rqst: rest_framework.request.Request
+            Django request object.
+    internal: bool
+        denotes if the call being made to this handler internally
+
+    Returns
+    -------
+
     """
+
     print("In the POST_api_objects_drafts_token call")
     # import pdb;pdb.set_trace()
     # The token has already been validated,
@@ -80,11 +94,10 @@ def POST_api_objects_drafts_token(
 
     # Get the user's info.
     # Instantiate UserUtils.
-    uu = UserUtils.UserUtils()
+    user_utils = UserUtils.UserUtils()
 
     # Get the user object.
-    ui = uu.user_from_request(rq=rqst)
-
+    user_info = user_utils.user_from_request(request=rqst)
     # Any object that a user has access to
     # in any way counts as an "object".
     # That is, any permission counts as
@@ -103,30 +116,31 @@ def POST_api_objects_drafts_token(
 
     # First, get all prefixes available to the
     # user.
-    user_prefixes = uu.prefixes_for_user(user_object=ui)
+    user_prefixes = user_utils.prefixes_for_user(user_object=user_info)
 
     # Now get any object where the user has an
     # object-level permission.
 
     # Use an empty list of perms to get ANY perm.
     # Source: https://stackoverflow.com/a/24980558
-    user_objects = get_objects_for_user(
-            user=ui,
-            perms=[],
-            klass=bco,
-            any_perm=True
-            )
+    user_objects = get_objects_for_user(user=user_info, perms=[], klass=bco, any_perm=True)
 
     # Now get all objects under these prefixes.
-    prefix_objects = bco.objects.filter(
-            prefix__in=user_prefixes,
-            state='DRAFT'
-            )
+    prefix_objects = bco.objects.filter(prefix__in=user_prefixes, state='DRAFT')
 
     # Assume all the values are supposed to be returned.
     # Source: https://stackoverflow.com/a/51733590
-    return_values = ['contents', 'last_update', 'object_class', 'object_id', 'owner_group', 'owner_user', 'prefix',
-                     'schema', 'state']
+    return_values = [
+        'contents',
+        'last_update',
+        'object_class',
+        'object_id',
+        'owner_group',
+        'owner_user',
+        'prefix',
+        'schema',
+        'state'
+    ]
 
     # If there are any valid keys in the request,
     # use them to narrow down the fields.
@@ -139,9 +153,9 @@ def POST_api_objects_drafts_token(
         # the available fields.
         # Source: https://stackoverflow.com/a/3697438
         common_fields = list(
-                set(rqst.data['POST_api_objects_drafts_token']['fields']) &
-                set(return_values)
-                )
+            set(rqst.data['POST_api_objects_drafts_token']['fields']) &
+            set(return_values)
+        )
 
         if len(common_fields) > 0:
             return_values = common_fields
@@ -149,15 +163,16 @@ def POST_api_objects_drafts_token(
     # Return based on whether or not we're using an internal
     # call.
     if not internal:
-        print(" Not Internal, user response: {}".format(user_objects.intersection(prefix_objects).values(*return_values)))
+        print(" Not Internal, user response: {}"\
+            .format(user_objects.intersection(prefix_objects).\
+            values(*return_values)))
         # Get the user's DRAFT objects.
         return Response(
-                data=user_objects.intersection(prefix_objects).values(*return_values),
-                status=status.HTTP_200_OK
-                )
+            data=user_objects.intersection(prefix_objects).values(*return_values),
+            status=status.HTTP_200_OK
+        )
 
     elif internal:
-
         # Concatenate the QuerySets.
         # Source: https://stackoverflow.com/a/434755
 
@@ -175,8 +190,9 @@ def POST_api_objects_drafts_token(
 
         bcos = { }
         for p in published:
-            # TODO: We should move this out of a try except and try to handle various situations, this is currently
-            #       assuming that the format is http://URL:PORT/BCO NAME/BCO VERSION - this may not always be true
+            # TODO: We should move this out of a try except and try to handle various situations,
+            # this is currently assuming that the format is
+            #  http://URL:PORT/BCO ACCESSION/BCO VERSION - this may not always be true
             try:
                 bco_url, bco_id_name, bco_id_version = p["contents"]["object_id"].rsplit("/", 2)
             except Exception as e:
@@ -186,7 +202,7 @@ def POST_api_objects_drafts_token(
             if bco_url in bcos:
                 # Other version of this BCO object exists
                 current_version = bcos[bco_url]["bco_version"]
-
+                # pdb.set_trace()
                 if semver.compare(bco_id_version, current_version, key=coerce):
                     # New one is newer version, set:
                     bcos[bco_url] = {
@@ -214,8 +230,5 @@ def POST_api_objects_drafts_token(
         unique_published = bco.objects.filter(id__in=unique_published)
         result_list = chain(user_objects.intersection(unique_published).values(*return_values), prefix_objects.values(*return_values))
 
-        return Response(
-                data=result_list,
-                status=status.HTTP_200_OK
-                )
+        return Response(data=result_list, status=status.HTTP_200_OK)
 
