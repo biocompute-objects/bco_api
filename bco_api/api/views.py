@@ -9,6 +9,7 @@ Django views for BCODB API
 # For instructions on calling class methods from other classes, see
 # https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
 
+from typing import Type
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -471,30 +472,41 @@ class ApiObjectsDraftsModify(APIView):
     """
 
     POST_api_objects_drafts_modify_schema = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['object_id', 'contents'],
-            properties={
-                    'object_id': openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
-                    'contents' : openapi.Schema(type=openapi.TYPE_OBJECT, additional_properties=True, description="Contents of the BCO."),
-                    }
-            )
+        type=openapi.TYPE_OBJECT,
+        required=['object_id', 'contents'],
+        properties={
+            'object_id': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='BCO Object ID.'
+            ),
+            'contents' : openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                additional_properties=True,
+                description="Contents of the BCO."
+            ),
+        }
+    )
 
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Modify BCO Draft Schema",
-            description="Parameters that are supported when trying to modify a draft BCO.",
-            required=['POST_api_objects_drafts_modify'],
-            properties={
-                    'POST_api_objects_drafts_modify': openapi.Schema(type=openapi.TYPE_ARRAY,
-                                                                     items=POST_api_objects_drafts_modify_schema,
-                                                                     description='BCO Drafts to modify.'),
-                    })
+        type=openapi.TYPE_OBJECT,
+        title="Modify BCO Draft Schema",
+        description="Parameters that are supported when trying to modify"
+            " a draft BCO.",
+        required=['POST_api_objects_drafts_modify'],
+        properties={
+            'POST_api_objects_drafts_modify': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=POST_api_objects_drafts_modify_schema,
+                description='BCO Drafts to modify.'
+            )
+        }
+    )
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Modification of BCO draft is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-            }, tags=["BCO Management"])
+        200: "Modification of BCO draft is successful.",
+        400: "Bad request.",
+        403: "Invalid token."
+        }, tags=["BCO Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_modify)
 
@@ -880,17 +892,55 @@ class ApiPrefixesCreate(APIView):
     --------------------
 
     Creates a prefix to be used to classify BCOs and to determine permissions.
+    ```
+    "POST_api_prefixes_create": [
+        {
+            "description": "Generic test prefix.",
+            "owner_group": "bco_publisher",
+            "owner_user": "test90",
+            "prefix": "TEST"
+        }
+    ]
+    ```
     """
+
+    POST_api_prefixes_create_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['prefix'],
+        properties={
+            'description': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='Description of prefix.'
+            ),
+            'owner_group': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='User name of the prefix owner.'
+            ),
+            'owner_user': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='Group name of the prefix owner.'
+            ),
+            'prefix': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='Alphanumeric characters, 3-5.'
+            )
+        }
+    )
 
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="BCO Publication Schema",
-            description="Publish description.",
-            properties={
-                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-                    'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
-                    })
+        type=openapi.TYPE_OBJECT,
+        title="Create a Prefix",
+        description="Create a BCO Prefix.",
+        required=['POST_api_prefixes_create'],
+        properties={
+            'POST_api_prefixes_create':openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=POST_api_prefixes_create_schema,
+                description=''
+            )
+        }
+    )
 
     @swagger_auto_schema(request_body=request_body, responses={
             200: "Creating a prefix is successful.",

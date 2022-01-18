@@ -84,7 +84,7 @@ class bco(models.Model):
 
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
-        return self.object_id
+        return str(self.object_id)
 
 # Some additional information for Group.
 # This information is stored separately from
@@ -151,7 +151,9 @@ class prefixes(models.Model):
     # Each prefix has exactly one user owner.
     owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
     prefix = models.CharField(max_length=5)
-
+    def __str__(self):
+        """String for representing the BCO model (in Admin site etc.)."""
+        return str(self.prefix)
 
 # def get_first_name(self):
 #     return self.first_name
@@ -167,10 +169,7 @@ class prefixes(models.Model):
 # Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
 
 # Link user creation to groups.
-@receiver(
-    post_save,
-    sender=User
-)
+@receiver(post_save, sender=User)
 def associate_user_group(sender, instance, created, **kwargs):
     if created:
         # Create a group for this user.
