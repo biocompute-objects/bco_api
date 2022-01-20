@@ -1,11 +1,13 @@
-# BCO model
+#!/usr/bin/env python3
+"""Publish from draft
+
+publish a draft
+"""
+from django.http import request
 from api.models import bco
 
 # For getting objects out of the database.
-from ..utilities import DbUtils
-
-# User information
-from ..utilities import UserUtils
+from api.scripts.utilities import DbUtils, UserUtils
 
 # For the owner group
 from django.contrib.auth.models import Group
@@ -22,19 +24,17 @@ def POST_api_objects_drafts_publish(incoming):
     """
     Take the bulk request and publish objects from drafts.
     """
-    
-    # Instantiate any necessary imports.
-    db = DbUtils.DbUtils()
-    uu = UserUtils.UserUtils()
+
+    db_utils = DbUtils.DbUtils()
 
     # The token has already been validated,
     # so the user is guaranteed to exist.
 
     # Get the User object.
-    user = uu.user_from_request(rq=incoming)
+    user = UserUtils.UserUtils().user_from_request(request=incoming)
 
     # Get the user's prefix permissions.
-    px_perms = uu.prefix_perms_for_user(flatten=True, user_object=user)
+    px_perms = UserUtils.UserUtils().prefix_perms_for_user(flatten=True, user_object=user)
 
     # Define the bulk request.
     bulk_request = incoming.data['POST_api_objects_drafts_publish']
@@ -106,7 +106,7 @@ def POST_api_objects_drafts_publish(incoming):
                             # For publishing, the owner group and the
                             # owner user are "the same".  That is, the
                             # owner group is the one derived from the owner user.
-                            published = db.publish(
+                            published = db_utils.publish(
                                     og=Group.objects.get(name=user.username).name,
                                     ou=user.username,
                                     prfx=standardized,
@@ -126,19 +126,19 @@ def POST_api_objects_drafts_publish(incoming):
                                         if 'delete_' + publish_object['draft_id'] in all_permissions:
                                             objected.delete()
                                             # Draft was published and deleted as requested.
-                                            returning.append(db.messages(parameters={
+                                            returning.append(db_utils.messages(parameters={
                                                     'published_id': published['published_id'] })['200_OK_object_publish_draft_deleted'])
                                         else:
                                             # Draft failed to delete because of permissions, but object was published
-                                            returning.append(db.messages(parameters={
+                                            returning.append(db_utils.messages(parameters={
                                                     'published_id': published['published_id'] })['200_OK_object_publish_draft_failed_delete'])
                                     else:
                                         # Draft was published, but not deleted since not requested
-                                        returning.append(db.messages(parameters={
+                                        returning.append(db_utils.messages(parameters={
                                                 'published_id': published['published_id'] })['200_OK_object_publish'])
                                 else:
                                     # Draft was published, but not deleted since not requested (not included in request)
-                                    returning.append(db.messages(parameters={
+                                    returning.append(db_utils.messages(parameters={
                                             'published_id': published['published_id'] })['200_OK_object_publish'])
 
                         else:
@@ -149,14 +149,14 @@ def POST_api_objects_drafts_publish(incoming):
 
                                 # We need to check that the provided object ID
                                 # complies with the versioning rules.
-                                versioned = db.check_version_rules(published_id=publish_object['published_id'])
+                                versioned = db_utils.check_version_rules(published_id=publish_object['published_id'])
 
                                 # If we get a dictionary back, that means we have
                                 # a usable object ID.  Otherwise, something went wrong
                                 # with trying to use the provided object ID.
                                 if type(versioned) is dict:
                                     # We now have the published_id to write with.
-                                    published = db.publish(
+                                    published = db_utils.publish(
                                             og=Group.objects.get(name=user.username).name,
                                             ou=user.username,
                                             prfx=standardized,
@@ -167,7 +167,7 @@ def POST_api_objects_drafts_publish(incoming):
                                     # Did the publishing go well?
                                     if type(published) is dict:
                                         # Update the request status.
-                                        returning.append(db.messages(parameters={'published_id': versioned})['200_OK_object_publish'])
+                                        returning.append(db_utils.messages(parameters={'published_id': versioned})['200_OK_object_publish'])
 
                                         # Lastly, if we were given the directive to delete
                                         # the draft on publish, process that.
@@ -182,40 +182,40 @@ def POST_api_objects_drafts_publish(incoming):
                                     # Either the object wasn't found
                                     # or an invalid version number was provided.
                                     if versioned == 'bad_version_number':
-                                        returning.append(db.messages(parameters={ })['400_bad_version_number'])
+                                        returning.append(db_utils.messages(parameters={ })['400_bad_version_number'])
                                     elif versioned == 'non_root_id':
-                                        returning.append(db.messages(parameters={ })['400_non_root_id'])
+                                        returning.append(db_utils.messages(parameters={ })['400_non_root_id'])
                                     else:
                                         # Unspecified error, here as a trap.
-                                        returning.append(db.messages(parameters={ })['400_unspecified_error'])
+                                        returning.append(db_utils.messages(parameters={ })['400_unspecified_error'])
                                     any_failed = True
 
                             else:
                                 # Insufficient permissions.
-                                returning.append(db.messages(parameters={ })['403_insufficient_permissions'])
+                                returning.append(db_utils.messages(parameters={ })['403_insufficient_permissions'])
                                 any_failed = True
 
                     else:
                         # Object provided is not schema-compliant.
-                        returning.append(db.messages(parameters={
+                        returning.append(db_utils.messages(parameters={
                                 'errors': schema_check })['400_non_publishable_object'])
                         any_failed = True
 
                 else:
                     # Insufficient permissions.
-                    returning.append(db.messages(parameters={ })['403_insufficient_permissions'])
+                    returning.append(db_utils.messages(parameters={ })['403_insufficient_permissions'])
                     any_failed = True
 
             else:
                 # print(publish_object)
                 # Couldn't find the object.
-                returning.append(db.messages(parameters={
+                returning.append(db_utils.messages(parameters={
                         'object_id': publish_object['draft_id'] })['404_object_id'])
                 any_failed = True
 
         else:
             # Update the request status.
-            returning.append(db.messages(parameters={
+            returning.append(db_utils.messages(parameters={
                     'prefix': standardized })['401_prefix_unauthorized'])
             any_failed = True
 

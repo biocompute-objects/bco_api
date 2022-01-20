@@ -1,8 +1,12 @@
-# For getting objects out of the database.
-from ..utilities import DbUtils
+#!/usr/bin/env python3
 
-# User information
-from ..utilities import UserUtils
+"""Create Draft Object
+
+create draft
+"""
+from django.http import request
+from api.scripts.utilities import DbUtils, UserUtils
+from api.models import meta_table
 
 # For getting object naming information.
 from django.conf import settings
@@ -32,19 +36,16 @@ def POST_api_objects_drafts_create(incoming):
     # Take the bulk request and create a draft object from it.
 
     # Instantiate any necessary imports.
-    db = DbUtils.DbUtils()
-    uu = UserUtils.UserUtils()
+    db_utils = DbUtils.DbUtils()
     
     # The token has already been validated,
     # so the user is guaranteed to exist.
 
     # Get the User object.
-    user = uu.user_from_request(
-        rq = incoming
-    )
+    user = UserUtils.UserUtils().user_from_request(request = incoming)
 
     # Get the user's prefix permissions.
-    px_perms = uu.prefix_perms_for_user(
+    px_perms = UserUtils.UserUtils().prefix_perms_for_user(
         flatten = True,
         user_object = user,
         specific_permission = ['add']
@@ -90,32 +91,26 @@ def POST_api_objects_drafts_create(incoming):
 
                 # Use the root URI and prefix to construct the name.
                 constructed_name = object_naming_info['uri_regex'].replace(
-                    'root_uri', 
+                    'root_uri',
                     object_naming_info['root_uri']
                 )
-                constructed_name = constructed_name.replace(
-                    'prefix', 
-                    standardized
-                )
+                constructed_name = constructed_name.replace('prefix', standardized)
 
                 # Get rid of the rest of the regex for the name.
-                prefix_location = constructed_name.index(
-                    standardized
-                )
-                prefix_length = len(
-                    standardized
-                )
+                prefix_location = constructed_name.index(standardized)
+                prefix_length = len(standardized)
                 constructed_name = constructed_name[0:prefix_location+prefix_length]
-                
+                import pdb; pdb.set_trace()
                 # Create a draft ID that is essentially randomized.
-                creation_object['object_id'] =  constructed_name + '_DRAFT_' + rando.uuid4().hex
+                prefix_counter = meta_table.objects.get(prefix=standardized)
+                creation_object['object_id'] =  constructed_name + '_' + '{:06d}'.format(prefix_counter.n_objects) + '/DRAFT'
                 
                 # Make sure to create the object ID field in our draft.
                 creation_object['contents']['object_id'] = creation_object['object_id']
 
                 # Instantiate the owner group as we'll need it a few times here.
                 owner_group = Group.objects.get(name = creation_object['owner_group'])
-                
+
                 # Django wants a primary key for the Group...
                 creation_object['owner_group'] = owner_group.name
 
@@ -132,8 +127,8 @@ def POST_api_objects_drafts_create(incoming):
                 creation_object['last_update'] = timezone.now()
 
                 # Write to the database.
-                objects_written = db.write_object(
-                    p_app_label = 'api', 
+                objects_written = db_utils.write_object(
+                    p_app_label = 'api',
                     p_model_name = 'bco',
                     p_fields = ['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data = creation_object
@@ -141,7 +136,7 @@ def POST_api_objects_drafts_create(incoming):
 
                 if objects_written < 1:
                     # Issue with writing out to DB
-                    returning.append(db.messages(parameters={ })['400_bad_request'])
+                    returning.append(db_utils.messages(parameters={ })['400_bad_request'])
                     any_failed = True
 
                 # Object creator automatically has full permissions
@@ -156,16 +151,16 @@ def POST_api_objects_drafts_create(incoming):
                 # receiver in models.py
                 
                 # Update the request status.
-                returning.append(db.messages(parameters = creation_object)['201_create'])
+                returning.append(db_utils.messages(parameters = creation_object)['201_create'])
 
             else:
                 # Update the request status.
-                returning.append(db.messages(parameters = {})['400_bad_request'])
+                returning.append(db_utils.messages(parameters = {})['400_bad_request'])
                 any_failed = True
             
         else:
             # Update the request status.
-            returning.append(db.messages(parameters = {'prefix': creation_object['prefix']})['401_prefix_unauthorized'])
+            returning.append(db_utils.messages(parameters = {'prefix': creation_object['prefix']})['401_prefix_unauthorized'])
             any_failed = True
     
     # As this view is for a bulk operation, status 200

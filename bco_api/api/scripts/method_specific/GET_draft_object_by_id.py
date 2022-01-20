@@ -1,8 +1,12 @@
-# The BCO model
-from ...models import bco
+#!/usr/bin/env python3
+"""Retrieve Draft From Token
 
+
+"""
+
+from api.models import bco
 # User information
-from ..utilities import UserUtils
+from api.scripts.utilities import UserUtils
 
 # Responses
 from rest_framework import status
@@ -47,7 +51,7 @@ def GET_draft_object_by_id(do_id, rqst):
         uu = UserUtils.UserUtils()
 
         # Get the requestor's info.
-        ui = uu.user_from_request(rq=rqst)
+        ui = uu.user_from_request(request=rqst)
 
         # Does the requestor have view permissions
         # on the object?
