@@ -1,73 +1,54 @@
-# BCO model
-from ...models import bco
+#!/usr/bin/env python3
+"""Modify Draft Object
 
-# For getting objects out of the database.
-from ..utilities import DbUtils
-
-# User information
-from ..utilities import UserUtils
+modify a draft object
+"""
+from pkgutil import ImpImporter
+from django.http import request
+from api.models import bco
+from api.scripts.utilities import DbUtils
+from api.scripts.utilities import UserUtils
 
 # For writing objects to the database.
 from django.contrib.auth.models import Group
 
-# For recording the update time.
 from django.utils import timezone
-
-# Permisions for objects
 from guardian.shortcuts import get_perms
-
-# Responses
 from rest_framework import status
 from rest_framework.response import Response
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_api_objects_drafts_modify(
-    incoming
-):
-
-    # import pdb;pdb.set_trace()
-    # Take the bulk request and modify a draft object from it.
-
-    # Instantiate any necessary objects.
-    db = DbUtils.DbUtils()
-    uu = UserUtils.UserUtils()
+def POST_api_objects_drafts_modify(request):
+    """ Modify Draft Object
     
-    # The token has already been validated,
-    # so the user is guaranteed to exist.
-
-    # Get the User object.
-    user = uu.user_from_request(
-        rq = incoming
-    )
-
-    # Get the user's prefix permissions.
-    px_perms = uu.prefix_perms_for_user(
+    Take the bulk request and modify a draft object from it.
+    """
+    
+    # import pdb;pdb.set_trace()
+    db_utils = DbUtils.DbUtils()
+    user = UserUtils.UserUtils().user_from_request(request = request)
+    bulk_request = request.data['POST_api_objects_drafts_modify']
+    px_perms = UserUtils.UserUtils().prefix_perms_for_user(
         flatten = True,
         user_object = user,
         specific_permission = ['add']
     )
 
-    # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_drafts_modify']
-
     # Construct an array to return the objects.
     returning = []
-
-    # Since bulk_request is an array, go over each
-    # item in the array.
     for creation_object in bulk_request:
-        
+        import pdb; pdb.set_trace()
         # Get the prefix for this draft.
-        standardized = creation_object['object_id'].split('/')[-1].split('_')[0].upper()
+        prefix = creation_object['object_id'].split('/')[-2].split('_')[0].upper()
 
         # Does the requestor have change permissions for
         # the *prefix*?
 
         # TODO: add permission setting view...
 
-        #if 'change_' + standardized in px_perms:
-        if 'add_' + standardized in px_perms:
+        #if 'change_' + prefix in px_perms:
+        if 'add_' + prefix in px_perms:
         
             # The requestor has change permissions for
             # the prefix, but do they have object-level
@@ -93,8 +74,8 @@ def POST_api_objects_drafts_modify(
                 )
 
                 # TODO: add permission setting view...
-                # if user.pk == object.owner_user or 'change_' + standardized in all_permissions:
-                if user.username == objected.owner_user.username or 'add_' + standardized in all_permissions:
+                # if user.pk == object.owner_user or 'change_' + prefix in all_permissions:
+                if user.username == objected.owner_user.username or 'add_' + prefix in all_permissions:
                     # Alex Coleman  7:34 PM
                     # Yeah I'm 99% sure that if statement is pointless. @Chris Armstrong may have had a reason for it but Idk what.
 
@@ -118,7 +99,7 @@ def POST_api_objects_drafts_modify(
 
                     # Update the request status.
                     returning.append(
-                        db.messages(
+                        db_utils.messages(
                             parameters = {
                                 'object_id': creation_object['object_id']
                             }
@@ -129,7 +110,7 @@ def POST_api_objects_drafts_modify(
 
                     # Update the request status.
                     returning.append(
-                        db.messages(
+                        db_utils.messages(
                             parameters = {}
                         )['400_bad_request']
                     )
@@ -138,7 +119,7 @@ def POST_api_objects_drafts_modify(
 
                     # Insufficient permissions.
                     returning.append(
-                        db.messages(
+                        db_utils.messages(
                             parameters = {}
                         )['403_insufficient_permissions']
                     )
@@ -147,7 +128,7 @@ def POST_api_objects_drafts_modify(
 
                 # Couldn't find the object.
                 returning.append(
-                    db.messages(
+                    db_utils.messages(
                         parameters = {
                             'object_id': creation_object['object_id']
                         }
@@ -158,19 +139,17 @@ def POST_api_objects_drafts_modify(
             
             # Update the request status.
             returning.append(
-                db.messages(
+                db_utils.messages(
                     parameters = {
-                        'prefix': standardized
+                        'prefix': prefix
                     }
                 )['401_prefix_unauthorized']
             )
-    
+
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
     # For example, a table may not have been found for the first
     # requested draft.
-    return Response(
-        status = status.HTTP_200_OK,
-        data = returning
-    )
+
+    return Response(status = status.HTTP_200_OK, data = returning)
