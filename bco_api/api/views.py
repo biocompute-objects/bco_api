@@ -941,7 +941,7 @@ class ApiPrefixesDelete(APIView):
             title="Prefix Delete Schema",
             description="Prefix delete description.",
             properties={
-                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
+                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X '),
                     'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
                     })
 
