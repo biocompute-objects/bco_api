@@ -59,7 +59,6 @@ def POST_api_objects_drafts_modify(request):
         # the *prefix*?
 
         # TODO: add permission setting view...
-
         #if 'change_' + prefix in px_perms:
         if 'add_' + prefix in px_perms:
 
@@ -110,22 +109,10 @@ def POST_api_objects_drafts_modify(request):
 
                     # Update the request status.
                     returning.append(
-                        db_utils.messages(
-                            parameters = {
-                                'object_id': draft_object['object_id']
-                            }
-                        )['200_update']
-                    )
-
-                    # else:
-
-                    # Update the request status.
-                    returning.append(db_utils.messages(parameters = {}
-                        )['400_bad_request'])
-                    any_failed = True
-
+                        db_utils.messages(parameters = {
+                            'object_id': draft_object['object_id']}
+                            )['200_update'])
                 else:
-
                     # Insufficient permissions.
                     returning.append(db_utils.messages(parameters = {}
                         )['403_insufficient_permissions'])
@@ -133,8 +120,7 @@ def POST_api_objects_drafts_modify(request):
 
             else:
                 returning.append(db_utils.messages(parameters = {
-                    'object_id': draft_object['object_id']})
-                )['404_object_id']
+                    'object_id': draft_object['object_id']}))['404_object_id']
                 any_failed = True
         else:
             returning.append(
@@ -144,5 +130,5 @@ def POST_api_objects_drafts_modify(request):
 
     if any_failed:
         return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
-
-    return Response(status = status.HTTP_200_OK, data = returning)
+    else:
+        return Response(status = status.HTTP_200_OK, data = returning)

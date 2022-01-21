@@ -5,15 +5,9 @@
 """
 
 from api.models import bco
-# User information
 from api.scripts.utilities import UserUtils
-
-# Responses
 from rest_framework import status
 from rest_framework.response import Response
-
-
-# Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
 def GET_draft_object_by_id(do_id, rqst):
     """
@@ -23,8 +17,6 @@ def GET_draft_object_by_id(do_id, rqst):
     on it.
     """
 
-    # First, filter.
-    # filtered = bco.objects.filter(object_id=do_id, state="DRAFT")
     filtered = bco.objects.filter(object_id__regex=rf'(.*?)/{do_id}', state="DRAFT")
     # filtered_test2 = bco.objects.filter(state="DRAFT")
 

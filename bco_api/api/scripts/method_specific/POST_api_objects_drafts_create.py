@@ -1,59 +1,45 @@
 #!/usr/bin/env python3
 
-"""Create Draft Object
+"""Create BCO Draft
 
-create draft
+--------------------
+Creates a new BCO draft object.
 """
-from django.http import request
+
 from api.scripts.utilities import DbUtils, UserUtils
 from api.models import meta_table
-
-# For getting object naming information.
 from django.conf import settings
-
-# For writing objects to the database.
 from django.contrib.auth.models import Group
-
-# For recording the creation time.
 from django.utils import timezone
-
-# Responses
 from rest_framework import status
 from rest_framework.response import Response
 
-# For generating a random DRAFT ID.
+def POST_api_objects_drafts_create(request):
+    """Create BCO Draft
 
-# Source: https://stackoverflow.com/questions/976577/random-hash-in-python
-import uuid as rando
+    Parameters
+    ----------
+    request: rest_framework.request.
+        Django request object.
 
-# Source: https://codeloop.org/django-rest-framework-course-for-beginners/
-
-def POST_api_objects_drafts_create(incoming):
+    Returns
+    -------
+    rest_framework.response.Response
+        An HttpResponse that allows its data to be rendered into
+        arbitrary media types.
     """
-    create draft
-    """
 
-    # Take the bulk request and create a draft object from it.
-
-    # Instantiate any necessary imports.
     db_utils = DbUtils.DbUtils()
-    
-    # The token has already been validated,
-    # so the user is guaranteed to exist.
-
-    # Get the User object.
-    user = UserUtils.UserUtils().user_from_request(request = incoming)
-
-    # Get the user's prefix permissions.
-    px_perms = UserUtils.UserUtils().prefix_perms_for_user(
+    user = UserUtils.UserUtils().user_from_request(request = request)
+    prefix_perms = UserUtils.UserUtils().prefix_perms_for_user(
         flatten = True,
         user_object = user,
         specific_permission = ['add']
     )
 
     # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_draft_create']
-    
+    bulk_request = request.data['POST_api_objects_draft_create']
+
     # Get the object naming information.
     object_naming_info = settings.OBJECT_NAMING
 
@@ -64,13 +50,13 @@ def POST_api_objects_drafts_create(incoming):
     # Since bulk_request is an array, go over each
     # item in the array.
     for creation_object in bulk_request:
-        
+
         # Standardize the prefix.
         standardized = creation_object['prefix'].upper()
 
         # Require the macro-level and draft-specific permissions.
-        if 'add_' + standardized in px_perms and 'draft_' + standardized in px_perms:
-        
+        if 'add_' + standardized in prefix_perms and 'draft_' + standardized in prefix_perms:
+
             # Make sure the group the object is being
             # assigned to exists.
 
@@ -79,12 +65,12 @@ def POST_api_objects_drafts_create(incoming):
             if Group.objects.filter(
                 name = creation_object['owner_group'].lower()
             ).exists():
-            
+
                 # TODO: abstract this out to DbUtils.
-                
+
                 # The prefix permission exists and the presumptive
                 # group owner also exists, so write the object.
-                
+
                 # Source: https://www.webforefront.com/django/singlemodelrecords.html
 
                 # Create the ID template.
@@ -100,11 +86,11 @@ def POST_api_objects_drafts_create(incoming):
                 prefix_location = constructed_name.index(standardized)
                 prefix_length = len(standardized)
                 constructed_name = constructed_name[0:prefix_location+prefix_length]
-                import pdb; pdb.set_trace()
                 # Create a draft ID that is essentially randomized.
                 prefix_counter = meta_table.objects.get(prefix=standardized)
-                creation_object['object_id'] =  constructed_name + '_' + '{:06d}'.format(prefix_counter.n_objects) + '/DRAFT'
-                
+                creation_object['object_id'] =  constructed_name + '_' + \
+                    '{:06d}'.format(prefix_counter.n_objects) + '/DRAFT'
+
                 # Make sure to create the object ID field in our draft.
                 creation_object['contents']['object_id'] = creation_object['object_id']
 
@@ -130,9 +116,19 @@ def POST_api_objects_drafts_create(incoming):
                 objects_written = db_utils.write_object(
                     p_app_label = 'api',
                     p_model_name = 'bco',
-                    p_fields = ['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
+                    p_fields = [
+                        'contents',
+                        'last_update',
+                        'object_id',
+                        'owner_group',
+                        'owner_user',
+                        'prefix',
+                        'schema',
+                        'state'],
                     p_data = creation_object
                 )
+                prefix_counter.n_objects = prefix_counter.n_objects + 1
+                prefix_counter.save()
 
                 if objects_written < 1:
                     # Issue with writing out to DB
@@ -146,28 +142,26 @@ def POST_api_objects_drafts_create(incoming):
                 # (not done here, but in the urls that request
                 # a draft object, i.e. (GET) <str:draft_object_id>
                 # and (POST) api/objects/read/).
-                
+
                 # The owner group is given permissions in the post_save
                 # receiver in models.py
-                
+
                 # Update the request status.
                 returning.append(db_utils.messages(parameters = creation_object)['201_create'])
 
             else:
                 # Update the request status.
-                returning.append(db_utils.messages(parameters = {})['400_bad_request'])
+                returning.append(db_utils.messages(parameters = {})
+                ['400_bad_request'])
                 any_failed = True
-            
+
         else:
             # Update the request status.
-            returning.append(db_utils.messages(parameters = {'prefix': creation_object['prefix']})['401_prefix_unauthorized'])
+            returning.append(db_utils.messages(parameters = {
+                'prefix': creation_object['prefix']})
+                ['401_prefix_unauthorized'])
             any_failed = True
-    
-    # As this view is for a bulk operation, status 200
-    # means that the request was successfully processed,
-    # but NOT necessarily each item in the request.
-    # For example, a table may not have been found for the first
-    # requested draft.
+
     if any_failed:
         return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
 

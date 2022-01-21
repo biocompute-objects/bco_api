@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Publish from draft
+"""Publish draft
 
 publish a draft
 """
-from django.http import request
+
 from api.models import bco
 
 # For getting objects out of the database.
@@ -21,8 +21,23 @@ from rest_framework.response import Response
 
 
 def POST_api_objects_drafts_publish(incoming):
-    """
-    Take the bulk request and publish objects from drafts.
+    """Publish draft
+
+    publish a draft
+    
+    Parameters
+    ----------
+    request: rest_framework.request.Request
+            Django request object.
+
+    Returns
+    -------
+    rest_framework.response.Response
+        An HttpResponse that allows its data to be rendered into arbitrary
+        media types. As this view is for a bulk operation, status 200 means
+        that the request was successfully processed for each item in the
+        request. A status of 300 means that some of the requests were
+        successfull.
     """
 
     db_utils = DbUtils.DbUtils()
@@ -42,9 +57,6 @@ def POST_api_objects_drafts_publish(incoming):
     # Construct an array to return the objects.
     returning = []
     any_failed = False
-
-    # Since bulk_request is an array, go over each
-    # item in the array.
     for publish_object in bulk_request:
 
         # Attempting to publish from a draft ID.
@@ -149,7 +161,7 @@ def POST_api_objects_drafts_publish(incoming):
 
                                 # We need to check that the provided object ID
                                 # complies with the versioning rules.
-                                versioned = db_utils.check_version_rules(published_id=publish_object['published_id'])
+                                versioned = db_utils.check_version_rules(published_id=publish_object['object_id'])
 
                                 # If we get a dictionary back, that means we have
                                 # a usable object ID.  Otherwise, something went wrong
@@ -157,17 +169,18 @@ def POST_api_objects_drafts_publish(incoming):
                                 if type(versioned) is dict:
                                     # We now have the published_id to write with.
                                     published = db_utils.publish(
-                                            og=Group.objects.get(name=user.username).name,
-                                            ou=user.username,
-                                            prfx=standardized,
+                                            owner_group=Group.objects.get(name=user.username).name,
+                                            owner_user=user.username,
+                                            prefix=standardized,
                                             publishable=objected,
                                             publishable_id=versioned
                                             )
 
                                     # Did the publishing go well?
                                     if type(published) is dict:
+                                        import pdb; pdb.set_trace()
                                         # Update the request status.
-                                        returning.append(db_utils.messages(parameters={'published_id': versioned})['200_OK_object_publish'])
+                                        returning.append(db_utils.messages(parameters=versioned)['200_OK_object_publish'])
 
                                         # Lastly, if we were given the directive to delete
                                         # the draft on publish, process that.
