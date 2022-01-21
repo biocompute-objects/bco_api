@@ -879,23 +879,44 @@ class ApiPrefixesCreate(APIView):
 
     --------------------
 
-    Creates a prefix to be used to classify BCOs and to determine permissions.
+    Creates a prefix to be used to classify BCOs and to determine permissions for objects created under that prefix.
+
+    The requestor *must* be in the group prefix_admins to create a prefix.
+
+    ```JSON
+    {
+        "POST_api_prefixes_create":{
+            "prefixes":[
+                {
+                    "description":"Generic testing prefix.",
+                    "owner_group":"bco_publisher",
+                    "owner_user":"anon",
+                    "prefix":"tEsT"
+                }
+            ]
+        }
+    }
+    ```
+
     """
 
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            title="BCO Publication Schema",
-            description="Publish description.",
+            title="Prefix Creation Schema",
+            description="Several parameters are required to create a prefix.",
+            required=['description', 'owner_group', 'owner_user', 'prefix'],
             properties={
-                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-                    'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+                    'description': openapi.Schema(type=openapi.TYPE_STRING, description='A description of what this prefix should represent.  For example, the prefix \'GLY\' would be related to BCOs which were derived from GlyGen workflows.'),
+                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in the owner group to assign this.*'),
+                    'owner_user': openapi.Schema(type=openapi.TYPE_STRING, description='Which user should own the prefix.  *The requestor does not have to be owner_user but owner_user must be in owner_group*.'),
+                    'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix which satsifies the naming standard (see link...)'),
                     })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Creating a prefix is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            201: "The prefix was successfully created.",
+            400: "Bad request because 1) the prefix does not follow the naming standard, or 2) owner_user and/or owner_group do not exist, or 3) owner_user is not in owner_group.",
+            409: "The prefix the requestor is attempting to create already exists."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_create)
