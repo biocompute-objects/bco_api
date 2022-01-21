@@ -178,7 +178,7 @@ def POST_api_objects_drafts_publish(incoming):
 
                                     # Did the publishing go well?
                                     if type(published) is dict:
-                                        import pdb; pdb.set_trace()
+
                                         # Update the request status.
                                         returning.append(db_utils.messages(parameters=versioned)['200_OK_object_publish'])
 

@@ -1088,7 +1088,8 @@ class DraftObjectId(APIView):
         # return GET_draft_object_by_id(do_id=request.build_absolute_uri(), rqst=request)
 
         # return GET_draft_object_by_id(do_id=draft_object_id, rqst=request)
-        return GET_draft_object_by_id(do_id=object_id, rqst=request)
+        
+        return GET_draft_object_by_id(do_id=object_id, request=request)
 
 
 # Allow anyone to view published objects.
