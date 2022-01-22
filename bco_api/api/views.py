@@ -879,13 +879,13 @@ class ApiPrefixesCreate(APIView):
 
     --------------------
 
-    Creates a prefix to be used to classify BCOs and to determine permissions for objects created under that prefix.
+    Create a prefix to be used to classify BCOs and to determine permissions for objects created under that prefix.
 
     The requestor *must* be in the group prefix_admins to create a prefix.
 
     ```JSON
     {
-        "POST_api_prefixes_create":{
+        "POST_api_prefixes_create": {
             "prefixes":[
                 {
                     "description":"Generic testing prefix.",
@@ -929,6 +929,22 @@ class ApiPrefixesDelete(APIView):
     --------------------
 
     Deletes a prefix for BCOs.
+
+    The requestor *must* be in the group prefix_admins to delete a prefix.
+
+    ```JSON
+    {
+        "POST_api_prefixes_delete": {
+            "prefixes":[
+                    "PRFX",
+                    "OTR",
+                    "GLY"
+                ]
+            ]
+        }
+    }
+    ```
+
     """
 
     # TODO: Not sure if this actually does anything?
@@ -938,17 +954,16 @@ class ApiPrefixesDelete(APIView):
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            title="Prefix Delete Schema",
-            description="Prefix delete description.",
+            title="Prefix Deletion Schema",
+            description="Provide a list of prefixes to delete.",
+            required=['prefixes'],
             properties={
-                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X '),
-                    'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+                    'prefixes': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix in the API.'),
                     })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Deleting a prefix is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            200: "Deleting a prefix was successful.",
+            404: "The prefix couldn't be found so therefore it could not be deleted."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_delete)

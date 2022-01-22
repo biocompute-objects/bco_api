@@ -157,21 +157,32 @@ class prefixes(models.Model):
 #     return self.first_name
 
 # User.add_to_class("__str__", get_first_name)
+
+
 # --- Receivers --- #
 
 
-# User and API Information is kept separate so that we can use it
+# User and API Information are kept separate so that we can use it
 # elsewhere easily.
 
 # Source: https://florimondmanca.github.io/djangorestframework-api-key/guide/#api-key-models
 # Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
+
+
+# --- User --- #
+
 
 # Link user creation to groups.
 @receiver(
     post_save,
     sender=User
 )
-def associate_user_group(sender, instance, created, **kwargs):
+def associate_user_group(
+    sender, 
+    instance, 
+    created, 
+    **kwargs
+):
     if created:
         # Create a group for this user.
         # Source: https://stackoverflow.com/a/55206382/5029459
@@ -187,7 +198,6 @@ def associate_user_group(sender, instance, created, **kwargs):
 
 # Link user creation to token generation.
 # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
-
 @receiver(
     post_save,
     sender=User
@@ -218,8 +228,32 @@ def create_auth_token(
             )
 
 
-# Link prefix creation to permissions creation.
+# --- Group --- #
 
+
+# Link group deletion to permissions deletion.
+
+# pre_delete and NOT post_delete because we need
+# to get the Group's information before deleting it.
+@receiver(
+    pre_delete,
+    sender=Group
+)
+def delete_group_perms(
+        sender,
+        instance=None,
+        **kwargs
+):
+    for perm in ['add_members_' + instance.name, 'delete_members_' + instance.name]:
+        Permission.objects.filter(
+            codename=perm
+        ).delete()
+
+
+# --- Prefix --- #
+
+
+# Link prefix creation to permissions creation.
 @receiver(
     post_save,
     sender=prefixes
@@ -278,7 +312,6 @@ def create_permissions_for_prefix(
 
 
 # Link prefix deletion to permissions deletion.
-
 @receiver(
     post_delete,
     sender=prefixes
@@ -307,9 +340,17 @@ def delete_permissions_for_prefix(
     ).delete()
 
 
+# --- Group info --- #
+
+
 # Link group creation to permission creation.
 @receiver(post_save, sender=group_info)
-def create_group_perms(sender, instance=None, created=False, **kwargs):
+def create_group_perms(
+    sender, 
+    instance=None, 
+    created=False, 
+    **kwargs
+):
     if created:
         # Check to see whether or not the permissions
         # have already been created for this prefix.
@@ -334,23 +375,7 @@ def create_group_perms(sender, instance=None, created=False, **kwargs):
             pass
 
 
-# Link group deletion to permissions deletion.
-
-# pre_delete and NOT post_delete because we need
-# to get the Group's information before deleting it.
-@receiver(
-    pre_delete,
-    sender=Group
-)
-def delete_group_perms(
-        sender,
-        instance=None,
-        **kwargs
-):
-    for perm in ['add_members_' + instance.name, 'delete_members_' + instance.name]:
-        Permission.objects.filter(
-            codename=perm
-        ).delete()
+# --- BCO --- #
 
 
 # Link draft creation to permission creation
@@ -446,19 +471,3 @@ def create_object_perms(
 # Link object deletion to object permissions deletion.
 
 # TODO:...
-
-# pre_delete and NOT post_delete because we need
-# to get the Group's information before deleting it.
-@receiver(
-    pre_delete,
-    sender=Group
-)
-def delete_group_perms(
-        sender,
-        instance=None,
-        **kwargs
-):
-    for perm in ['add_members_' + instance.name, 'delete_members_' + instance.name]:
-        Permission.objects.filter(
-            codename=perm
-        ).delete()
