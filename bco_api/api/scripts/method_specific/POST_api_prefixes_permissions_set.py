@@ -70,7 +70,6 @@ def POST_api_prefixes_permissions_set(
 				
 				if 'group' in creation_object:
 					assignees['group'] = creation_object['group']
-
 				
 				# Go through each one.
 				for un in assignees['username']:
@@ -127,7 +126,7 @@ def POST_api_prefixes_permissions_set(
 								parameters = {
 									'prefix': standardized
 								}
-							)['200_prefix_update']
+							)['201_prefix_update']
 						)
 				
 					else:

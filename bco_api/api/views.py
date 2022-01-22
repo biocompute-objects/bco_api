@@ -455,7 +455,7 @@ class ApiObjectsDraftsCreate(APIView):
             300: "Some requests failed and some succeeded.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_create)
 
@@ -494,7 +494,7 @@ class ApiObjectsDraftsModify(APIView):
             200: "Modification of BCO draft is successful.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_modify)
 
@@ -533,7 +533,7 @@ class ApiObjectsDraftsPermissions(APIView):
             300: "Some requests failed.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_permissions)
 
@@ -585,7 +585,7 @@ class ApiObjectsDraftsPermissionsSet(APIView):
             300: "Some requests failed.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_permissions_set)
 
@@ -630,7 +630,7 @@ class ApiObjectsDraftsPublish(APIView):
             300: "Some requests failed.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_publish)
 
@@ -668,7 +668,7 @@ class ApiObjectsDraftsRead(APIView):
             300: "Some requests failed.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_drafts_read)
 
@@ -719,7 +719,7 @@ class ApiObjectsDraftsToken(APIView):
             200: "Fetch BCO drafts is successful.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         # TODO: Not checking for authorization here?
         # No schema for this request since only
@@ -748,7 +748,7 @@ class ApiObjectsPublish(APIView):
             200: "BCO publication is successful.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_publish)
 
@@ -776,7 +776,7 @@ class ApiObjectsSearch(APIView):
             200: "BCO publication is successful.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_objects_search)
 
@@ -819,7 +819,7 @@ class ApiObjectsToken(APIView):
             200: "Fetch BCOs is successful.",
             400: "Bad request.",
             403: "Invalid token."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def post(self, request) -> Response:
         # No schema for this request since only
         # the Authorization header is required.
@@ -868,7 +868,7 @@ class ApiObjectsPublished(APIView):
     @swagger_auto_schema(manual_parameters=auth, responses={
         200: "Success.",
         400: "Internal Error.  BCO Name and Version are not properly formatted.",
-        }, tags=["BCO Management"])
+        }, tags=["BCOs"])
     def get(self, request) -> Response:
         return POST_api_objects_published()
         # return POST_api_objects_token(rqst=request)
@@ -879,7 +879,7 @@ class ApiPrefixesCreate(APIView):
 
     --------------------
 
-    Create a prefix to be used to classify BCOs and to determine permissions for objects created under that prefix.
+    # Create a prefix to be used to classify BCOs and to determine permissions for objects created under that prefix.
 
     The requestor *must* be in the group prefix_admins to create a prefix.
 
@@ -928,9 +928,11 @@ class ApiPrefixesDelete(APIView):
 
     --------------------
 
-    Deletes a prefix for BCOs.
+    # Deletes a prefix for BCOs.
 
     The requestor *must* be in the group prefix_admins to delete a prefix.
+
+    __Any object created under this prefix will have its permissions "locked out."  This means that any other view which relies on object-level permissions, such as /api/objects/drafts/read/, will not allow any requestor access to particular objects.__
 
     ```JSON
     {
@@ -959,7 +961,7 @@ class ApiPrefixesDelete(APIView):
             required=['prefixes'],
             properties={
                     'prefixes': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix in the API.'),
-                    })
+            })
 
     @swagger_auto_schema(request_body=request_body, responses={
             200: "Deleting a prefix was successful.",
@@ -975,23 +977,56 @@ class ApiPrefixesPermissionsSet(APIView):
 
     --------------------
 
-    Sets the permissions available for a specified prefix.
+    # Set prefix permissions by user, group, or both.
+
+    The requestor *must* be the owner_user of the prefix.
+
+    At least one of the usernames or groups must actually exist for a permission to be assigned.
+
+    ```JSON
+    {
+        "POST_api_prefixes_permissions_set": [
+            {
+                "group": [
+                    "bco_drafter"
+                ],
+                "permissions": [
+                    "change",
+                    "delete",
+                    "view"
+                ],
+                "prefix": "BCO",
+                "username": [
+                    "some_user"
+                ],
+            }
+        ]
+    }
+    ```
+
     """
+
+    # TODO: Not sure if this actually does anything?
+    # Permissions - prefix admins only
+    permission_classes = [RequestorInPrefixAdminsGroup]
 
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
             title="Prefix Permissions Schema",
-            description="Prefix permissions description.",
+            description="Set the permissions for a prefix.",
+            required=['permissions', 'prefix'],
             properties={
-                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-                    'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
-                    })
+                    'group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group the permission is being assigned to.'),
+                    'permissions': openapi.Schema(type=openapi.TYPE_STRING, description='Which permissions to assign.'),
+                    'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Which prefix to assign the permissions to.'),
+                    'username': openapi.Schema(type=openapi.TYPE_STRING, description='Which user the permission is being assigned to.'),
+            })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Setting prefix permissions is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            201: "The prefix permissions were updated succesfully.",
+            400: "Bad request because 1) the requestor isn't the owner of the prefix, or 2) the provided username and/or group could not be found.",
+            404: "The prefix provided was not found."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_permissions_set)
@@ -1053,13 +1088,31 @@ class ApiPrefixesTokenFlat(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class ApiPrefixesUpdate(APIView):
+class ApiPrefixesModify(APIView):
     """
-    Update a Prefix
+    Modify a Prefix
 
     --------------------
 
-    Updates a prefix with additional or new information.
+    # Modify a prefix which already exists.
+
+    The requestor *must* be in the group prefix_admins to modify a prefix.
+
+    ```JSON
+    {
+        "POST_api_prefixes_modify": {
+            "prefixes":[
+                {
+                    "description":"Here is some new description.",
+                    "owner_group":"some_new_owner_group",
+                    "owner_user":"some_new_owner_user",
+                    "prefix":"tEsT"
+                }
+            ]
+        }
+    }
+    ```
+
     """
 
     # Permissions - prefix admins only
@@ -1068,17 +1121,20 @@ class ApiPrefixesUpdate(APIView):
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            title="Prefix Update Schema",
-            description="Prefix update description.",
+            title="Prefix Modification Schema",
+            description="Several parameters are required to modify a prefix.",
+            required=['description', 'owner_group', 'owner_user', 'prefix'],
             properties={
-                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-                    'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+                    'description': openapi.Schema(type=openapi.TYPE_STRING, description='A description of what this prefix should represent.  For example, the prefix \'GLY\' would be related to BCOs which were derived from GlyGen workflows.'),
+                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in the owner group to assign this.*'),
+                    'owner_user': openapi.Schema(type=openapi.TYPE_STRING, description='Which user should own the prefix.  *The requestor does not have to be owner_user but owner_user must be in owner_group*.'),
+                    'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix which satsifies the naming standard (see link...)'),
                     })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Updating prefix is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            200: "The prefix was successfully modified.",
+            400: "Bad request because 1) owner_user and/or owner_group do not exist, or 3) owner_user is not in owner_group.",
+            404: "The prefix provided could not be found."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_modify)
@@ -1101,7 +1157,7 @@ class ApiPublicDescribe(APIView):
             208: "Account has already been authorized.",
             403: "Requestor's credentials were rejected.",
             424: "Account has not been registered."
-            }, tags=["API Management"])
+            }, tags=["API Information"])
     def get(self, request):
         # Pass the request to the handling function
         return Response(UserUtils.UserUtils().get_user_info(username='anon'))
@@ -1133,7 +1189,7 @@ class DraftObjectId(APIView):
             208: "Account has already been authorized.",
             403: "Requestor's credentials were rejected.",
             424: "Account has not been registered."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def get(self, request, draft_object_id):
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).
@@ -1174,7 +1230,7 @@ class ObjectIdRootObjectId(APIView):
             208: "Account has already been authorized.",
             403: "Requestor's credentials were rejected.",
             424: "Account has not been registered."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def get(self, request, object_id_root):
         return GET_published_object_by_id(object_id_root)
 
@@ -1212,6 +1268,6 @@ class ObjectIdRootObjectIdVersion(APIView):
             208: "Account has already been authorized.",
             403: "Requestor's credentials were rejected.",
             424: "Account has not been registered."
-            }, tags=["BCO Management"])
+            }, tags=["BCOs"])
     def get(self, request, object_id_root, object_id_version):
         return GET_published_object_by_id_with_version(object_id_root, object_id_version)

@@ -28,7 +28,7 @@ class UserUtils:
     def check_permission_exists(
             self,
             perm
-            ):
+        ):
 
         # Does the user exist?
         return Permission.objects.get(codename='test')
@@ -36,7 +36,7 @@ class UserUtils:
     def check_group_exists(
             self,
             n
-            ):
+        ):
 
         # Does the user exist?
         return Group.objects.filter(name=n).exists()
@@ -44,7 +44,7 @@ class UserUtils:
     def check_user_exists(
             self,
             un
-            ):
+        ):
 
         # Does the user exist?
         return User.objects.filter(username=un).exists()
@@ -53,7 +53,7 @@ class UserUtils:
             self,
             un,
             gn
-            ):
+        ):
 
         # Check if a user is in a group.
 
@@ -102,7 +102,7 @@ class UserUtils:
             self,
             un,
             prfx
-            ):
+        ):
 
         # Check if a user owns a prefix.
         return prefixes.objects.filter(owner_user=un, prefix=prfx).exists()
@@ -110,7 +110,7 @@ class UserUtils:
     def get_user_groups_by_token(
             self,
             token
-            ):
+        ):
 
         # Takes token to give groups.
 
@@ -135,7 +135,7 @@ class UserUtils:
     def get_user_groups_by_username(
             self,
             un
-            ):
+        ):
 
         # Takes usernames to give groups.
 
@@ -151,7 +151,7 @@ class UserUtils:
     def get_user_info(
             self,
             username
-            ):
+        ):
 
         # Arguments
         # ---------
@@ -260,7 +260,7 @@ class UserUtils:
     def prefixes_for_user(
             self,
             user_object
-            ):
+        ):
 
         # Simple function to return prefixes
         # that a user has ANY permission on.
@@ -282,7 +282,7 @@ class UserUtils:
             user_object,
             flatten=True,
             specific_permission=None
-            ):
+        ):
 
         if specific_permission is None:
             specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
@@ -393,7 +393,7 @@ class UserUtils:
     def user_from_request(
             self,
             rq
-            ):
+        ):
 
         user_id = Token.objects.get(
                 key=rq.META.get(

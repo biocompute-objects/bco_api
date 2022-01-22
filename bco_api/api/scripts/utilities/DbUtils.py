@@ -578,7 +578,7 @@ class DbUtils:
                         'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server but the draft failed to delete.',
                         'published_id'  : parameters['published_id']
                         },
-                '200_prefix_update'                        : {
+                '201_prefix_update'                        : {
                         'request_status': 'SUCCESS',
                         'status_code'   : '200',
                         'message'       : 'The prefix \'' + parameters['prefix'] + '\' was updated.'
