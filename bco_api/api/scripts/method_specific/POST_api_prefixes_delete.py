@@ -12,6 +12,8 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
+
+
 def POST_api_prefixes_delete(
         incoming
 ):
@@ -39,11 +41,29 @@ def POST_api_prefixes_delete(
     # item in the array.
     for creation_object in bulk_request:
 
+        # Create a list to hold information about errors.
+        errors = {}
+        
         # Standardize the prefix name.
-        standardized = creation_object['prefix'].upper()
+        standardized = creation_object.upper()
 
-        if standardized in available_prefixes:
+        # Create a flag for if one of these checks fails.
+        error_check = False
 
+        if standardized not in available_prefixes:
+
+                error_check = True
+                
+                # Update the request status.
+                errors['404_missing_prefix'] = db.messages(
+                            parameters={
+                                    'prefix': standardized
+                                    }
+                            )['404_missing_prefix']
+        
+        # Did any check fail?
+        if error_check is False:
+        
             # The prefix exists, so delete it.
 
             # No need to use DB Utils here,
@@ -59,24 +79,14 @@ def POST_api_prefixes_delete(
             prefixed.delete()
 
             # Deleted the prefix.
-            returning.append(
-                    db.messages(
+            errors['200_OK_prefix_delete'] = db.messages(
                             parameters={
                                     'prefix': standardized
                                     }
-                            )['200_OK']
-                    )
-
-        else:
-
-            # Update the request status.
-            returning.append(
-                    db.messages(
-                            parameters={
-                                    'prefix': standardized.upper()
-                                    }
-                            )['404_missing_prefix']
-                    )
+                            )['200_OK_prefix_delete']
+        
+        # Append the possible "errors".
+        returning.append(errors)           
 
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,

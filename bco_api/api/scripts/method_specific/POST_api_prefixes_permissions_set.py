@@ -126,7 +126,7 @@ def POST_api_prefixes_permissions_set(
 								parameters = {
 									'prefix': standardized
 								}
-							)['201_prefix_update']
+							)['201_prefix_modify']
 						)
 				
 					else:

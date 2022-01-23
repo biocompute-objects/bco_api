@@ -146,6 +146,10 @@ class new_users(models.Model):
 
 # Link prefixes to groups and users.
 class prefixes(models.Model):
+    
+    # Description.
+    description = models.TextField()
+
     # Each prefix has exactly one group owner.
     owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
     # Each prefix has exactly one user owner.

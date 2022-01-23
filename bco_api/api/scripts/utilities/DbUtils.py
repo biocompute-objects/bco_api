@@ -40,6 +40,8 @@ import re
 import uuid
 
 
+
+
 class DbUtils:
 
     # Class Description
@@ -499,16 +501,19 @@ class DbUtils:
         # information).
         return [new_username]
 
-    # Messages associated with results.
+    # Messages associated with results from sub-requests.
     def messages(
             self,
             parameters,
             p_content=False
             ):
 
+        
+        # TODO: abstract all of this up into the top level of the class.
+        
         # Define the return messages, if they don't
         # come in defined.
-        definable = ['errors', 'group', 'object_id', 'object_perms', 'prefix', 'published_id', 'table', 'contents']
+        definable = ['errors', 'group', 'object_id', 'object_perms', 'prefix', 'published_id', 'table', 'username', 'contents']
 
         for i in definable:
             if i not in parameters:
@@ -578,7 +583,12 @@ class DbUtils:
                         'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server but the draft failed to delete.',
                         'published_id'  : parameters['published_id']
                         },
-                '201_prefix_update'                        : {
+                '200_OK_prefix_delete': {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'Successfully deleted prefix \'' + parameters['prefix'] + '\'.'
+                        },
+                '201_prefix_modify'                        : {
                         'request_status': 'SUCCESS',
                         'status_code'   : '200',
                         'message'       : 'The prefix \'' + parameters['prefix'] + '\' was updated.'
@@ -608,6 +618,11 @@ class DbUtils:
                         'request_status': 'FAILURE',
                         'status_code'   : '400',
                         'message'       : 'The request could not be processed with the parameters provided.'
+                        },
+                '400_bad_request_malformed_prefix'         : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '400',
+                        'message'       : 'The prefix \'' + parameters['prefix'] + '\' does not follow the naming rules for a prefix.'
                         },
                 '400_bad_version_number'                   : {
                         'request_status': 'FAILURE',
@@ -645,6 +660,11 @@ class DbUtils:
                         'status_code'   : '403',
                         'message'       : 'The token provided was not able to be used on this object.'
                         },
+                '404_group_not_found'                                : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '404',
+                        'message'       : 'The group \'' + parameters['group'] + '\' was not found on the server.'
+                        },
                 '404_missing_bulk_parameters'              : {
                         'request_status': 'FAILURE',
                         'status_code'   : '404',
@@ -664,6 +684,11 @@ class DbUtils:
                         'request_status': 'FAILURE',
                         'status_code'   : '404',
                         'message'       : 'The table with name \'' + parameters['table'] + '\' was not found on the server.'
+                        },
+                '404_user_not_found'                                : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '404',
+                        'message'       : 'The user \'' + parameters['username'] + '\' was not found on the server.'
                         },
                 '409_group_conflict'                       : {
                         'request_status': 'FAILURE',

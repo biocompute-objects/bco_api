@@ -908,14 +908,14 @@ class ApiPrefixesCreate(APIView):
             required=['description', 'owner_group', 'owner_user', 'prefix'],
             properties={
                     'description': openapi.Schema(type=openapi.TYPE_STRING, description='A description of what this prefix should represent.  For example, the prefix \'GLY\' would be related to BCOs which were derived from GlyGen workflows.'),
-                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in the owner group to assign this.*'),
-                    'owner_user': openapi.Schema(type=openapi.TYPE_STRING, description='Which user should own the prefix.  *The requestor does not have to be owner_user but owner_user must be in owner_group*.'),
+                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in owner_group to assign this.*'),
+                    'owner_user': openapi.Schema(type=openapi.TYPE_STRING, description='Which user should own the prefix.  *The requestor does not have to be owner_user to assign this.*'),
                     'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix which satsifies the naming standard (see link...)'),
                     })
 
     @swagger_auto_schema(request_body=request_body, responses={
             201: "The prefix was successfully created.",
-            400: "Bad request because 1) the prefix does not follow the naming standard, or 2) owner_user and/or owner_group do not exist, or 3) owner_user is not in owner_group.",
+            400: "Bad request because 1) the prefix does not follow the naming standard, or 2) owner_user and/or owner_group do not exist.",
             409: "The prefix the requestor is attempting to create already exists."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
@@ -938,10 +938,9 @@ class ApiPrefixesDelete(APIView):
     {
         "POST_api_prefixes_delete": {
             "prefixes":[
-                    "PRFX",
-                    "OTR",
-                    "GLY"
-                ]
+                "PRFX",
+                "OTR",
+                "GLY"
             ]
         }
     }
@@ -1034,21 +1033,22 @@ class ApiPrefixesPermissionsSet(APIView):
 
 class ApiPrefixesToken(APIView):
     """
-    Get Prefixes
+    Get Prefixes for a Token
 
     --------------------
 
-    Get all available prefixes for a given token.
-    The word 'Token' must be included in the header. 
+    # Get all available prefixes and their associated permissions for a given token.
+
+    The word 'Token' must be included in the header.
+
     For example: 'Token 627626823549f787c3ec763ff687169206626149'.
     """
 
     auth = [openapi.Parameter('Authorization', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING)]
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Fetch prefixes is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            200: "The Authorization header was provided and available prefixes were returned.",
+            400: "The Authorization header was not provided."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         if 'Authorization' in request.headers:
@@ -1062,21 +1062,25 @@ class ApiPrefixesToken(APIView):
 # TODO: What does this do?  Appears to flatten the prefixes (not sure what for)
 class ApiPrefixesTokenFlat(APIView):
     """
-    Get Prefixes in a flat format
+    Get Prefixes for a Token in Flat Format
 
     --------------------
 
-    TODO: What does this do?  Appears to flatten the prefixes (not sure what for)
-    The word 'Token' must be included in the header. 
-    For example: 'Token 627626823549f787c3ec763ff687169206626149'
+    # Get all available prefixes and their associated permissions for a given token in flat format.
+
+    # TODO: What does this do?  Appears to flatten the prefixes (not sure what for)
+    # Answer (Chris, 1/22):  These may be easier for a requestor to parse rapidly on a web page.
+
+    The word 'Token' must be included in the header.
+
+    For example: 'Token 627626823549f787c3ec763ff687169206626149'.
     """
 
     auth = [openapi.Parameter('Authorization', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING)]
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Fetch prefixes is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            200: "The Authorization header was provided and available prefixes were returned.",
+            400: "The Authorization header was not provided."
             }, tags=["Prefix Management"])
 
     def post(self, request) -> Response:
@@ -1123,7 +1127,7 @@ class ApiPrefixesModify(APIView):
             type=openapi.TYPE_OBJECT,
             title="Prefix Modification Schema",
             description="Several parameters are required to modify a prefix.",
-            required=['description', 'owner_group', 'owner_user', 'prefix'],
+            required=['prefix'],
             properties={
                     'description': openapi.Schema(type=openapi.TYPE_STRING, description='A description of what this prefix should represent.  For example, the prefix \'GLY\' would be related to BCOs which were derived from GlyGen workflows.'),
                     'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in the owner group to assign this.*'),
@@ -1133,7 +1137,7 @@ class ApiPrefixesModify(APIView):
 
     @swagger_auto_schema(request_body=request_body, responses={
             200: "The prefix was successfully modified.",
-            400: "Bad request because 1) owner_user and/or owner_group do not exist, or 3) owner_user is not in owner_group.",
+            400: "Bad request because owner_user and/or owner_group do not exist.",
             404: "The prefix provided could not be found."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
