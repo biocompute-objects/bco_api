@@ -381,6 +381,14 @@ def delete_permissions_for_prefix(
         codename='view_' + instance.prefix
     ).delete()
 
+    Permission.objects.filter(
+        codename='draft_' + instance.prefix
+    ).delete()
+
+    Permission.objects.filter(
+        codename='publish_' + instance.prefix
+    ).delete()
+
 
 # --- Group info --- #
 

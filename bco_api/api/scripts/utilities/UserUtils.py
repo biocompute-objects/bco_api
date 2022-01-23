@@ -382,7 +382,8 @@ class UserUtils:
 
         # Return based on what we need.
         if flatten == True:
-
+        
+            # Only unique permissions are returned.
             return flat_perms
 
         elif flatten == False:
