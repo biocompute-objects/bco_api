@@ -347,6 +347,41 @@ class DbUtils:
 
             return False
 
+    # Check that expiration dates are valid.
+    def check_expiration(
+            self,
+            dt_string
+    ):
+        
+        # Split the string first.
+        try:
+                split_up = dt_string.split('-')
+
+                if len(split_up) == 6:
+                        
+                        try:
+                                
+                                # Convert everything to integers.
+                                split_up = [int(x) for x in split_up]
+
+                                exp_date = datetime.datetime(split_up[0], split_up[1], split_up[2], split_up[3], split_up[4], split_up[5])
+                                
+                                if exp_date <= datetime.datetime.now():
+
+                                        return False
+                        
+                        except TypeError:
+                                
+                                return False
+
+                else:
+                        
+                        return False
+        
+        except AttributeError:
+                
+                return False
+
     def get_api_models(
             self
             ):
@@ -513,7 +548,7 @@ class DbUtils:
         
         # Define the return messages, if they don't
         # come in defined.
-        definable = ['errors', 'group', 'object_id', 'object_perms', 'prefix', 'published_id', 'table', 'username', 'contents']
+        definable = ['errors', 'expiration_date', 'group', 'object_id', 'object_perms', 'prefix', 'published_id', 'table', 'username', 'contents']
 
         for i in definable:
             if i not in parameters:
@@ -588,6 +623,11 @@ class DbUtils:
                         'status_code'   : '200',
                         'message'       : 'Successfully deleted prefix \'' + parameters['prefix'] + '\'.'
                         },
+                '200_OK_prefix_permissions_update': {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'Successfully updated prefix permissions on prefix \'' + parameters['prefix'] + '\'.'
+                        },
                 '201_prefix_modify'                        : {
                         'request_status': 'SUCCESS',
                         'status_code'   : '200',
@@ -629,6 +669,11 @@ class DbUtils:
                         'status_code'   : '400',
                         'message'       : 'The provided version number for this object is not greater than the number that would be generated automatically and therefore the request to publish was denied.'
                         },
+                '400_invalid_expiration_date'         : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '400',
+                        'message'       : 'The expiration date \'' + parameters['expiration_date'] + '\' is not valid either because it does not match the required format \'YYYY-MM-DD-HH-MM-SS\' or because it falls before the current time.'
+                        },
                 '400_non_publishable_object'               : {
                         'request_status': 'FAILURE',
                         'status_code'   : '400',
@@ -654,6 +699,11 @@ class DbUtils:
                         'request_status': 'FAILURE',
                         'status_code'   : '403',
                         'message'       : 'The token provided does not have sufficient permissions for the requested object.'
+                        },
+                '403_requestor_is_not_prefix_owner'             : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '403',
+                        'message'       : 'The token provided is not the owner of the prefix \'' + parameters['prefix'] + '\' and therefore permissions for the prefix cannot be changed in this request.'
                         },
                 '403_invalid_token'                        : {
                         'request_status': 'FAILURE',

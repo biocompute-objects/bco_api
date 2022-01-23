@@ -145,17 +145,55 @@ class new_users(models.Model):
 
 
 # Link prefixes to groups and users.
+
+# Be careful about related_name.
+# Source: https://stackoverflow.com/questions/53651114/using-same-foreign-key-twice-in-a-model-in-django-as-different-fields
 class prefixes(models.Model):
     
+    # Which server is this prefix certified with?
+    certifying_server = models.TextField(
+        blank = True, 
+        null = True
+    )
+
+    # What is the certifying key?
+    certifying_key = models.TextField(
+        blank = True, 
+        null = True
+    )
+    
+    # When was it created?
+    created = models.DateTimeField(
+        default = timezone.now, 
+        blank = True, 
+        null = True
+    )
+
+    # Who created it?
+    created_by = models.ForeignKey(
+        User,
+        on_delete = models.CASCADE,
+        related_name = 'created_by',
+        to_field = 'username'
+    )
+
     # Description.
     description = models.TextField()
 
+    # When does it expire?
+    expires = models.DateTimeField(
+        blank = True,
+        null = True
+    )
+
     # Each prefix has exactly one group owner.
     owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
+
     # Each prefix has exactly one user owner.
     owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
-    prefix = models.CharField(max_length=5)
 
+    # The actual prefix.
+    prefix = models.CharField(max_length=5)
 
 # def get_first_name(self):
 #     return self.first_name

@@ -78,8 +78,9 @@ def populate_models(sender, **kwargs):
         DbUtils.DbUtils().write_object(
             p_app_label = 'api',
             p_model_name = 'prefixes',
-            p_fields = ['owner_group', 'owner_user', 'prefix'],
+            p_fields = ['created_by', 'owner_group', 'owner_user', 'prefix'],
             p_data = {
+                'created_by': user,
                 'owner_group': group,
                 'owner_user': user,
                 'prefix': 'BCO'
@@ -133,9 +134,6 @@ def populate_models(sender, **kwargs):
             )
         )
     
-
-
-
     # Associate wheel with all groups.
     group = Group.objects.all()
 

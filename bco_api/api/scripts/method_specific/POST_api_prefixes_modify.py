@@ -84,6 +84,20 @@ def POST_api_prefixes_modify(incoming):
 					}
 				)['404_group_not_found']
         
+        # Was the expiration date validly formatted and, if so,
+		# is it after right now?
+        if 'expiration_date' in creation_object:
+            if db.check_expiration(dt_string = creation_object['expiration_date']) is not None:
+				
+                error_check = True
+
+				# Bad request.
+                errors['400_invalid_expiration_date'] = db.messages(
+					parameters = {
+						'expiration_date': creation_object['expiration_date']
+					}
+				)['400_invalid_expiration_date']
+        
         # Did any check fail?
         if error_check is False:
 			
@@ -91,9 +105,12 @@ def POST_api_prefixes_modify(incoming):
             DbUtils.DbUtils().write_object(
 				p_app_label = 'api',
 				p_model_name = 'prefixes',
-				p_fields = ['description', 'owner_group', 'owner_user', 'prefix'],
+				p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
 				p_data = {
-					'description': creation_object['description'],
+					'created_by': uu.user_from_request(
+						rq = incoming
+					).username,
+                    'description': creation_object['description'],
 					'owner_group': creation_object['owner_group'],
 					'owner_user': creation_object['owner_user'],
 					'prefix': standardized

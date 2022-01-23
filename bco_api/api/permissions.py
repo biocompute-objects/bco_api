@@ -74,24 +74,38 @@ class RequestorInPrefixAdminsGroup(
         
         # Get the groups for this token (user).
 
-        # This means getting the user ID for the token,
-        # then the username.
-        user_id = Token.objects.get(
-            key = request.META.get(
-                'HTTP_AUTHORIZATION'
-            ).split(' ')[1]
-        ).user_id
-        username = User.objects.get(
-            id = user_id
-        )
+        # Slight tweak in case the proper headers were not provided...
+        # In particular, Swagger will cause an Internal Error 500
+        # if this logic is not here AND a view uses non-object-level
+        # permissions (i.e. RequestorInPrefixAdminsGroup, see 
+        # ApiPrefixesPermissionsSet in views.py)
+        if 'HTTP_AUTHORIZATION' in request.META:
+
+            # This means getting the user ID for the token,
+            # then the username.
+            user_id = Token.objects.get(
+                key = request.META.get(
+                    'HTTP_AUTHORIZATION'
+                ).split(' ')[1]
+            ).user_id
+
+            username = User.objects.get(
+                id = user_id
+            )
+            
+            # Get the prefix admins.
+            prefix_admins = Group.objects.filter(
+                user = username,
+                name = 'prefix_admins'
+            )
+
+            return len(prefix_admins) > 0
+
+        else:
+
+            return False
         
-        # Get the prefix admins.
-        prefix_admins = Group.objects.filter(
-            user = username,
-            name = 'prefix_admins'
-        )
         
-        return len(prefix_admins) > 0
 
 
 
