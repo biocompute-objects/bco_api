@@ -3,7 +3,7 @@
 
 
 """
-
+import pdb
 import re
 # Concatenating QuerySets
 from itertools import chain
@@ -189,46 +189,45 @@ def POST_api_objects_drafts_token(rqst, internal=False):
         # published[0]["contents"]["object_id"] = 'http://127.0.0.1:8000/BCO_000010/1.0'
 
         bcos = { }
-        for p in published:
+        for pub in published:
             # TODO: We should move this out of a try except and try to handle various situations,
             # this is currently assuming that the format is
             #  http://URL:PORT/BCO ACCESSION/BCO VERSION - this may not always be true
             try:
-                bco_url, bco_id_name, bco_id_version = p["contents"]["object_id"].rsplit("/", 2)
-            except Exception as e:
-                print("Biocompute Name, Version, and URL not formatted as expected: {}".format(e))
+                bco_url, bco_id_accession, bco_id_version = pub['object_id'].rsplit("/", 2)
+                bco_id_name = bco_url + '/' + bco_id_accession
+            except Exception as error:
+                print("Biocompute Name, Version, and URL not formatted as expected: {}".format(error))
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-
-            if bco_url in bcos:
+            if bco_id_name in bcos:
                 # Other version of this BCO object exists
-                current_version = bcos[bco_url]["bco_version"]
-                # pdb.set_trace()
-                if semver.compare(bco_id_version, current_version, key=coerce):
+                current_version = bcos[bco_id_name]['bco_version']
+
+                # if semver.compare(bco_id_version, current_version, key=coerce):
                     # New one is newer version, set:
-                    bcos[bco_url] = {
-                            "bco_name"   : bco_id_name,
-                            "bco_version": bco_id_version,
-                            "bco_object" : p
-                            }
+                if float(current_version) > float(bco_id_version):
+                    bcos[bco_id_name] = {
+                        "bco_name"   : bco_id_name,
+                        "bco_version": current_version,
+                        "bco_object" : pub
+                    }
 
                 else:
-                    # Do nothing
-                    pass
-            else:
-                # Not in dictionary yet
-                bcos[bco_url] = {
+                    bcos[bco_id_name] = {
                         "bco_name"   : bco_id_name,
                         "bco_version": bco_id_version,
-                        "bco_object" : p
-                        }
+                        "bco_object" : pub
+                    }
+            else:
+                # Not in dictionary yet
+                bcos[bco_id_name] = {
+                    "bco_name"   : bco_id_name,
+                    "bco_version": bco_id_version,
+                    "bco_object" : pub
+                }
         for key, value in bcos.items():
-            # unique_published.append(value["bco_object"])
-            # import pdb;pdb.set_trace()
-            unique_published.add(value["bco_object"]["id"])
-
-        # result_list = chain(user_objects.intersection(prefix_objects).values(*return_values), unique_published(*return_values))
+            unique_published.add(value['bco_object']['id'])
         unique_published = bco.objects.filter(id__in=unique_published)
-        result_list = chain(user_objects.intersection(unique_published).values(*return_values), prefix_objects.values(*return_values))
-
+        result_list = chain(unique_published.values(*return_values), prefix_objects.values(*return_values))
         return Response(data=result_list, status=status.HTTP_200_OK)
 

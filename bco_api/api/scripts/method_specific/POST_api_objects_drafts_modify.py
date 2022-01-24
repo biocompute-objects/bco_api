@@ -70,20 +70,16 @@ def POST_api_objects_drafts_modify(request):
             # is the object owner OR they are a user with
             # object-level change permissions OR if they are in a
             # group that has object-level change permissions.
-
             # To check these options, we need the actual object.
-            if bco.objects.filter(object_id = draft_object['object_id']).exists():
-
+            if bco.objects.filter(object_id = draft_object['contents']['object_id']).exists():
+                import pdb; pdb.set_trace()
                 objected = bco.objects.get(
-                    object_id = draft_object['object_id']
+                    object_id = draft_object['contents']['object_id']
                 )
 
                 # We don't care where the view permission comes from,
                 # be it a User permission or a Group permission.
-                all_permissions = get_perms(
-                    user,
-                    objected
-                )
+                all_permissions = get_perms(user, objected)
 
                 # TODO: add permission setting view...
                 # if user.pk == object.owner_user or 'change_' + prefix in all_permissions:

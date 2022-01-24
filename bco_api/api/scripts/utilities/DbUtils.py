@@ -94,6 +94,22 @@ class DbUtils:
 
             return None
 
+    def object_exists(object_id):
+        """Check for Object
+
+        Parameters
+        ----------
+        object_id: str
+            string representing the BCO id with BCO URL/Accession/Version
+
+        Returns
+        -------
+        bool
+            A True/False value indicating if the object exists
+        """
+
+        return bco.objects.filter(object_id=object_id).exists()
+
     # Check version rules
     def check_version_rules(self, published_id):
         """BCO Version Check
@@ -108,167 +124,164 @@ class DbUtils:
         logic here, assuming that version 3.4 of BCO_5 is the latest version.
         """
 
+        existance = DbUtils.object_exists(published_id)
         # Does the provided object ID exist?
-        if bco.objects.filter(object_id=published_id).exists():
+        if existance is True:
+            while existance is True:
+                split_up = published_id.split('/')
+                # Get the version.
+                version = split_up[-1:][0]
+                if version == 'DRAFT':
+                    split_up[len(split_up) - 1] = '1.0'
+                    return {'published_id': '/'.join(split_up)}
+                # Increment the minor version.
+                incremented = (version.split('.')[0] + 
+                    '.' + str(int(version.split('.')[1]) + 1)
+                )
+                split_up[len(split_up) - 1] = incremented
+                published_id = '/'.join(split_up)
+                existance = DbUtils.object_exists(published_id)
+                print('existance', existance)
+            # Kick back the minor-incremented object ID.
+            return {'published_id': published_id}
 
+        # If the EXACT object ID wasn't found, then
+        # the user may have provided either a root version
+        # of the URI or a version of the same root URI.
+
+        # If the provided version is larger
+        # than the version that would be generated automatically,
+        # then that provided version is used.
+
+        # First determine whether or not the provided URI
+        # only has the root or has the root and the version.
+
+        # Should do this by using settings.py root_uri
+        # information...
+
+        # Split up the URI into the root ID and the version.
+        root_uri = ''
+        version = ''
+
+        if re.match(
+                r"(.*?)/[A-Z]+_(\d+)$",
+                published_id
+                ):
+
+            # Only the root ID was passed.
+            root_uri = published_id
+
+        elif re.match(
+                r"(.*?)/[A-Z]+_(\d+)/(\d+)\.(\d+)$",
+                published_id
+                ):
+
+            # The root ID and the version were passed.
             split_up = published_id.split('/')
-            # Get the version.
-            version = split_up[-1:][0]
-            if version == 'DRAFT':
-                split_up[len(split_up) - 1] = '1.0'
-                return {'published_id': '/'.join(split_up)}
+
+            root_uri = '/'.join(
+                    split_up[:-1]
+                    )
+
+            version = split_up[-1:]
+
+        # See if the root ID even exists.
+
+        # Note the trailing slash in the regex search to prevent
+        # sub-string matches (e.g. http://127.0.0.1:8000/BCO_5 and
+        # http://127.0.0.1:8000/BCO_53 would both match the regex
+        # http://127.0.0.1:8000/BCO_5 if we did not have the trailing
+        # slash).
+        all_versions = list(
+                bco.objects.filter(
+                        object_id__regex=rf'{root_uri}/',
+                        state='PUBLISHED'
+                        ).values_list(
+                        'object_id',
+                        flat=True
+                        )
+                )
+
+        # Get the latest version for this object if we have any.
+        if len(all_versions) > 0:
+
+            # There was at least one version of the root ID,
+            # so now perform some logic based on whether or
+            # not a version was also passed.
+
+            # First find the latest version of the object.
+            latest_major = 0
+            latest_minor = 0
+
+            latest_version = [
+                    i.split('/')[-1:][0] for i in all_versions
+                    ]
+
+            for i in latest_version:
+
+                major_minor_split = i.split('.')
+
+                if int(major_minor_split[0]) >= latest_major:
+                    if int(major_minor_split[1]) >= latest_minor:
+                        latest_major = int(major_minor_split[0])
+                        latest_minor = int(major_minor_split[1])
+
+            # The version provided may fail, so create a flag to
+            # track this.
+            failed_version = False
+
+            # If the root ID and the version were passed, check
+            # to see if the version given is greater than that which would 
+            # be generated automatically.
+            if version != '':
+
+                # We already have the automatically generated version
+                # number.  Now we just need to compare it with the
+                # number that was provided.
+                if int(version[0].split('.')[0]) > latest_major & int(version[0].split('.')[1]) > latest_minor:
+
+                    latest_major = int(version[0].split('.')[0])
+                    latest_minor = int(version[0].split('.')[1])
+
+                    # Write with the version provided.
+                    published_id = published_id + '/' + str(latest_major) + '.' + str(latest_minor)
+
+                else:
+
+                    # Bad version provided.
+                    failed_version = True
 
             else:
-                # Increment the minor version.
-                incremented = version.split('.')
-                incremented[1] = int(incremented[1]) + 1
-                incremented = incremented[0] + '.' + str(incremented[1])
 
-                # Create the object ID.
-                split_up[len(split_up) - 1] = incremented
+                # If only the root ID was passed, find the latest
+                # version in the database, then increment the version.
 
-                # Kick back the minor-incremented object ID.
-                return {'published_id': '/'.join(split_up)}
+                # Write with the minor version incremented.
+                published_id = published_id + '/' + str(latest_major) + '.' + str(latest_minor + 1)
+
+            # Did everything go properly with the version provided?
+            if failed_version == False:
+
+                # The version was valid.
+                return {
+                        'published_id': published_id
+                        }
+
+            else:
+
+                # Bad request.
+                return 'bad_version_number'
 
         else:
 
-            # If the EXACT object ID wasn't found, then
-            # the user may have provided either a root version
-            # of the URI or a version of the same root URI.
+            # If all_versions has 0 length, then the
+            # the root ID does not exist at all.
+            # In this case, we have to return a failure flag
+            # because we cannot create a version for
+            # a root ID that does not exist.
+            return 'non_root_id'
 
-            # If the provided version is larger
-            # than the version that would be generated automatically,
-            # then that provided version is used.
-
-            # First determine whether or not the provided URI
-            # only has the root or has the root and the version.
-
-            # Should do this by using settings.py root_uri
-            # information...
-
-            # Split up the URI into the root ID and the version.
-            root_uri = ''
-            version = ''
-
-            if re.match(
-                    r"(.*?)/[A-Z]+_(\d+)$",
-                    published_id
-                    ):
-
-                # Only the root ID was passed.
-                root_uri = published_id
-
-            elif re.match(
-                    r"(.*?)/[A-Z]+_(\d+)/(\d+)\.(\d+)$",
-                    published_id
-                    ):
-
-                # The root ID and the version were passed.
-                split_up = published_id.split('/')
-
-                root_uri = '/'.join(
-                        split_up[:-1]
-                        )
-
-                version = split_up[-1:]
-
-            # See if the root ID even exists.
-
-            # Note the trailing slash in the regex search to prevent
-            # sub-string matches (e.g. http://127.0.0.1:8000/BCO_5 and
-            # http://127.0.0.1:8000/BCO_53 would both match the regex
-            # http://127.0.0.1:8000/BCO_5 if we did not have the trailing
-            # slash).
-            all_versions = list(
-                    bco.objects.filter(
-                            object_id__regex=rf'{root_uri}/',
-                            state='PUBLISHED'
-                            ).values_list(
-                            'object_id',
-                            flat=True
-                            )
-                    )
-
-            # Get the latest version for this object if we have any.
-            if len(all_versions) > 0:
-
-                # There was at least one version of the root ID,
-                # so now perform some logic based on whether or
-                # not a version was also passed.
-
-                # First find the latest version of the object.
-                latest_major = 0
-                latest_minor = 0
-
-                latest_version = [
-                        i.split('/')[-1:][0] for i in all_versions
-                        ]
-
-                for i in latest_version:
-
-                    major_minor_split = i.split('.')
-
-                    if int(major_minor_split[0]) >= latest_major:
-                        if int(major_minor_split[1]) >= latest_minor:
-                            latest_major = int(major_minor_split[0])
-                            latest_minor = int(major_minor_split[1])
-
-                # The version provided may fail, so create a flag to
-                # track this.
-                failed_version = False
-
-                # If the root ID and the version were passed, check
-                # to see if the version given is greater than that which would 
-                # be generated automatically.
-                if version != '':
-
-                    # We already have the automatically generated version
-                    # number.  Now we just need to compare it with the
-                    # number that was provided.
-                    if int(version[0].split('.')[0]) > latest_major & int(version[0].split('.')[1]) > latest_minor:
-
-                        latest_major = int(version[0].split('.')[0])
-                        latest_minor = int(version[0].split('.')[1])
-
-                        # Write with the version provided.
-                        published_id = published_id + '/' + str(latest_major) + '.' + str(latest_minor)
-
-                    else:
-
-                        # Bad version provided.
-                        failed_version = True
-
-                else:
-
-                    # If only the root ID was passed, find the latest
-                    # version in the database, then increment the version.
-
-                    # Write with the minor version incremented.
-                    published_id = published_id + '/' + str(latest_major) + '.' + str(latest_minor + 1)
-
-                # Did everything go properly with the version provided?
-                if failed_version == False:
-
-                    # The version was valid.
-                    return {
-                            'published_id': published_id
-                            }
-
-                else:
-
-                    # Bad request.
-                    return 'bad_version_number'
-
-            else:
-
-                # If all_versions has 0 length, then the
-                # the root ID does not exist at all.
-                # In this case, we have to return a failure flag
-                # because we cannot create a version for
-                # a root ID that does not exist.
-                return 'non_root_id'
-
-    # Checking whether or not a user exists and their 
+    # Checking whether or not a user exists and their
     # temp identifier matches.
     def check_activation_credentials(
             self,
@@ -822,7 +835,6 @@ class DbUtils:
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data=publishable.contents
                     )
-            import pdb; pdb.set_trace()
             # Successfully saved the object.
             return {
                     'published_id': published['object_id']
@@ -851,7 +863,6 @@ class DbUtils:
                 )
 
         serialized = serializer(data=p_data)
-
         # Save (update) it.
         if p_update is False:
             # Write a new object.
