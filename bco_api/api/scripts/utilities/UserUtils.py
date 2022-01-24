@@ -19,41 +19,38 @@ from django.db.models import Q
 
 
 class UserUtils:
+    """
+    Methods for interacting with user information.
 
-    # Class Description
-    # -----------------
+    Attributes
+    ----------
 
+<<<<<<< HEAD
     # These are methods for interacting with user information.
 
     def check_permission_exists(
             self,
             perm
         ):
+=======
+    Methods
+    -------
+>>>>>>> main
 
+    """
+    def check_permission_exists(self, perm):
         # Does the user exist?
         return Permission.objects.get(codename='test')
 
-    def check_group_exists(
-            self,
-            n
-        ):
-
+    def check_group_exists(self, n):
         # Does the user exist?
         return Group.objects.filter(name=n).exists()
 
-    def check_user_exists(
-            self,
-            un
-        ):
-
+    def check_user_exists(self, un):
         # Does the user exist?
         return User.objects.filter(username=un).exists()
 
-    def check_user_in_group(
-            self,
-            un,
-            gn
-        ):
+    def check_user_in_group(self, un, gn):
 
         # Check if a user is in a group.
 
@@ -390,18 +387,19 @@ class UserUtils:
 
             return bco_specific
 
-    # Kick back a user object from a request.
-    def user_from_request(
-            self,
-            rq
-        ):
+    def user_from_request(self, request):
+        """Returns a user object from a request.
+
+        Parameters
+        ----------
+        request: rest_framework.request.Request
+            Django request object.
+        
+        Returns
+        -------
+        django.contrib.auth.models.User
+        """
 
         user_id = Token.objects.get(
-                key=rq.META.get(
-                        'HTTP_AUTHORIZATION'
-                        ).split(' ')[1]
-                ).user_id
-
-        return User.objects.get(
-                id=user_id
-                )
+            key=request.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
+        return User.objects.get(id=user_id)

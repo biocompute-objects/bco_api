@@ -97,53 +97,40 @@ class DbUtils:
             return None
 
     # Check version rules
-    def check_version_rules(
-            self,
-            published_id
-            ):
+    def check_version_rules(self, published_id):
+        """BCO Version Check
+        Potentially publishing a new version
+        of a published object, but we have to check to 
+        see if the provided URI exists in the publishing table.
 
-        # Potentially publishing a new version
-        # of a published object, but we have to check to 
-        # see if the provided URI exists in the publishing table.
-
-        # We can take the exact version of the object ID OR
-        # only the root version.  For example, 'http://hostname/some/other/paths/BCO_5' and 'http://hostname/some/other/paths/BCO_5/3.4' would 
-        # invoke the same logic here, assuming that version 3.4 of BCO_5 is
-        # the latest version.
+        We can take the exact version of the object ID OR
+        only the root version.  For example,
+        'http://hostname/some/other/paths/BCO_5' and 
+        'http://hostname/some/other/paths/BCO_5/3.4' would invoke the same
+        logic here, assuming that version 3.4 of BCO_5 is the latest version.
+        """
 
         # Does the provided object ID exist?
-        if bco.objects.filter(
-                object_id=published_id
-                ).exists():
+        if bco.objects.filter(object_id=published_id).exists():
 
-            # The provided published object ID
-            # was found, and will be used to create
-            # the object ID for the new published
-            # object.
-
-            # Only the minor version is changed as the
-            # API is not responsible for enforcing versioning
-            # rules beyond differentiating between submissions
-            # of the same root URI.
-
-            # First split so that we can do some processing.
             split_up = published_id.split('/')
-
             # Get the version.
             version = split_up[-1:][0]
+            if version == 'DRAFT':
+                split_up[len(split_up) - 1] = '1.0'
+                return {'published_id': '/'.join(split_up)}
 
-            # Increment the minor version.
-            incremented = version.split('.')
-            incremented[1] = int(incremented[1]) + 1
-            incremented = incremented[0] + '.' + str(incremented[1])
+            else:
+                # Increment the minor version.
+                incremented = version.split('.')
+                incremented[1] = int(incremented[1]) + 1
+                incremented = incremented[0] + '.' + str(incremented[1])
 
-            # Create the object ID.
-            split_up[len(split_up) - 1] = incremented
+                # Create the object ID.
+                split_up[len(split_up) - 1] = incremented
 
-            # Kick back the minor-incremented object ID.
-            return {
-                    'published_id': '/'.join(split_up)
-                    }
+                # Kick back the minor-incremented object ID.
+                return {'published_id': '/'.join(split_up)}
 
         else:
 
@@ -615,7 +602,7 @@ class DbUtils:
                 '200_OK_object_publish_draft_failed_delete': {
                         'request_status': 'SUCCESS',
                         'status_code'   : '200',
-                        'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server but the draft failed to delete.',
+                        'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server but the draft was not deleted.',
                         'published_id'  : parameters['published_id']
                         },
                 '200_OK_prefix_delete': {
@@ -758,15 +745,22 @@ class DbUtils:
                 }
 
     # Publish an object.
-    def publish(
-            self,
-            og,
-            ou,
-            prfx,
-            publishable,
-            publishable_id
-            ):
+    def publish(self, owner_group, owner_user, prefix, publishable, publishable_id):
+        """Publish BCO
 
+        Parameters
+        ----------
+        owner_group: str
+            Name of owner group
+        owner_user: str
+            Name of owner user
+        prfx: str
+        publishable: api.models.bco
+        publishable_id: dict
+
+        Returns
+        -------
+        """
         # publishable is a draft object.
 
         # Define the object naming information.
@@ -812,15 +806,15 @@ class DbUtils:
 
             # Get rid of the rest of the regex for the name.
             prefix_location = constructed_name.index(
-                    prfx
+                    prefix
                     )
             prefix_length = len(
-                    prfx
+                    prefix
                     )
             constructed_name = constructed_name[0:prefix_location + prefix_length]
 
             # Get the object number counter from meta information about the prefix.
-            prefix_counter = meta_table.objects.get(prefix=prfx)
+            prefix_counter = meta_table.objects.get(prefix=prefix)
 
             # Create the contents field.
             published['contents'] = publishable
@@ -832,13 +826,13 @@ class DbUtils:
             published['contents']['object_id'] = published['object_id']
 
             # Django wants a primary key for the Group...
-            published['owner_group'] = og
+            published['owner_group'] = owner_group
 
             # Django wants a primary key for the User...
-            published['owner_user'] = ou
+            published['owner_user'] = owner_user
 
             # The prefix is passed through.
-            published['prefix'] = prfx
+            published['prefix'] = prefix
 
             # Schema is hard-coded for now...
             published['schema'] = 'IEEE'
@@ -867,11 +861,10 @@ class DbUtils:
                     }
 
         else:
-
             # An object ID was provided, so go straight to publishing.
 
             # Create the contents field.
-            published['contents'] = publishable
+            published['contents'] = publishable.contents
 
             # Set the object ID.
             published['object_id'] = publishable_id
@@ -880,13 +873,13 @@ class DbUtils:
             published['contents']['object_id'] = publishable_id
 
             # Django wants a primary key for the Group...
-            published['owner_group'] = og
+            published['owner_group'] = owner_group
 
             # Django wants a primary key for the User...
-            published['owner_user'] = ou
+            published['owner_user'] = owner_user
 
             # The prefix is passed through.
-            published['prefix'] = prfx
+            published['prefix'] = prefix
 
             # Schema is hard-coded for now...
             published['schema'] = 'IEEE'
@@ -902,9 +895,9 @@ class DbUtils:
                     p_app_label='api',
                     p_model_name='bco',
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
-                    p_data=publishable
+                    p_data=publishable.contents
                     )
-
+            import pdb; pdb.set_trace()
             # Successfully saved the object.
             return {
                     'published_id': published['object_id']

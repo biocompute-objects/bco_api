@@ -72,6 +72,7 @@ urlpatterns = []
 # Do we have a publish-only server?
 if PUBLISH_ONLY == 'True':
     urlpatterns = [
+
         re_path(r'^api/doc(?P<format>\.json|\.yaml)$',
             ShcemaView.without_ui(cache_timeout=0),
             name='schema-json'
@@ -84,10 +85,10 @@ if PUBLISH_ONLY == 'True':
              ShcemaView.with_ui('redoc', cache_timeout=0),
              name='schema-redoc'
         ),
-        path('bco/<str:object_id_root>',
+        path('<str:object_id_root>',
              ObjectIdRootObjectId.as_view()
         ),
-        path('bco/<str:object_id_root>/<str:object_id_version>',
+        path('<str:object_id_root>/<str:object_id_version>',
              ObjectIdRootObjectIdVersion.as_view()
         ),
         path('api/objects/publish/',
@@ -115,21 +116,24 @@ elif PUBLISH_ONLY == 'False':
              ShcemaView.with_ui('redoc', cache_timeout=0),
              name='schema-redoc'
              ),
-        path('<str:draft_object_id>',
+        path('<str:object_id>/DRAFT',
              DraftObjectId.as_view()
              ),
-        path('bco/<str:object_id_root>',
+        path('<str:object_id_root>',
              ObjectIdRootObjectId.as_view()
              ),
-        path('bco/<str:object_id_root>/<str:object_id_version>',
+        path('<str:object_id_root>/<str:object_id_version>',
              ObjectIdRootObjectIdVersion.as_view()
              ),
         path('api/accounts/activate/<str:username>/<str:temp_identifier>',
-             ApiAccountsActivateUsernameTempIdentifier.as_view()),
+             ApiAccountsActivateUsernameTempIdentifier.as_view()
+             ),
         path('api/accounts/describe/',
-             ApiAccountsDescribe.as_view()),
+             ApiAccountsDescribe.as_view()
+             ),
         path('api/accounts/new/',
-             ApiAccountsNew.as_view()),
+             ApiAccountsNew.as_view()
+             ),
         path('api/groups/create/',
              ApiGroupsCreate.as_view()
              ),
