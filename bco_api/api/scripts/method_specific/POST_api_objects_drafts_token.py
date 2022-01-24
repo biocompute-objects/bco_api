@@ -3,6 +3,7 @@
 
 
 """
+from bdb import set_trace
 import pdb
 import re
 # Concatenating QuerySets
@@ -194,6 +195,7 @@ def POST_api_objects_drafts_token(rqst, internal=False):
             # this is currently assuming that the format is
             #  http://URL:PORT/BCO ACCESSION/BCO VERSION - this may not always be true
             try:
+                print('object: ', pub['object_id'])
                 bco_url, bco_id_accession, bco_id_version = pub['object_id'].rsplit("/", 2)
                 bco_id_name = bco_url + '/' + bco_id_accession
             except Exception as error:
@@ -202,28 +204,22 @@ def POST_api_objects_drafts_token(rqst, internal=False):
             if bco_id_name in bcos:
                 # Other version of this BCO object exists
                 current_version = bcos[bco_id_name]['bco_version']
-
                 # if semver.compare(bco_id_version, current_version, key=coerce):
-                    # New one is newer version, set:
-                if float(current_version) > float(bco_id_version):
+                #     # New one is newer version, set:
+                if float(current_version) < float(bco_id_version):
                     bcos[bco_id_name] = {
-                        "bco_name"   : bco_id_name,
-                        "bco_version": current_version,
-                        "bco_object" : pub
+                        'bco_name'   : bco_id_name,
+                        'bco_version': current_version,
+                        'bco_object' : pub
                     }
-
                 else:
-                    bcos[bco_id_name] = {
-                        "bco_name"   : bco_id_name,
-                        "bco_version": bco_id_version,
-                        "bco_object" : pub
-                    }
+                    pass
             else:
                 # Not in dictionary yet
                 bcos[bco_id_name] = {
-                    "bco_name"   : bco_id_name,
-                    "bco_version": bco_id_version,
-                    "bco_object" : pub
+                    'bco_name'   : bco_id_name,
+                    'bco_version': bco_id_version,
+                    'bco_object' : pub
                 }
         for key, value in bcos.items():
             unique_published.add(value['bco_object']['id'])

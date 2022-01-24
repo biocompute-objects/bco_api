@@ -47,13 +47,16 @@ def POST_api_objects_drafts_publish(request):
         delete_draft = publish_object['delete_draft']
         draft_id = publish_object['draft_id']
         if 'object_id' not in publish_object:
-            object_id = 'new'
+            object_id = publish_object['draft_id'].split('/')[0:4]
+            object_id.append('1.0')
+            object_id = '/'.join(object_id)
         else:
             object_id = publish_object['object_id']
 
-        versioned = db_utils.check_version_rules(
-            published_id=object_id
-        )
+        versioned = {'published_id': object_id}
+        # versioned = db_utils.check_version_rules(
+        #     published_id=object_id
+        # )
         prefix_auth = 'publish_' + prefix in prefix_perms
         draft_exists = (bco.objects.filter(object_id=publish_object['draft_id'],
                 state='DRAFT').exists()
@@ -63,6 +66,7 @@ def POST_api_objects_drafts_publish(request):
             objected = bco.objects.get(object_id=publish_object['draft_id'])
             all_permissions = get_perms(user, objected)
             is_owner = user.username == objected.owner_user.username
+            owner_group = Group.objects.get(name=user.username)
             can_publish = 'publish_' + publish_object['draft_id'] in all_permissions
             if prefix_auth is True:
                 if is_owner is True or can_publish is True:
@@ -70,15 +74,15 @@ def POST_api_objects_drafts_publish(request):
                         print('overwirting draft')
                         objected.last_update = timezone.now()
                         objected.state = 'PUBLISHED'
-                        objected.owner_group = objected.owner_user
-                        objected.object_id = object_id
+                        objected.owner_group = owner_group
+                        objected.object_id = versioned['published_id']
+                        objected.contents['object_id'] = versioned['published_id']
                         objected.save()
 
                         # Update the request status.
-                        returning.append(
-                            db_utils.messages(parameters = {
-                                'object_id': object_id}
-                                )['200_update'])
+                        returning.append(db_utils.messages(
+                            parameters=versioned)['200_OK_object_publish_draft_deleted']
+                        )
 
                     else:
                         new_object = {}
@@ -86,7 +90,7 @@ def POST_api_objects_drafts_publish(request):
                         new_object['contents'] = objected.contents
                         new_object['object_id'] = object_id
                         new_object['contents']['object_id'] = object_id
-                        new_object['owner_group'] = objected.owner_user
+                        new_object['owner_group'] = owner_group
                         new_object['owner_user'] = objected.owner_user
                         new_object['prefix'] = objected.prefix
                         new_object['last_update'] = timezone.now()
@@ -114,6 +118,11 @@ def POST_api_objects_drafts_publish(request):
                             # Issue with writing out to DB
                             returning.append(db_utils.messages(parameters={ })['400_bad_request'])
                             any_failed = True
+                        else:
+                            # Update the request status.
+                            returning.append(db_utils.messages(
+                                parameters=versioned)['200_OK_object_publish_draft_failed_delete']
+                            )
 
                 else:
                     # Insufficient permissions.
