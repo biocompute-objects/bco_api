@@ -1,114 +1,101 @@
-# BCO model
-from ...models import bco
+#!/usr/bin/env python3
+"""Modify Draft Object
 
-# For getting objects out of the database.
-from ..utilities import DbUtils
+--------------------
+Modifies a BCO object.  The BCO object must be a draft in order to be
+modifiable.  The contents of the BCO will be replaced with the new
+contents provided in the request body.
+"""
 
-# User information
-from ..utilities import UserUtils
+from api.models import bco
+from api.scripts.utilities import DbUtils
+from api.scripts.utilities import UserUtils
 
-# For writing objects to the database.
-from django.contrib.auth.models import Group
-
-# For recording the update time.
 from django.utils import timezone
-
-# Permisions for objects
 from guardian.shortcuts import get_perms
-
-# Responses
 from rest_framework import status
 from rest_framework.response import Response
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_api_objects_drafts_modify(
-    incoming
-):
+def POST_api_objects_drafts_modify(request):
+    """ Modify Draft
+
+    Take the bulk request and modify a draft object from it.
+
+    Parameters
+    ----------
+    request: rest_framework.request.Request
+            Django request object.
+
+    Returns
+    -------
+    rest_framework.response.Response
+        An HttpResponse that allows its data to be rendered into arbitrary
+        media types. As this view is for a bulk operation, status 200 means
+        that the request was successfully processed for each item in the
+        request. A status of 300 means that some of the requests were
+        successfull.
+    """
 
     # import pdb;pdb.set_trace()
-    # Take the bulk request and modify a draft object from it.
-
-    # Instantiate any necessary objects.
-    db = DbUtils.DbUtils()
-    uu = UserUtils.UserUtils()
-    
-    # The token has already been validated,
-    # so the user is guaranteed to exist.
-
-    # Get the User object.
-    user = uu.user_from_request(
-        rq = incoming
-    )
-
-    # Get the user's prefix permissions.
-    px_perms = uu.prefix_perms_for_user(
+    db_utils = DbUtils.DbUtils()
+    user = UserUtils.UserUtils().user_from_request(request = request)
+    bulk_request = request.data['POST_api_objects_drafts_modify']
+    px_perms = UserUtils.UserUtils().prefix_perms_for_user(
         flatten = True,
         user_object = user,
         specific_permission = ['add']
     )
 
-    # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_drafts_modify']
-
     # Construct an array to return the objects.
     returning = []
-
-    # Since bulk_request is an array, go over each
-    # item in the array.
-    for creation_object in bulk_request:
-        
+    any_failed = False
+    for draft_object in bulk_request:
         # Get the prefix for this draft.
-        standardized = creation_object['object_id'].split('/')[-1].split('_')[0].upper()
+        prefix = draft_object['object_id'].split('/')[-2].split('_')[0].upper()
 
         # Does the requestor have change permissions for
         # the *prefix*?
 
         # TODO: add permission setting view...
+        #if 'change_' + prefix in px_perms:
+        if 'add_' + prefix in px_perms:
 
-        #if 'change_' + standardized in px_perms:
-        if 'add_' + standardized in px_perms:
-        
             # The requestor has change permissions for
             # the prefix, but do they have object-level
             # change permissions?
 
             # This can be checked by seeing if the requestor
             # is the object owner OR they are a user with
-            # object-level change permissions OR if they are in a 
+            # object-level change permissions OR if they are in a
             # group that has object-level change permissions.
-
             # To check these options, we need the actual object.
-            if bco.objects.filter(object_id = creation_object['object_id']).exists():
-
+            if bco.objects.filter(object_id = draft_object['contents']['object_id']).exists():
+                import pdb; pdb.set_trace()
                 objected = bco.objects.get(
-                    object_id = creation_object['object_id']
+                    object_id = draft_object['contents']['object_id']
                 )
 
                 # We don't care where the view permission comes from,
                 # be it a User permission or a Group permission.
-                all_permissions = get_perms(
-                    user,
-                    objected
-                )
+                all_permissions = get_perms(user, objected)
 
                 # TODO: add permission setting view...
-                # if user.pk == object.owner_user or 'change_' + standardized in all_permissions:
-                if user.username == objected.owner_user.username or 'add_' + standardized in all_permissions:
-                    # Alex Coleman  7:34 PM
-                    # Yeah I'm 99% sure that if statement is pointless. @Chris Armstrong may have had a reason for it but Idk what.
-
+                # if user.pk == object.owner_user or 'change_' + prefix in all_permissions:
+                if user.username == objected.owner_user.username or \
+                    'add_' + prefix in all_permissions:
 
                     # # User does *NOT* have to be in the owner group!
                     # # to assign the object's group owner.
                     # if Group.objects.filter(
-                    #     name = creation_object['owner_group'].lower()
+                    #     name = draft_object['owner_group'].lower()
                     # ).exists():
                     #
                     # Update the object.
 
                     # *** COMPLETELY OVERWRITES CONTENTS!!! ***
-                    objected.contents = creation_object['contents']
+                    objected.contents = draft_object['contents']
 
                     # Set the update time.
                     objected.last_update = timezone.now()
@@ -118,59 +105,26 @@ def POST_api_objects_drafts_modify(
 
                     # Update the request status.
                     returning.append(
-                        db.messages(
-                            parameters = {
-                                'object_id': creation_object['object_id']
-                            }
-                        )['200_update']
-                    )
-
-                    # else:
-
-                    # Update the request status.
-                    returning.append(
-                        db.messages(
-                            parameters = {}
-                        )['400_bad_request']
-                    )
-                
+                        db_utils.messages(parameters = {
+                            'object_id': draft_object['object_id']}
+                            )['200_update'])
                 else:
-
                     # Insufficient permissions.
-                    returning.append(
-                        db.messages(
-                            parameters = {}
-                        )['403_insufficient_permissions']
-                    )
+                    returning.append(db_utils.messages(parameters = {}
+                        )['403_insufficient_permissions'])
+                    any_failed = True
 
             else:
-
-                # Couldn't find the object.
-                returning.append(
-                    db.messages(
-                        parameters = {
-                            'object_id': creation_object['object_id']
-                        }
-                    )
-                )['404_object_id']
-            
+                returning.append(db_utils.messages(parameters = {
+                    'object_id': draft_object['object_id']}))['404_object_id']
+                any_failed = True
         else:
-            
-            # Update the request status.
             returning.append(
-                db.messages(
-                    parameters = {
-                        'prefix': standardized
-                    }
-                )['401_prefix_unauthorized']
-            )
-    
-    # As this view is for a bulk operation, status 200
-    # means that the request was successfully processed,
-    # but NOT necessarily each item in the request.
-    # For example, a table may not have been found for the first
-    # requested draft.
-    return Response(
-        status = status.HTTP_200_OK,
-        data = returning
-    )
+                db_utils.messages(parameters = {'prefix': prefix}
+                )['401_prefix_unauthorized'])
+            any_failed = True
+
+    if any_failed:
+        return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+    else:
+        return Response(status = status.HTTP_200_OK, data = returning)

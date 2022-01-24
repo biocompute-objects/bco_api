@@ -33,7 +33,7 @@ def coerce(version: str) -> Tuple[Version, Optional[str]]:
 
     * Tries to detect a "basic" version string (``major.minor.patch``).
     * If not enough components can be found, missing components are
-        set to zero to obtain a valid semver version.
+        set to zero to obtain a valid semver version. 
 
     :param str version: the version string to convert
     :return: a tuple with a :class:`Version` instance (or ``None``

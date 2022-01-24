@@ -1,60 +1,60 @@
-# The BCO model
-from ...models import bco
+#!/usr/bin/env python3
+"""Get a draft by ID
 
-# User information
-from ..utilities import UserUtils
+See if the object exists, and if so,
+see if the requestor has permissions
+for it.
+"""
 
-# Responses
+from api.models import bco
+from api.scripts.utilities import UserUtils
 from rest_framework import status
 from rest_framework.response import Response
+from guardian.shortcuts import get_objects_for_user
 
-# Source: https://codeloop.org/django-rest-framework-course-for-beginners/
+def GET_draft_object_by_id(do_id, request):
+    """Get a draft object
 
-def GET_draft_object_by_id(do_id, rqst):
+    Parameters
+    ----------
+    request: rest_framework.request.Request
+            Django request object.
+
+    Returns
+    -------
+    rest_framework.response.Response
+        An HttpResponse that allows its data to be rendered into
+        arbitrary media types. If the user has permission to view the object
+        it is returned. If not the response is HTTP_403_FORBIDDEN.
     """
-    Get a draft object.
-    See if the object even exists, and if so,
-    see if the requestor has view permissions
-    on it.
-    """
-    
-    # First, filter.
-    filtered = bco.objects.filter(object_id = do_id, state = "DRAFT")
-    print('filtered: ',filtered)
-    # Was the object found?
+
+    filtered = bco.objects.filter(object_id__regex=rf'(.*?)/{do_id}', state="DRAFT")
+
     if filtered.exists():
-        
-        # Instatiate UserUtils.
-        uu = UserUtils.UserUtils()
-        
+        if len(filtered) > 1:
+            # There are multiple matches; this shouldn't be possible
+            return Response(
+                data='The contents of the draft could not be sent back because'
+                    'there are multiple draft matches. Please contact and admin.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
         # Get the requestor's info.
-        ui = uu.user_from_request(rq = rqst)
-        print('user info: ',ui)
-        # Does the requestor have view permissions
-        # on the object?
-        objected = bco.objects.get(object_id = do_id)
-        print('objected: ',objected.owner_user)
-        print(ui.groups)
-        # if ui.has_perm('view_' + do_id, objected):
-                # Kick it back.
-        return Response(
-            data = objected.contents,
-            status = status.HTTP_200_OK
-        )
-        
-        # else:
-        #
-        #     # Insufficient permissions.
-        #     return Response(
-        #         data = 'The contents of the draft could not be sent back because the requestor did not have appropriate permissions.',
-        #         status = status.HTTP_403_FORBIDDEN
-        #     )
+        usr_info = UserUtils.UserUtils().user_from_request(request=request)
+        user_objects = get_objects_for_user(user=usr_info, perms=[], klass=bco, any_perm=True)
 
-    else:
-
-        # If all_versions has 0 length, then the
-        # the root ID does not exist at all.
+        # Does the requestor have permissions for the object?
+        full_object_id = filtered.values_list('object_id', flat=True)[0]
+        objected = bco.objects.get(object_id=full_object_id)
+        if objected in user_objects:
+            return Response(data=objected.contents, status=status.HTTP_200_OK)
+        # Insufficient permissions.
         return Response(
-            data = 'The draft could not be found on the server.',
-            status = status.HTTP_400_BAD_REQUEST
+            data='The contents of the draft could not be sent back because'
+                ' the requestor did not have appropriate permissions.',
+            status=status.HTTP_403_FORBIDDEN
         )
+    # the root ID does not exist at all.
+    return Response(
+        data='The draft could not be found on the server.',
+        status=status.HTTP_400_BAD_REQUEST
+    )

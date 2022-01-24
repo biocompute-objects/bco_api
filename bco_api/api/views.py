@@ -1078,6 +1078,14 @@ class ApiPublicDescribe(APIView):
     Returns information about the API.
 
     """
+    authentication_classes = []
+    permission_classes = []
+
+    # For the success and error messages
+    # renderer_classes = [
+    #     TemplateHTMLRenderer
+    # ]
+    # template_name = 'api/account_activation_message.html'
 
     auth = []
 
@@ -1110,7 +1118,7 @@ class DraftObjectId(APIView):
     # template_name = 'api/account_activation_message.html'
 
     auth = []
-    auth.append(openapi.Parameter('draft_object_id', openapi.IN_PATH, description="Object ID to be viewed.",
+    auth.append(openapi.Parameter('object_id', openapi.IN_PATH, description="Object ID to be viewed.",
                                   type=openapi.TYPE_STRING))
 
     @swagger_auto_schema(manual_parameters=auth, responses={
@@ -1119,13 +1127,17 @@ class DraftObjectId(APIView):
             403: "Requestor's credentials were rejected.",
             424: "Account has not been registered."
             }, tags=["BCO Management"])
-    def get(self, request, draft_object_id):
+    def get(self, request, object_id):
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).
 
         # Pass straight to the handler.
         # TODO: This is not dealing with the draft_object_id parameter being passed in?
-        return GET_draft_object_by_id(do_id=request.build_absolute_uri(), rqst=request)
+        # return GET_draft_object_by_id(do_id=request.build_absolute_uri(), rqst=request)
+
+        # return GET_draft_object_by_id(do_id=draft_object_id, rqst=request)
+        
+        return GET_draft_object_by_id(do_id=object_id, request=request)
 
 
 # Allow anyone to view published objects.
