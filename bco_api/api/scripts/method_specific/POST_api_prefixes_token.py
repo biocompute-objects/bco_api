@@ -1,18 +1,12 @@
 # User utilities
 from ..utilities import UserUtils
 
-# For users
-from django.contrib.auth.models import User
-
 # Responses
 from rest_framework import status
 from rest_framework.response import Response
 
-# For the token lookup
-from rest_framework.authtoken.models import Token
 
 
-# Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
 def POST_api_prefixes_token(
 	request

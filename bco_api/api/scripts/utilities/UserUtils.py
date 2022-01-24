@@ -25,8 +25,17 @@ class UserUtils:
     Attributes
     ----------
 
+<<<<<<< HEAD
+    # These are methods for interacting with user information.
+
+    def check_permission_exists(
+            self,
+            perm
+        ):
+=======
     Methods
     -------
+>>>>>>> main
 
     """
     def check_permission_exists(self, perm):
@@ -90,7 +99,7 @@ class UserUtils:
             self,
             un,
             prfx
-            ):
+        ):
 
         # Check if a user owns a prefix.
         return prefixes.objects.filter(owner_user=un, prefix=prfx).exists()
@@ -98,7 +107,7 @@ class UserUtils:
     def get_user_groups_by_token(
             self,
             token
-            ):
+        ):
 
         # Takes token to give groups.
 
@@ -123,7 +132,7 @@ class UserUtils:
     def get_user_groups_by_username(
             self,
             un
-            ):
+        ):
 
         # Takes usernames to give groups.
 
@@ -139,7 +148,7 @@ class UserUtils:
     def get_user_info(
             self,
             username
-            ):
+        ):
 
         # Arguments
         # ---------
@@ -248,7 +257,7 @@ class UserUtils:
     def prefixes_for_user(
             self,
             user_object
-            ):
+        ):
 
         # Simple function to return prefixes
         # that a user has ANY permission on.
@@ -270,7 +279,7 @@ class UserUtils:
             user_object,
             flatten=True,
             specific_permission=None
-            ):
+        ):
 
         if specific_permission is None:
             specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
@@ -370,7 +379,8 @@ class UserUtils:
 
         # Return based on what we need.
         if flatten == True:
-
+        
+            # Only unique permissions are returned.
             return flat_perms
 
         elif flatten == False:

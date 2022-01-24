@@ -14,7 +14,7 @@ python3.9 manage.py migrate
 python3.9 manage.py loaddata ./api/fixtures/metafixtures.json
 
 # Clear out all the junk.
-clear
+#clear
 
 # Print the keys?
 if [[ $2 == '-k' ]]

@@ -117,7 +117,7 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
     other users to act as the verification layer in addition to the system.
 
     """
-    authentication_classes = []
+    authentication_classes = ['Bearer']
     permission_classes = []
 
     # For the success and error messages
@@ -878,46 +878,68 @@ class ApiPrefixesCreate(APIView):
     Create a Prefix
 
     --------------------
-
-    Creates a prefix to be used to classify BCOs and to determine permissions for objects created under that prefix.
-
-    The requestor *must* be in the group prefix_admins to create a prefix.
+    Create a prefix to be used to classify BCOs and to determine permissions
+    for objects created under that prefix. The requestor *must* be in the group
+    prefix_admins to create a prefix.
 
     ```JSON
     {
-        "POST_api_prefixes_create":{
+        "POST_api_prefixes_create": {
             "prefixes":[
                 {
-                    "description":"Generic testing prefix.",
-                    "owner_group":"bco_publisher",
-                    "owner_user":"anon",
-                    "prefix":"tEsT"
+                    "description": "Generic testing prefix.",
+                    "expiration_date": "2023-01-01-01-01-01",
+                    "owner_group": "bco_publisher",
+                    "owner_user": "anon",
+                    "prefix": "tEsTr"
                 }
             ]
         }
     }
     ```
-
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    # Permissions - prefix admins only
+    permission_classes = [RequestorInPrefixAdminsGroup]
+
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Prefix Creation Schema",
-            description="Several parameters are required to create a prefix.",
-            required=['description', 'owner_group', 'owner_user', 'prefix'],
-            properties={
-                    'description': openapi.Schema(type=openapi.TYPE_STRING, description='A description of what this prefix should represent.  For example, the prefix \'GLY\' would be related to BCOs which were derived from GlyGen workflows.'),
-                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in the owner group to assign this.*'),
-                    'owner_user': openapi.Schema(type=openapi.TYPE_STRING, description='Which user should own the prefix.  *The requestor does not have to be owner_user but owner_user must be in owner_group*.'),
-                    'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix which satsifies the naming standard (see link...)'),
-                    })
+        type=openapi.TYPE_OBJECT,
+        title="Prefix Creation Schema",
+        description="Several parameters are required to create a prefix.",
+        required=['owner_group', 'owner_user', 'prefix'],
+        properties={
+            'description': openapi.Schema(type=openapi.TYPE_STRING,
+                description='A description of what this prefix should'
+                    'represent. For example, the prefix \'GLY\' would be'
+                    'related to BCOs which were derived from GlyGen'
+                    'workflows.'),
+            'expiration_date': openapi.Schema(type=openapi.TYPE_STRING,
+                description='The datetime at which this prefix expires in'
+                    'the format YYYY-MM-DD-HH-MM-SS.'),
+            'owner_group': openapi.Schema(type=openapi.TYPE_STRING,
+                description='Which group should own the prefix.  *The'
+                    'requestor does not have to be in owner_group to'
+                    'assign this.*'),
+            'owner_user': openapi.Schema(type=openapi.TYPE_STRING,
+                description='Which user should own the prefix.  *The'
+                'requestor does not have to be owner_user to assign'
+                'this.*'),
+            'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                description='Any prefix which satsifies the naming'
+                    'standard (see link...)'),
+        }
+    )
 
     @swagger_auto_schema(request_body=request_body, responses={
-            201: "The prefix was successfully created.",
-            400: "Bad request because 1) the prefix does not follow the naming standard, or 2) owner_user and/or owner_group do not exist, or 3) owner_user is not in owner_group.",
-            409: "The prefix the requestor is attempting to create already exists."
-            }, tags=["Prefix Management"])
+        201: "The prefix was successfully created.",
+        400: "Bad request for one of two reasons: \n1) the prefix does not"
+             "follow the naming standard, or \n2) owner_user and/or"
+             "owner_group do not exist.",
+        401: "Unauthorized. Authentication credentials were not provided.",
+        403: "Forbidden. User doesnot have permission to perform this action",
+        409: "The prefix the requestor is attempting to create already exists."
+        }, tags=["Prefix Management"]
+    )
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_create)
 
@@ -926,32 +948,104 @@ class ApiPrefixesDelete(APIView):
     """
     Delete a Prefix
 
+    # Deletes a prefix for BCOs.
+    --------------------
+    The requestor *must* be in the group prefix_admins to delete a prefix.
+
+    __Any object created under this prefix will have its permissions "locked out."  This means that any other view which relies on object-level permissions, such as /api/objects/drafts/read/, will not allow any requestor access to particular objects.__
+
+    ```JSON
+    {
+        "POST_api_prefixes_delete": {
+            "prefixes":[
+                "PRFX",
+                "OTR",
+                "GLY"
+            ]
+        }
+    }
+    ```
+
+    """
+    
+    # Permissions - prefix admins only
+    permission_classes = [RequestorInPrefixAdminsGroup]
+
+    # TODO: Need to get the schema that is being sent here from FE
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Prefix Deletion Schema",
+        description="Provide a list of prefixes to delete.",
+        required=['prefixes'],
+        properties={
+            'prefixes': openapi.Schema(type=openapi.TYPE_STRING,
+            description='Any prefix in the API.'),
+        }
+    )
+
+    @swagger_auto_schema(request_body=request_body, responses={
+        200: "Deleting a prefix was successful.",
+        401: "Unauthorized. Authentication credentials were not provided.",
+        403: "Forbidden. User doesnot have permission to perform this action",
+        404: "The prefix couldn't be found so therefore it could not be deleted."
+        }, tags=["Prefix Management"]
+    )
+    def post(self, request) -> Response:
+        return check_post_and_process(request, POST_api_prefixes_delete)
+
+
+class ApiPrefixesModify(APIView):
+    """
+    Modify a Prefix
+
     --------------------
 
-    Deletes a prefix for BCOs.
+    # Modify a prefix which already exists.
+
+    The requestor *must* be in the group prefix_admins to modify a prefix.
+
+    ```JSON
+    {
+        "POST_api_prefixes_modify": {
+            "prefixes":[
+                {
+                    "description": "Here is some new description.",
+                    "expiration_date": "2023-01-01-01-01-01",
+                    "owner_group": "some_new_owner_group",
+                    "owner_user": "some_new_owner_user",
+                    "prefix": "tEsTr"
+                }
+            ]
+        }
+    }
+    ```
+
     """
 
-    # TODO: Not sure if this actually does anything?
     # Permissions - prefix admins only
     permission_classes = [RequestorInPrefixAdminsGroup]
 
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            title="Prefix Delete Schema",
-            description="Prefix delete description.",
+            title="Prefix Modification Schema",
+            description="Several parameters are required to modify a prefix.",
+            required=['prefix'],
             properties={
-                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-                    'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
+                    'description': openapi.Schema(type=openapi.TYPE_STRING, description='A description of what this prefix should represent.  For example, the prefix \'GLY\' would be related to BCOs which were derived from GlyGen workflows.'),
+                    'expiration_date': openapi.Schema(type=openapi.TYPE_STRING, description='The datetime at which this prefix expires in the format YYYY-MM-DD-HH-MM-SS.'),
+                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in the owner group to assign this.*'),
+                    'owner_user': openapi.Schema(type=openapi.TYPE_STRING, description='Which user should own the prefix.  *The requestor does not have to be owner_user but owner_user must be in owner_group*.'),
+                    'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix which satsifies the naming standard (see link...)'),
                     })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Deleting a prefix is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            200: "The prefix was successfully modified.",
+            400: "Bad request because owner_user and/or owner_group do not exist.",
+            404: "The prefix provided could not be found."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_delete)
+        return check_post_and_process(request, POST_api_prefixes_modify)
 
 
 class ApiPrefixesPermissionsSet(APIView):
@@ -960,23 +1054,55 @@ class ApiPrefixesPermissionsSet(APIView):
 
     --------------------
 
-    Sets the permissions available for a specified prefix.
+    # Set prefix permissions by user, group, or both.
+
+    The requestor *must* be the owner_user of the prefix.
+
+    At least one of the usernames or groups must actually exist for a permission to be assigned.
+
+    ```JSON
+    {
+        "POST_api_prefixes_permissions_set": [
+            {
+                "group": [
+                    "bco_drafter"
+                ],
+                "permissions": [
+                    "change",
+                    "delete",
+                    "view"
+                ],
+                "prefix": "BCO",
+                "username": [
+                    "some_user"
+                ],
+            }
+        ]
+    }
+    ```
+
     """
+    
+    # Permissions - prefix admins only
+    permission_classes = [RequestorInPrefixAdminsGroup]
 
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
             title="Prefix Permissions Schema",
-            description="Prefix permissions description.",
+            description="Set the permissions for a prefix.",
+            required=['permissions', 'prefix'],
             properties={
-                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-                    'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
-                    })
+                    'group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group the permission is being assigned to.'),
+                    'permissions': openapi.Schema(type=openapi.TYPE_STRING, description='Which permissions to assign.'),
+                    'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Which prefix to assign the permissions to.'),
+                    'username': openapi.Schema(type=openapi.TYPE_STRING, description='Which user the permission is being assigned to.'),
+            })
 
     @swagger_auto_schema(request_body=request_body, responses={
-            200: "Setting prefix permissions is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            201: "The prefix permissions were updated succesfully.",
+            400: "Bad request because 1) the requestor isn't the owner of the prefix, or 2) the provided username and/or group could not be found.",
+            404: "The prefix provided was not found."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         return check_post_and_process(request, POST_api_prefixes_permissions_set)
@@ -984,21 +1110,22 @@ class ApiPrefixesPermissionsSet(APIView):
 
 class ApiPrefixesToken(APIView):
     """
-    Get Prefixes
+    Get Prefixes for a Token
 
     --------------------
 
-    Get all available prefixes for a given token.
-    The word 'Token' must be included in the header. 
+    # Get all available prefixes and their associated permissions for a given token.
+
+    The word 'Token' must be included in the header.
+
     For example: 'Token 627626823549f787c3ec763ff687169206626149'.
     """
 
     auth = [openapi.Parameter('Authorization', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING)]
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Fetch prefixes is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            200: "The Authorization header was provided and available prefixes were returned.",
+            400: "The Authorization header was not provided."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
         if 'Authorization' in request.headers:
@@ -1009,24 +1136,27 @@ class ApiPrefixesToken(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-# TODO: What does this do?  Appears to flatten the prefixes (not sure what for)
 class ApiPrefixesTokenFlat(APIView):
     """
-    Get Prefixes in a flat format
+    Get Prefixes for a Token in Flat Format
 
     --------------------
 
-    TODO: What does this do?  Appears to flatten the prefixes (not sure what for)
-    The word 'Token' must be included in the header. 
-    For example: 'Token 627626823549f787c3ec763ff687169206626149'
+    # Get all available prefixes and their associated permissions for a given token in flat format.
+
+    # TODO: What does this do?  Appears to flatten the prefixes (not sure what for)
+    # Answer (Chris, 1/22):  These may be easier for a requestor to parse rapidly on a web page.
+
+    The word 'Token' must be included in the header.
+
+    For example: 'Token 627626823549f787c3ec763ff687169206626149'.
     """
 
     auth = [openapi.Parameter('Authorization', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING)]
 
     @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Fetch prefixes is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
+            200: "The Authorization header was provided and available prefixes were returned.",
+            401: "The Authorization header was not provided."
             }, tags=["Prefix Management"])
 
     def post(self, request) -> Response:
@@ -1036,37 +1166,6 @@ class ApiPrefixesTokenFlat(APIView):
             return POST_api_prefixes_token_flat(request=request)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class ApiPrefixesUpdate(APIView):
-    """
-    Update a Prefix
-
-    --------------------
-
-    Updates a prefix with additional or new information.
-    """
-
-    # Permissions - prefix admins only
-    permission_classes = [RequestorInPrefixAdminsGroup]
-
-    # TODO: Need to get the schema that is being sent here from FE
-    request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Prefix Update Schema",
-            description="Prefix update description.",
-            properties={
-                    'x': openapi.Schema(type=openapi.TYPE_STRING, description='Description of X'),
-                    'y': openapi.Schema(type=openapi.TYPE_STRING, description='Description of Y'),
-                    })
-
-    @swagger_auto_schema(request_body=request_body, responses={
-            200: "Updating prefix is successful.",
-            400: "Bad request.",
-            403: "Invalid token."
-            }, tags=["Prefix Management"])
-    def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_modify)
 
 
 class ApiPublicDescribe(APIView):
@@ -1094,7 +1193,7 @@ class ApiPublicDescribe(APIView):
             208: "Account has already been authorized.",
             403: "Requestor's credentials were rejected.",
             424: "Account has not been registered."
-            }, tags=["API Management"])
+            }, tags=["API Information"])
     def get(self, request):
         # Pass the request to the handling function
         return Response(UserUtils.UserUtils().get_user_info(username='anon'))
@@ -1127,6 +1226,7 @@ class DraftObjectId(APIView):
             403: "Requestor's credentials were rejected.",
             424: "Account has not been registered."
             }, tags=["BCO Management"])
+
     def get(self, request, object_id):
         # No need to check the request (unnecessary for GET as it's checked
         # by the url parser?).

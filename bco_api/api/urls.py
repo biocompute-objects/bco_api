@@ -38,7 +38,7 @@ from .views import (
     ApiPrefixesPermissionsSet,
     ApiPrefixesToken,
     ApiPrefixesTokenFlat,
-    ApiPrefixesUpdate,
+    ApiPrefixesModify,
     ApiObjectsPublish,
     ApiObjectsDraftsToken,
     ApiPublicDescribe,
@@ -191,8 +191,8 @@ elif PUBLISH_ONLY == 'False':
         path('api/prefixes/token/flat/',
              ApiPrefixesTokenFlat.as_view()
              ),
-        path('api/prefixes/update/',
-             ApiPrefixesUpdate.as_view()
+        path('api/prefixes/modify/',
+             ApiPrefixesModify.as_view()
              ),
         path('api/public/describe/',
              ApiPublicDescribe.as_view())

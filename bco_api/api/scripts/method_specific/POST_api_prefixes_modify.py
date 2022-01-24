@@ -7,20 +7,16 @@ from api.scripts.utilities import UserUtils
 # Model fields
 from api.models import prefixes
 
-# Groups and Users
-from django.contrib.auth.models import Group, User
-
 # Responses
 from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_prefixes_modify(incoming):
-    """
-    
-    """
 
-# Instantiate any necessary imports.
+
+def POST_api_prefixes_modify(incoming):
+    
+    # Instantiate any necessary imports.
     db = DbUtils.DbUtils()
     uu = UserUtils.UserUtils()
 
@@ -43,67 +39,93 @@ def POST_api_prefixes_modify(incoming):
     # item in the array.
     for creation_object in bulk_request:
         
+        # Create a list to hold information about errors.
+        errors = {}
+        
         # Standardize the prefix name.
         standardized = creation_object['prefix'].upper()
 
-        if standardized in available_prefixes:
+        # Create a flag for if one of these checks fails.
+        error_check = False
 
-            # The prefix has been created, so try to modify it.
+        if standardized not in available_prefixes:
 
-            # Is the user in the group provided?
-            user_info = uu.check_user_in_group(
-                un = creation_object[
-                    'owner_user'
-                ], 
-                gn = creation_object[
-                    'owner_group'
-                ]
-            )
-
-            if user_info != False:
-                
-                # No need to use DB Utils here,
-                # just write straight to the record.
-
-                # Source: https://stackoverflow.com/a/3681691
-
-                # Django *DOESN'T* want primary keys now...
-                
-                prefixed = prefixes.objects.get(
-                    prefix = standardized
-                )
-                prefixed.owner_group = Group.objects.get(name = user_info['group'])
-                prefixed.owner_user = User.objects.get(username = user_info['user'])
-                prefixed.save()
-
-                # Created the prefix.
-                returning.append(
-                    db.messages(
-                        parameters = {
-                            'prefix': standardized
-                        }
-                    )['200_prefix_update']
-                )
+            error_check = True
             
-            else:
-
-                # Bad request.
-                returning.append(
-                    db.messages(
-                        parameters = {}
-                    )['400_bad_request']
-                )
-        
-        else:
-        
             # Update the request status.
-            returning.append(
-                db.messages(
-                    parameters = {
-                        'prefix': standardized.upper()
-                    }
-                )['404_missing_prefix']
-            )
+            # Bad request.
+            errors['404_missing_prefix'] = db.messages(
+					parameters = {
+						'prefix': standardized
+					}
+				)['404_missing_prefix']
+        
+        # Does the user exist?
+        if uu.check_user_exists(un = creation_object['owner_user']) is False:
+			
+            error_check = True
+			
+			# Bad request.
+            errors['404_user_not_found'] = db.messages(
+					parameters = {
+						'username': creation_object['owner_user']
+					}
+				)['404_user_not_found']
+		
+		# Does the group exist?
+        if uu.check_group_exists(n = creation_object['owner_group']) is False:
+			
+            error_check = True
+			
+			# Bad request.
+            errors['404_group_not_found'] = db.messages(
+					parameters = {
+						'group': creation_object['owner_group']
+					}
+				)['404_group_not_found']
+        
+        # Was the expiration date validly formatted and, if so,
+		# is it after right now?
+        if 'expiration_date' in creation_object:
+            if db.check_expiration(dt_string = creation_object['expiration_date']) is not None:
+				
+                error_check = True
+
+				# Bad request.
+                errors['400_invalid_expiration_date'] = db.messages(
+					parameters = {
+						'expiration_date': creation_object['expiration_date']
+					}
+				)['400_invalid_expiration_date']
+        
+        # Did any check fail?
+        if error_check is False:
+			
+			# The prefix has not been created, so create it.			
+            DbUtils.DbUtils().write_object(
+				p_app_label = 'api',
+				p_model_name = 'prefixes',
+				p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
+				p_data = {
+					'created_by': uu.user_from_request(
+						rq = incoming
+					).username,
+                    'description': creation_object['description'],
+					'owner_group': creation_object['owner_group'],
+					'owner_user': creation_object['owner_user'],
+					'prefix': standardized
+				}
+			)
+
+			# Created the prefix.
+            errors['201_prefix_modify'] = db.messages(
+					parameters = {
+						'prefix': standardized
+					}
+				)['201_prefix_modify']
+		
+		# Append the possible "errors".
+        returning.append(errors)
     
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
