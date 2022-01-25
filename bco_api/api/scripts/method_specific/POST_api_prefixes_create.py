@@ -21,6 +21,10 @@ def POST_api_prefixes_create(
 	incoming
 ):
 
+	# TODO: replace user/group looping with basic filtering
+	# on the model.  Loops now are slower than a single
+	# filter call.
+	
 	# Instantiate any necessary imports.
 	db = DbUtils.DbUtils()
 	uu = UserUtils.UserUtils()
@@ -136,7 +140,7 @@ def POST_api_prefixes_create(
 					p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
 					p_data = {
 						'created_by': uu.user_from_request(
-							request = incoming
+							rq = incoming
 						).username,
 						'description': prfx['description'],
 						'owner_group': creation_object['owner_group'],

@@ -912,6 +912,9 @@ class ApiPrefixesCreate(APIView):
     # Permissions - prefix admins only
     permission_classes = [RequestorInPrefixAdminsGroup]
 
+    # TYPE_ARRAY explanation
+    # Source: https://stackoverflow.com/questions/53492889/drf-yasg-doesnt-take-type-array-as-a-valid-type
+
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -923,7 +926,7 @@ class ApiPrefixesCreate(APIView):
                     'expiration_date': openapi.Schema(type=openapi.TYPE_STRING, description='The datetime at which this prefix expires in the format YYYY-MM-DD-HH-MM-SS.'),
                     'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in owner_group to assign this.*'),
                     'owner_user': openapi.Schema(type=openapi.TYPE_STRING, description='Which user should own the prefix.  *The requestor does not have to be owner_user to assign this.*'),
-                    'prefixes': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix which satsifies the naming standard (see link...)')
+                    'prefixes': openapi.Schema(type=openapi.TYPE_ARRAY, description='Any prefix which satsifies the naming standard (see link...)', items=openapi.Items(type=openapi.TYPE_STRING))
                     })
 
     @swagger_auto_schema(request_body=request_body, responses={
@@ -1070,10 +1073,10 @@ class ApiPrefixesPermissionsSet(APIView):
                 "prefixes": [
                     "testR",
                     "BCO"
-                ]
+                ],
                 "username": [
                     "some_user"
-                ],
+                ]
             }
         ]
     }

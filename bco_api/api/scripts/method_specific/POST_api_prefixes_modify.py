@@ -113,7 +113,7 @@ def POST_api_prefixes_modify(
                     p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
                     p_data = {
                         'created_by': uu.user_from_request(
-                            request = incoming
+                            rq = incoming
                         ).username,
                         'description': prfx['description'],
                         'owner_group': creation_object['owner_group'],
