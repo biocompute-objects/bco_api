@@ -4,7 +4,7 @@ from django.contrib import admin
 # Source: https://github.com/django-guardian/django-guardian#admin-integration
 from guardian.admin import GuardedModelAdmin
 
-from .models import bco, meta_table, new_users, prefixes
+from .models import bco, prefix_table, new_users, prefixes
 
 class BcoDraftAdmin(
     GuardedModelAdmin
@@ -12,12 +12,12 @@ class BcoDraftAdmin(
     pass
 
 admin.site.register(
-    bco, 
+    bco,
     BcoDraftAdmin
 )
 
 admin.site.register(
-    meta_table
+    prefix_table
 )
 
 admin.site.register(

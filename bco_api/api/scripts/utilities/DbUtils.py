@@ -1,5 +1,5 @@
 # Utilities
-from ...models import meta_table
+from ...models import prefix_table
 
 # Checking versioning rules
 from ...models import bco
@@ -814,7 +814,7 @@ class DbUtils:
             constructed_name = constructed_name[0:prefix_location + prefix_length]
 
             # Get the object number counter from meta information about the prefix.
-            prefix_counter = meta_table.objects.get(prefix=prefix)
+            prefix_counter = prefix_table.objects.get(prefix=prefix)
 
             # Create the contents field.
             published['contents'] = publishable
