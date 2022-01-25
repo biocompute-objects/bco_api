@@ -77,12 +77,15 @@ def POST_api_prefixes_permissions_set(
 
 			error_check = True
 
-			# Bad request, the user isn't the owner.
+			# Bad request, the user isn't the owner or wheel.
 			errors['403_requestor_is_not_prefix_owner'] = db.messages(
 					parameters = {
 						'prefix': standardized
 					}
 				)['403_requestor_is_not_prefix_owner']
+		
+		# The "expensive" work of assigning permissions is held off
+		# if any of the above checks fails.
 		
 		# Did any check fail?
 		if error_check is False:

@@ -23,7 +23,7 @@ def POST_api_prefixes_delete(
     uu = UserUtils.UserUtils()
 
     # Define the bulk request.
-    bulk_request = incoming.data['POST_api_prefixes_delete']['prefixes']
+    bulk_request = incoming.data['POST_api_prefixes_delete']
 
     # Get all existing prefixes.
     available_prefixes = list(

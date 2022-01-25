@@ -873,6 +873,7 @@ class ApiObjectsPublished(APIView):
         return POST_api_objects_published()
         # return POST_api_objects_token(rqst=request)
 
+
 class ApiPrefixesCreate(APIView):
     """
     Create a Prefix
@@ -885,17 +886,24 @@ class ApiPrefixesCreate(APIView):
 
     ```JSON
     {
-        "POST_api_prefixes_create": {
-            "prefixes":[
-                {
-                    "description": "Generic testing prefix.",
-                    "expiration_date": "2023-01-01-01-01-01",
-                    "owner_group": "bco_publisher",
-                    "owner_user": "anon",
-                    "prefix": "tEsTr"
-                }
-            ]
-        }
+        "POST_api_prefixes_create": [
+            {
+                "owner_group": "bco_publisher",
+                "owner_user": "anon",
+                "prefixes": [
+                    {
+                        "description": "Just a test prefix.",
+                        "expiration_date": "2023-01-01-01-01-01",
+                        "prefix": "testR"
+                    },
+                    {
+                        "description": "Just another prefix.",
+                        "expiration_date": "2023-01-01-01-01-01",
+                        "prefix": "othER"                        
+                    }
+                ]
+            }
+        ]
     }
     ```
 
@@ -915,7 +923,7 @@ class ApiPrefixesCreate(APIView):
                     'expiration_date': openapi.Schema(type=openapi.TYPE_STRING, description='The datetime at which this prefix expires in the format YYYY-MM-DD-HH-MM-SS.'),
                     'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in owner_group to assign this.*'),
                     'owner_user': openapi.Schema(type=openapi.TYPE_STRING, description='Which user should own the prefix.  *The requestor does not have to be owner_user to assign this.*'),
-                    'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix which satsifies the naming standard (see link...)'),
+                    'prefixes': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix which satsifies the naming standard (see link...)')
                     })
 
     @swagger_auto_schema(request_body=request_body, responses={
@@ -941,13 +949,12 @@ class ApiPrefixesDelete(APIView):
 
     ```JSON
     {
-        "POST_api_prefixes_delete": {
-            "prefixes":[
-                "PRFX",
-                "OTR",
-                "GLY"
-            ]
-        }
+        "POST_api_prefixes_delete": [
+            "PRFX",
+            "OTR",
+            "GLY",
+            "TESTR"
+        ]
     }
     ```
 
@@ -986,17 +993,24 @@ class ApiPrefixesModify(APIView):
 
     ```JSON
     {
-        "POST_api_prefixes_modify": {
-            "prefixes":[
-                {
-                    "description": "Here is some new description.",
-                    "expiration_date": "2023-01-01-01-01-01",
-                    "owner_group": "some_new_owner_group",
-                    "owner_user": "some_new_owner_user",
-                    "prefix": "tEsTr"
-                }
-            ]
-        }
+        "POST_api_prefixes_modify": [
+            {
+                "owner_group": "bco_drafter",
+                "owner_user": "wheel",
+                "prefixes": [
+                    {
+                        "description": "Just another description here.",
+                        "expiration_date": "2025-01-01-01-01-01",
+                        "prefix": "testR"
+                    },
+                    {
+                        "description": "Just another prefix description here as well.",
+                        "expiration_date": "2025-01-01-01-01-01",
+                        "prefix": "othER"                        
+                    }
+                ]
+            }
+        ]
     }
     ```
 
@@ -1047,12 +1061,16 @@ class ApiPrefixesPermissionsSet(APIView):
                 "group": [
                     "bco_drafter"
                 ],
+                "mode": "add",
                 "permissions": [
                     "change",
                     "delete",
                     "view"
                 ],
-                "prefix": "BCO",
+                "prefixes": [
+                    "testR",
+                    "BCO"
+                ]
                 "username": [
                     "some_user"
                 ],
@@ -1074,6 +1092,7 @@ class ApiPrefixesPermissionsSet(APIView):
             required=['permissions', 'prefix'],
             properties={
                     'group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group the permission is being assigned to.'),
+                    'mode': openapi.Schema(type=openapi.TYPE_STRING, description='Whether to \'add\' (append), \'remove\' (subtract), or define the \'full_set\' of permissions.'),
                     'permissions': openapi.Schema(type=openapi.TYPE_STRING, description='Which permissions to assign.'),
                     'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Which prefix to assign the permissions to.'),
                     'username': openapi.Schema(type=openapi.TYPE_STRING, description='Which user the permission is being assigned to.'),

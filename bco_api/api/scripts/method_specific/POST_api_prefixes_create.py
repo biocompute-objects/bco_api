@@ -26,7 +26,7 @@ def POST_api_prefixes_create(
 	uu = UserUtils.UserUtils()
 
 	# Define the bulk request.
-	bulk_request = incoming.data['POST_api_prefixes_create']['prefixes']
+	bulk_request = incoming.data['POST_api_prefixes_create']
 
 	# Get all existing prefixes.
 	available_prefixes = list(
@@ -43,115 +43,117 @@ def POST_api_prefixes_create(
 	# Since bulk_request is an array, go over each
 	# item in the array.
 	for creation_object in bulk_request:
-		
-		# Create a list to hold information about errors.
-		errors = {}
-		
-		# Standardize the prefix name.
-		standardized = creation_object['prefix'].upper()
 
-		# TODO: abstract this error check to schema checker?
+		# Go over each prefix proposed.
+		for prfx in creation_object['prefixes']:
+			
+			# Create a list to hold information about errors.
+			errors = {}
+			
+			# Standardize the prefix name.
+			standardized = prfx['prefix'].upper()
 
-		# Check for each error.
+			# TODO: abstract this error check to schema checker?
 
-		# Create a flag for if one of these checks fails.
-		error_check = False
+			# Check for each error.
 
-		# Does the prefix follow the regex for prefixes?
-		if not re.match(
-			r"^[A-Z]{3,5}$", 
-			standardized
-		):
+			# Create a flag for if one of these checks fails.
+			error_check = False
 
-			error_check = True
-			
-			# Bad request because the prefix doesn't follow
-			# the naming rules.
-			errors['400_bad_request_malformed_prefix'] = db.messages(
-					parameters = {
-						'prefix': standardized.upper()
-					}
-				)['400_bad_request_malformed_prefix']
-		
-		# Has the prefix already been created?
-		if standardized in available_prefixes:
+			# Does the prefix follow the regex for prefixes?
+			if not re.match(
+				r"^[A-Z]{3,5}$", 
+				standardized
+			):
 
-			error_check = True
+				error_check = True
+				
+				# Bad request because the prefix doesn't follow
+				# the naming rules.
+				errors['400_bad_request_malformed_prefix'] = db.messages(
+						parameters = {
+							'prefix': standardized.upper()
+						}
+					)['400_bad_request_malformed_prefix']
 			
-			# Update the request status.
-			errors['409_prefix_conflict'] = db.messages(
-					parameters = {
-						'prefix': standardized.upper()
-					}
-				)['409_prefix_conflict']
-		
-		# Does the user exist?
-		if uu.check_user_exists(un = creation_object['owner_user']) is False:
+			# Has the prefix already been created?
+			if standardized in available_prefixes:
+
+				error_check = True
+				
+				# Update the request status.
+				errors['409_prefix_conflict'] = db.messages(
+						parameters = {
+							'prefix': standardized.upper()
+						}
+					)['409_prefix_conflict']
 			
-			error_check = True
-			
-			# Bad request.
-			errors['404_user_not_found'] = db.messages(
-					parameters = {
-						'username': creation_object['owner_user']
-					}
-				)['404_user_not_found']
-		
-		# Does the group exist?
-		if uu.check_group_exists(n = creation_object['owner_group']) is False:
-			
-			error_check = True
-			
-			# Bad request.
-			errors['404_group_not_found'] = db.messages(
-					parameters = {
-						'group': creation_object['owner_group']
-					}
-				)['404_group_not_found']
-		
-		# Was the expiration date validly formatted and, if so,
-		# is it after right now?
-		if 'expiration_date' in creation_object:
-			if db.check_expiration(dt_string = creation_object['expiration_date']) is not None:
+			# Does the user exist?
+			if uu.check_user_exists(un = creation_object['owner_user']) is False:
 				
 				error_check = True
-
+				
 				# Bad request.
-				errors['400_invalid_expiration_date'] = db.messages(
-					parameters = {
-						'expiration_date': creation_object['expiration_date']
-					}
-				)['400_invalid_expiration_date']
-		
-		# Did any check fail?
-		if error_check is False:
+				errors['404_user_not_found'] = db.messages(
+						parameters = {
+							'username': creation_object['owner_user']
+						}
+					)['404_user_not_found']
 			
-			# The prefix has not been created, so create it.
+			# Does the group exist?
+			if uu.check_group_exists(n = creation_object['owner_group']) is False:
+				
+				error_check = True
+				
+				# Bad request.
+				errors['404_group_not_found'] = db.messages(
+						parameters = {
+							'group': creation_object['owner_group']
+						}
+					)['404_group_not_found']
 			
-			DbUtils.DbUtils().write_object(
-				p_app_label = 'api',
-				p_model_name = 'prefixes',
-				p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
-				p_data = {
-					'created_by': uu.user_from_request(
-						rq = incoming
-					).username,
-					'description': creation_object['description'],
-					'owner_group': creation_object['owner_group'],
-					'owner_user': creation_object['owner_user'],
-					'prefix': standardized
-				}
-			)
+			# Was the expiration date validly formatted and, if so,
+			# is it after right now?
+			if 'expiration_date' in prfx:
+				if db.check_expiration(dt_string = prfx['expiration_date']) is not None:
+					
+					error_check = True
 
-			# Created the prefix.
-			errors['201_prefix_create'] = db.messages(
-					parameters = {
+					# Bad request.
+					errors['400_invalid_expiration_date'] = db.messages(
+						parameters = {
+							'expiration_date': prfx['expiration_date']
+						}
+					)['400_invalid_expiration_date']
+			
+			# Did any check fail?
+			if error_check is False:
+				
+				# The prefix has not been created, so create it.				
+				DbUtils.DbUtils().write_object(
+					p_app_label = 'api',
+					p_model_name = 'prefixes',
+					p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
+					p_data = {
+						'created_by': uu.user_from_request(
+							request = incoming
+						).username,
+						'description': prfx['description'],
+						'owner_group': creation_object['owner_group'],
+						'owner_user': creation_object['owner_user'],
 						'prefix': standardized
 					}
-				)['201_prefix_create']
-		
-		# Append the possible "errors".
-		returning.append(errors)
+				)
+
+				# Created the prefix.
+				errors['201_prefix_create'] = db.messages(
+						parameters = {
+							'prefix': standardized
+						}
+					)['201_prefix_create']
+			
+			# Append the possible "errors".
+			returning.append(errors)
 	
 	# As this view is for a bulk operation, status 200
 	# means that the request was successfully processed,
