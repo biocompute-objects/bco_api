@@ -38,7 +38,6 @@ def POST_api_objects_drafts_modify(request):
         successfull.
     """
 
-    # import pdb;pdb.set_trace()
     db_utils = DbUtils.DbUtils()
     user = UserUtils.UserUtils().user_from_request(request = request)
     bulk_request = request.data['POST_api_objects_drafts_modify']
@@ -72,7 +71,6 @@ def POST_api_objects_drafts_modify(request):
             # group that has object-level change permissions.
             # To check these options, we need the actual object.
             if bco.objects.filter(object_id = draft_object['contents']['object_id']).exists():
-                import pdb; pdb.set_trace()
                 objected = bco.objects.get(
                     object_id = draft_object['contents']['object_id']
                 )
