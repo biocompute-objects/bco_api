@@ -115,7 +115,7 @@ class group_info(models.Model):
 
 # Generic meta data model
 # TODO: rename to prefix_meta
-class meta_table(models.Model):
+class prefix_table(models.Model):
     # The number of objects for a given prefix.
 
     # Field is required.
@@ -126,6 +126,9 @@ class meta_table(models.Model):
     # Field is required.
     prefix = models.CharField(max_length=5)
 
+    def __str__(self):
+        """String for representing the BCO model (in Admin site etc.)."""
+        return self.prefix
 
 # For registering new users.
 class new_users(models.Model):
@@ -151,21 +154,15 @@ class new_users(models.Model):
 class prefixes(models.Model):
     
     # Which server is this prefix certified with?
-    certifying_server = models.TextField(
-        blank = True, 
-        null = True
-    )
+    certifying_server = models.TextField(blank = True, null = True)
 
     # What is the certifying key?
-    certifying_key = models.TextField(
-        blank = True, 
-        null = True
-    )
+    certifying_key = models.TextField(blank = True, null = True)
     
     # When was it created?
     created = models.DateTimeField(
-        default = timezone.now, 
-        blank = True, 
+        default = timezone.now,
+        blank = True,
         null = True
     )
 
@@ -174,11 +171,12 @@ class prefixes(models.Model):
         User,
         on_delete = models.CASCADE,
         related_name = 'created_by',
-        to_field = 'username'
+        to_field = 'username',
+        default='wheel'
     )
 
     # Description.
-    description = models.TextField()
+    description = models.TextField(blank = True, null = True)
 
     # When does it expire?
     expires = models.DateTimeField(
@@ -194,6 +192,10 @@ class prefixes(models.Model):
 
     # The actual prefix.
     prefix = models.CharField(max_length=5)
+    
+    def __str__(self):
+        """String for representing the BCO model (in Admin site etc.)."""
+        return self.prefix
 
 # def get_first_name(self):
 #     return self.first_name

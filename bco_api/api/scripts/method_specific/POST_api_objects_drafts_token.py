@@ -88,8 +88,6 @@ def POST_api_objects_drafts_token(rqst, internal=False):
 
     """
 
-    print("In the POST_api_objects_drafts_token call")
-    # import pdb;pdb.set_trace()
     # The token has already been validated,
     # so the user is guaranteed to exist.
 
@@ -195,7 +193,6 @@ def POST_api_objects_drafts_token(rqst, internal=False):
             # this is currently assuming that the format is
             #  http://URL:PORT/BCO ACCESSION/BCO VERSION - this may not always be true
             try:
-                print('object: ', pub['object_id'])
                 bco_url, bco_id_accession, bco_id_version = pub['object_id'].rsplit("/", 2)
                 bco_id_name = bco_url + '/' + bco_id_accession
             except Exception as error:

@@ -1,6 +1,6 @@
 [
   {
-    "model": "api.meta_table",
+    "model": "api.prefix_table",
     "pk": 1,
     "fields": {
       "prefix": "BCO",
