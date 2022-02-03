@@ -40,8 +40,8 @@ def POST_api_prefixes_permissions_set(
 		prefixes.objects.all().values_list(
 				'prefix', 
 				flat = True
-			)
 		)
+	)
 
 	# Construct an array to return information about processing
 	# the request.
@@ -51,143 +51,149 @@ def POST_api_prefixes_permissions_set(
 	# item in the array.
 	for creation_object in bulk_request:
 		
-		# Create a list to hold information about errors.
-		errors = {}
+		# Go over each prefix proposed.
+		for prfx in creation_object['prefixes']:
 		
-		# Standardize the prefix name.
-		standardized = creation_object['prefix'].upper()
-
-		# Create a flag for if one of these checks fails.
-		error_check = False
-
-		# Has the prefix already been created?
-		if standardized not in available_prefixes:
+			# Create a list to hold information about errors.
+			errors = {}
 			
-			error_check = True
+			# Standardize the prefix name.
+			standardized = prfx.upper()
 
-			# Update the request status.
-			errors['404_missing_prefix'] = db.messages(
-					parameters = {
-						'prefix': standardized
-					}
-				)['404_missing_prefix']
-		
-		# The prefix exists, but is the requestor the owner?
-		if uu.check_user_owns_prefix(un = user.username, prfx = standardized) is False and user.username != 'wheel':
+			# Create a flag for if one of these checks fails.
+			error_check = False
 
-			error_check = True
-
-			# Bad request, the user isn't the owner.
-			errors['403_requestor_is_not_prefix_owner'] = db.messages(
-					parameters = {
-						'prefix': standardized
-					}
-				)['403_requestor_is_not_prefix_owner']
-		
-		# Did any check fail?
-		if error_check is False:
-		
-			# Split out the permissions assignees into users and groups.
-			assignees = {
-				'group': [],
-				'username': []
-			}
-
-			if 'username' in creation_object:
-				assignees['username'] = creation_object['username']
-			
-			if 'group' in creation_object:
-				assignees['group'] = creation_object['group']
-			
-			# Go through each one.
-			for un in assignees['username']:
+			# Has the prefix already been created?
+			if standardized not in available_prefixes:
 				
-				# Create a list to hold information about sub-errors.
-				sub_errors = {}
+				error_check = True
 
-				# Create a flag for if one of these sub-checks fails.
-				sub_error_check = False
+				# Update the request status.
+				errors['404_missing_prefix'] = db.messages(
+						parameters = {
+							'prefix': standardized
+						}
+					)['404_missing_prefix']
+			
+			# The prefix exists, but is the requestor the owner?
+			if uu.check_user_owns_prefix(un = user.username, prfx = standardized) is False and user.username != 'wheel':
+
+				error_check = True
+
+				# Bad request, the user isn't the owner or wheel.
+				errors['403_requestor_is_not_prefix_owner'] = db.messages(
+						parameters = {
+							'prefix': standardized
+						}
+					)['403_requestor_is_not_prefix_owner']
+			
+			# The "expensive" work of assigning permissions is held off
+			# if any of the above checks fails.
+			
+			# Did any check fail?
+			if error_check is False:
+			
+				# Split out the permissions assignees into users and groups.
+				assignees = {
+					'group': [],
+					'username': []
+				}
+
+				if 'username' in creation_object:
+					assignees['username'] = creation_object['username']
 				
-				# Get the user whose permissions are being assigned.
-				if uu.check_user_exists(un = un) is False:
-
-					sub_error_check = True
+				if 'group' in creation_object:
+					assignees['group'] = creation_object['group']
+				
+				# Go through each one.
+				for un in assignees['username']:
 					
-					# Bad request, the user doesn't exist.
-					sub_errors['404_user_not_found'] = db.messages(
-							parameters = {
-								'username': un
-							}
-						)['404_user_not_found']
-				
-				# Was the user found?
-				if sub_error_check is False:
-				
-					assignee = User.objects.get(username = un)
+					# Create a list to hold information about sub-errors.
+					sub_errors = {}
 
-					# Permissions are defined directly as they are
-					# in the POST request.
-
-					# Assumes permissions are well-formed...
-
-					# Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
-					assignee.user_permissions.set([Permission.objects.get(codename = i + '_' + creation_object['prefix']) for i in creation_object['permissions']])
-
-					# Permissions assigned.
-					sub_errors['200_OK_prefix_permissions_update'] = db.messages(
-							parameters = {
-								'prefix': standardized
-							}
-						)['200_OK_prefix_permissions_update']
-				
-				# Add the sub-"errors".
-				errors['username'] = sub_errors
-			
-			for g in assignees['group']:
-				
-				# Create a list to hold information about sub-errors.
-				sub_errors = {}
-
-				# Create a flag for if one of these sub-checks fails.
-				sub_error_check = False
-
-				# Get the group whose permissions are being assigned.
-				if uu.check_group_exists(n = g) is False:
-
-					sub_error_check = True
+					# Create a flag for if one of these sub-checks fails.
+					sub_error_check = False
 					
-					# Bad request, the group doesn't exist.
-					sub_errors['404_group_not_found'] = db.messages(
-							parameters = {
-								'group': g
-							}
-						)['404_group_not_found']
+					# Get the user whose permissions are being assigned.
+					if uu.check_user_exists(un = un) is False:
+
+						sub_error_check = True
+						
+						# Bad request, the user doesn't exist.
+						sub_errors['404_user_not_found'] = db.messages(
+								parameters = {
+									'username': un
+								}
+							)['404_user_not_found']
+					
+					# Was the user found?
+					if sub_error_check is False:
+					
+						assignee = User.objects.get(username = un)
+
+						# Permissions are defined directly as they are
+						# in the POST request.
+
+						# Assumes permissions are well-formed...
+
+						# Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
+						assignee.user_permissions.set([Permission.objects.get(codename = i + '_' + prfx) for i in creation_object['permissions']])
+
+						# Permissions assigned.
+						sub_errors['200_OK_prefix_permissions_update'] = db.messages(
+								parameters = {
+									'prefix': standardized
+								}
+							)['200_OK_prefix_permissions_update']
+					
+					# Add the sub-"errors".
+					errors['username'] = sub_errors
 				
-				# Was the group found?
-				if sub_error_check is False:
+				for g in assignees['group']:
+					
+					# Create a list to hold information about sub-errors.
+					sub_errors = {}
+
+					# Create a flag for if one of these sub-checks fails.
+					sub_error_check = False
+
+					# Get the group whose permissions are being assigned.
+					if uu.check_group_exists(n = g) is False:
+
+						sub_error_check = True
+						
+						# Bad request, the group doesn't exist.
+						sub_errors['404_group_not_found'] = db.messages(
+								parameters = {
+									'group': g
+								}
+							)['404_group_not_found']
+					
+					# Was the group found?
+					if sub_error_check is False:
+					
+						assignee = Group.objects.get(name = g)
+
+						# Permissions are defined directly as they are
+						# in the POST request.
+
+						# Assumes permissions are well-formed...
+
+						# Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
+						assignee.permissions.set([Permission.objects.get(codename = i + '_' + prfx) for i in creation_object['permissions']])
+
+						# Permissions assigned.
+						sub_errors['200_OK_prefix_permissions_update'] = db.messages(
+								parameters = {
+									'prefix': standardized
+								}
+							)['200_OK_prefix_permissions_update']
 				
-					assignee = Group.objects.get(name = g)
-
-					# Permissions are defined directly as they are
-					# in the POST request.
-
-					# Assumes permissions are well-formed...
-
-					# Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
-					assignee.permissions.set([Permission.objects.get(codename = i + '_' + creation_object['prefix']) for i in creation_object['permissions']])
-
-					# Permissions assigned.
-					sub_errors['200_OK_prefix_permissions_update'] = db.messages(
-							parameters = {
-								'prefix': standardized
-							}
-						)['200_OK_prefix_permissions_update']
+					# Add the sub-"errors".
+					errors['group'] = sub_errors
 			
-				# Add the sub-"errors".
-				errors['group'] = sub_errors
-		
-		# Append the possible "errors".
-		returning.append(errors)
+			# Append the possible "errors".
+			returning.append(errors)
 				
 	# As this view is for a bulk operation, status 200
 	# means that the request was successfully processed,
