@@ -22,7 +22,7 @@ from guardian.shortcuts import get_perms
 from rest_framework import status
 from rest_framework.response import Response
 
-def POST_api_objects_publish(incoming):
+def POST_api_objects_publish(request):
     """
     Take the bulk request and publish objects directly.
     """
@@ -36,7 +36,7 @@ def POST_api_objects_publish(incoming):
 
     # Get the User object.
     user = uu.user_from_request(
-        rq = incoming
+        request = request
     )
 
     # Get the user's prefix permissions.
@@ -46,7 +46,7 @@ def POST_api_objects_publish(incoming):
     )
 
     # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_publish']
+    bulk_request = request.data['POST_api_objects_publish']
 
     # Construct an array to return the objects.
     returning = []

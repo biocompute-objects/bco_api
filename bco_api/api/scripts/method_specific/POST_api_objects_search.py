@@ -17,9 +17,7 @@ from rest_framework.response import Response
 
 
 
-def POST_api_objects_search(
-	incoming
-):
+def POST_api_objects_search(request):
 
 	# View doesn't work yet...
 	return Response(
@@ -42,7 +40,7 @@ def POST_api_objects_search(
 
 	# Get the User object.
 	user = uu.user_from_request(
-		rq = incoming
+		request = request
 	)
 
 	# Get the user's prefix permissions.
@@ -53,7 +51,7 @@ def POST_api_objects_search(
 	)
 
 	# Define the bulk request.
-	bulk_request = incoming.data['POST_api_objects_search']
+	bulk_request = request.data['POST_api_objects_search']
 
 	# Construct an array to return the objects.
 	returning = []

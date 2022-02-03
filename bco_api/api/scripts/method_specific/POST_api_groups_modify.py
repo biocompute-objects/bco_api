@@ -21,7 +21,7 @@ def POST_api_groups_modify(request):
     bulk_request = request.data['POST_api_groups_modify']
 
     # Establish who has made the request.
-    requestor_info = uu.user_from_request(rq=request)
+    requestor_info = uu.user_from_request(request=request)
 
     # Get all group names.
 

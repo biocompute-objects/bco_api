@@ -1,45 +1,37 @@
-# BCO model
-from ...models import bco
+#!/usr/bin/env python3
+"""BCO Permissions
 
-# For getting objects out of the database.
-from ..utilities import DbUtils
+Returns the permissions for requested BCO objects.
+"""
 
-# User information
-from ..utilities import UserUtils
-
-# Group info
+from api.models import bco
+from api.scripts.utilities import DbUtils
+from api.scripts.utilities import UserUtils
 from django.contrib.auth.models import Group
-
-# Permisions for objects
 from guardian.shortcuts import get_groups_with_perms, get_perms, get_user_perms
-
-# Responses
 from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_objects_drafts_permissions(incoming):
+def POST_api_objects_drafts_permissions(request):
     """
     Get BCO Permissions
 
     Returns the permissions for requested BCO objects.
+    The token has already been validated,
+    so the user is guaranteed to exist.
+
     """
 
     # Instantiate any necessary imports.
-    db = DbUtils.DbUtils()
-    uu = UserUtils.UserUtils()
-
-    # The token has already been validated,
-    # so the user is guaranteed to exist.
-
-    # Get the User object.
-    user = uu.user_from_request(rq=incoming)
+    db_utils = DbUtils.DbUtils()
+    user = UserUtils.UserUtils().user_from_request(request=request)
 
     # Get the user's prefix permissions.
-    px_perms = uu.prefix_perms_for_user(flatten=True, user_object=user)
+    px_perms = UserUtils.UserUtils().prefix_perms_for_user(flatten=True, user_object=user)
 
     # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_drafts_permissions']
+    bulk_request = request.data['POST_api_objects_drafts_permissions']
 
     # Construct an array to return the objects.
     returning = []
@@ -113,20 +105,20 @@ def POST_api_objects_drafts_permissions(incoming):
                     # print(perms)
 
                     # Update the request status.
-                    returning.append(db.messages(parameters={'object_id': creation_object['object_id'], 'object_perms': perms})['200_OK_object_permissions'])
+                    returning.append(db_utils.messages(parameters={'object_id': creation_object['object_id'], 'object_perms': perms})['200_OK_object_permissions'])
                 else:
                     # Insufficient permissions.
-                    returning.append(db.messages(parameters={})['403_insufficient_permissions'])
+                    returning.append(db_utils.messages(parameters={})['403_insufficient_permissions'])
                     any_failed = True
             else:
                 # Couldn't find the object.
-                returning.append(db.messages(parameters={
+                returning.append(db_utils.messages(parameters={
                         'object_id': creation_object['object_id']})['404_object_id'])
                 any_failed = True
 
         else:
             # Update the request status.
-            returning.append(db.messages(parameters={'prefix': standardized})['401_prefix_unauthorized'])
+            returning.append(db_utils.messages(parameters={'prefix': standardized})['401_prefix_unauthorized'])
             any_failed = True
 
     # As this view is for a bulk operation, status 200

@@ -1,4 +1,5 @@
-# Group info
+#!/usr/bin/env python3
+""""""
 from ...models import group_info
 
 # For getting objects out of the database.
@@ -24,7 +25,7 @@ def POST_api_groups_delete(request):
     bulk_request = request.data['POST_api_groups_delete']['names']
 
     # Establish who has made the request.
-    requestor_info = uu.user_from_request(rq=request)
+    requestor_info = uu.user_from_request(request=request)
 
     # Get all group names.
 

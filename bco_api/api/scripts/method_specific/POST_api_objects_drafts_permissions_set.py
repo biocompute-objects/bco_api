@@ -1,46 +1,43 @@
-# BCO model
-from ...models import bco
+#!/usr/bin/env python3
+"""Set permissions for an objects.
 
-# For getting objects out of the database.
-from ..utilities import DbUtils
+Sets the permissions for a BCO object.  The BCO object must be in draft form.
+"""
 
-# User information
-from ..utilities import UserUtils
-
-# Permisions for objects
-from guardian.shortcuts import assign_perm, get_perms, get_groups_with_perms, get_users_with_perms, remove_perm
+from api.models import bco
+from api.scripts.utilities import DbUtils
+from api.scripts.utilities import UserUtils
+from guardian.shortcuts import assign_perm, get_perms, get_groups_with_perms
+from guardian.shortcuts import get_users_with_perms, remove_perm
 from django.contrib.auth.models import Group, User, Permission
-
-# Responses
 from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_objects_drafts_permissions_set(incoming):
-    """
-    Set the permissions for given objects.
+def POST_api_objects_drafts_permissions_set(request):
+    """Set permissions for an objects.
 
     """
 
     # Instantiate any necessary imports.
-    db = DbUtils.DbUtils()
-    uu = UserUtils.UserUtils()
+    db_utils = DbUtils.DbUtils()
+    user_utils = UserUtils.UserUtils()
 
     # The token has already been validated,
     # so the user is guaranteed to exist.
 
     # Get the User object.
-    user = uu.user_from_request(rq=incoming)
+    user = user_utils.user_from_request(request=request)
 
     # Get the user's prefix permissions.
-    px_perms = uu.prefix_perms_for_user(
+    px_perms = user_utils.prefix_perms_for_user(
             flatten=True,
             user_object=user,
             specific_permission=['change']
             )
 
     # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_drafts_permissions_set']
+    bulk_request = request.data['POST_api_objects_drafts_permissions_set']
 
     # Construct an array to return the objects.
     returning = []
@@ -103,7 +100,7 @@ def POST_api_objects_drafts_permissions_set(incoming):
                                 if assignee == 'users':
                                     # TODO: if assignee is actually a string users, this will just loop through the characters
                                     for u in assignee:
-                                        if uu.check_user_exists(un=u):
+                                        if user_utils.check_user_exists(un=u):
                                             remove_perm(
                                                     perm=Permission.objects.get(codename=perm + "_" + objected.object_id),
                                                     user_or_group=User.objects.get(username=u),
@@ -111,7 +108,7 @@ def POST_api_objects_drafts_permissions_set(incoming):
                                                     )
                                 if assignee == 'groups':
                                     for g in assignee:
-                                        if uu.check_group_exists(n=g):
+                                        if user_utils.check_group_exists(n=g):
                                             remove_perm(
                                                     perm=Permission.objects.get(codename=perm + "_" + objected.object_id),
                                                     user_or_group=Group.objects.get(name=g),
@@ -130,7 +127,7 @@ def POST_api_objects_drafts_permissions_set(incoming):
                             for perm, assignee in action_set['full_permissions'].items():
                                 if assignee == 'users':
                                     for u in assignee:
-                                        if uu.check_user_exists(un=u):
+                                        if user_utils.check_user_exists(un=u):
                                             assign_perm(
                                                     perm=Permission.objects.get(codename=perm + "_" + objected.object_id),
                                                     user_or_group=User.objects.get(username=u),
@@ -139,7 +136,7 @@ def POST_api_objects_drafts_permissions_set(incoming):
 
                                 if assignee == 'groups':
                                     for g in assignee:
-                                        if uu.check_group_exists(n=g):
+                                        if user_utils.check_group_exists(n=g):
                                             assign_perm(
                                                     perm=Permission.objects.get(codename=perm + "_" + objected.object_id),
                                                     user_or_group=Group.objects.get(name=g),
@@ -150,7 +147,7 @@ def POST_api_objects_drafts_permissions_set(incoming):
                             for perm, assignee in action_set['add_permissions'].items():
                                 if assignee == 'users':
                                     for u in assignee:
-                                        if uu.check_user_exists(un=u):
+                                        if user_utils.check_user_exists(un=u):
                                             assign_perm(
                                                     perm=Permission.objects.get(codename=perm + "_" + objected.object_id),
                                                     user_or_group=User.objects.get(username=u),
@@ -158,23 +155,23 @@ def POST_api_objects_drafts_permissions_set(incoming):
                                                     )
                                 if assignee == 'groups':
                                     for g in assignee:
-                                        if uu.check_group_exists(n=g):
+                                        if user_utils.check_group_exists(n=g):
                                             assign_perm(
                                                     perm=Permission.objects.get(codename=perm + "_" + objected.object_id),
                                                     user_or_group=Group.objects.get(name=g),
                                                     obj=objected
                                                     )
 
-                    returning.append(db.messages(parameters={'object_id': objected.object_id})['200_OK_object_permissions_set'])
+                    returning.append(db_utils.messages(parameters={'object_id': objected.object_id})['200_OK_object_permissions_set'])
                 else:
                     # Insufficient permissions.
-                    returning.append(db.messages(parameters={ })['403_insufficient_permissions'])
+                    returning.append(db_utils.messages(parameters={ })['403_insufficient_permissions'])
             else:
                 # Couldn't find the object.
-                returning.append(db.messages(parameters={'object_id': permission_object['object_id']})['404_object_id'])
+                returning.append(db_utils.messages(parameters={'object_id': permission_object['object_id']})['404_object_id'])
         else:
             # Update the request status.
-            returning.append(db.messages(parameters={'prefix': standardized})['401_prefix_unauthorized'])
+            returning.append(db_utils.messages(parameters={'prefix': standardized})['401_prefix_unauthorized'])
 
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,

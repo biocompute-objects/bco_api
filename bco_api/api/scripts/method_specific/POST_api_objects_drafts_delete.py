@@ -17,7 +17,7 @@ from rest_framework.response import Response
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
 def POST_api_objects_drafts_delete(
-	incoming
+	request
 ):
 
 	# Take the bulk request and delete a draft object from it.
@@ -31,7 +31,7 @@ def POST_api_objects_drafts_delete(
 
 	# Get the User object.
 	user = uu.user_from_request(
-		rq = incoming
+		request = request
 	)
 
 	# Get the user's prefix permissions.
@@ -42,7 +42,7 @@ def POST_api_objects_drafts_delete(
 	)
 
 	# Define the bulk request.
-	bulk_request = incoming.data['POST_api_objects_drafts_delete']
+	bulk_request = request.data['POST_api_objects_drafts_delete']
 
 	# Construct an array to return the objects.
 	returning = []

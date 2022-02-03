@@ -543,7 +543,7 @@ class ApiObjectsDraftsPermissions(APIView):
 
 class ApiObjectsDraftsPermissionsSet(APIView):
     """
-    Set Permissions for a BCO Object
+    Set Permissions for a BCO Object [WIP]
 
     --------------------
 

@@ -1,4 +1,9 @@
-# Group info
+#!/usr/bin/env python3
+"""Create Groups
+
+This API call creates a BCO group in ths system. The name of the group is
+required but all other parameters are optional.
+"""
 from ...models import group_info
 
 # For getting objects out of the database.
@@ -24,7 +29,7 @@ def POST_api_groups_create(request):
     bulk_request = request.data['POST_api_groups_create']
 
     # Establish who is the group administrator.
-    group_admin = uu.user_from_request(rq=request)
+    group_admin = uu.user_from_request(request=request)
 
     # Get all group names.
 

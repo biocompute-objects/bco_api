@@ -15,7 +15,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_objects_drafts_read(incoming):
+def POST_api_objects_drafts_read(request):
     """
     Take the bulk request and read a draft object from it.
     """
@@ -29,7 +29,7 @@ def POST_api_objects_drafts_read(incoming):
 
     # Get the User object.
     user = uu.user_from_request(
-            rq=incoming
+            request=request
             )
 
     # Get the user's prefix permissions.
@@ -40,7 +40,7 @@ def POST_api_objects_drafts_read(incoming):
             )
 
     # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_drafts_read']
+    bulk_request = request.data['POST_api_objects_drafts_read']
 
     # Construct an array to return the objects.
     returning = []

@@ -1,4 +1,5 @@
-# Prefixes
+#!/usr/bin/env python3
+""""""
 from ...models import prefixes
 
 # DB utilities
@@ -17,9 +18,7 @@ from rest_framework.response import Response
 
 
 
-def POST_api_prefixes_permissions_set(
-	request
-):
+def POST_api_prefixes_permissions_set(request):
 
 	# Set the permissions for prefixes.
 
@@ -29,7 +28,7 @@ def POST_api_prefixes_permissions_set(
 	
 	# First, get which user we're dealing with.
 	user = uu.user_from_request(
-		rq = request
+		request = request
 	)
 
 	# Define the bulk request.
