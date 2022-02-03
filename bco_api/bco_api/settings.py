@@ -8,12 +8,10 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-
-# For importing schema
-from api.scripts.utilities import SettingsUtils
-
 # For importing configuration files
 import configparser
+# For importing schema
+from api.scripts.utilities import SettingsUtils
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -50,7 +48,7 @@ elif server_config['PRODUCTION']['production'] == 'False':
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error
 
 # Check for open (public) access to the API.
-if(server_config['REQUESTS_FROM']['public'].strip() == 'false'):
+if server_config['REQUESTS_FROM']['public'].strip() == 'false':
 
     # Process the requester groups.
 
@@ -63,16 +61,16 @@ if(server_config['REQUESTS_FROM']['public'].strip() == 'false'):
     # Flatten the list.
     # Source: https://stackabuse.com/python-how-to-flatten-list-of-lists/
     flattened = [item.strip() for sublist in requesters for item in sublist]
-    
+
     if server_config['PRODUCTION']['production'] == 'True':
         ALLOWED_HOSTS = [i.strip() for i in server_config['HOSTNAMES']['prod_names'].split(',')]
     elif server_config['PRODUCTION']['production'] == 'False':
         ALLOWED_HOSTS = [i.strip() for i in server_config['HOSTNAMES']['names'].split(',')]
-    
+
     CORS_ORIGIN_ALLOW_ALL = False
     CORS_ORIGIN_WHITELIST = tuple(flattened)
-    
-elif(server_config['REQUESTS_FROM']['public'].strip() == 'true'):
+
+elif server_config['REQUESTS_FROM']['public'].strip() == 'true':
     if server_config['PRODUCTION']['production'] == 'True':
         ALLOWED_HOSTS = [server_config['HOSTNAMES']['prod_names'].split(',')[0],'*']
         CORS_ORIGIN_ALLOW_ALL = True
@@ -90,7 +88,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'
     ],
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema' 
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
 }
 
 # Password validation
@@ -218,16 +216,9 @@ STATIC_URL = '/api/static/'
 STATIC_ROOT = '/var/www/bcoeditor/bco_api/bco_api/static/'
 
 # ----- CUSTOM VARIABLES AND METHODS ----- #
-
-
-
-
 # Load request and validation templates (definitions).
-
 # Note that we will get TWO loads of settings.py if we start without runserver --noreload
-
 # There is only set of definitions for requests, but for validations, we may have sub-folders.
-
 # First, the request definitions.
 REQUEST_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_parameters={
     'request_definitions/': '.schema'
@@ -248,14 +239,14 @@ VALIDATION_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_pa
 OBJECT_NAMING = {}
 
 if server_config['PRODUCTION']['production'] == 'True':
-    
+
     for i in server_config['OBJECT_NAMING']:
         if i.split('_')[0] == 'prod':
-            
+
             # Strip out the production flag.
-            stripped = '_'.join(i.split('_')[1:])
-            
-            OBJECT_NAMING[stripped] = server_config['OBJECT_NAMING'][i]
+            STRIPPED = '_'.join(i.split('_')[1:])
+
+            OBJECT_NAMING[STRIPPED] = server_config['OBJECT_NAMING'][i]
 
 elif server_config['PRODUCTION']['production'] == 'False':
 
@@ -269,4 +260,3 @@ elif server_config['PRODUCTION']['production'] == 'False':
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
-

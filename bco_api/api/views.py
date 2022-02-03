@@ -117,7 +117,7 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
     other users to act as the verification layer in addition to the system.
 
     """
-    authentication_classes = ['Bearer']
+    authentication_classes = []
     permission_classes = []
 
     # For the success and error messages
@@ -171,7 +171,7 @@ class ApiAccountsDescribe(APIView):
 
     auth = [
         openapi.Parameter('Authorization',
-            openapi.IN_HEADER, 
+            openapi.IN_HEADER,
             description="Authorization Token",
             type=openapi.TYPE_STRING
         )
@@ -372,10 +372,12 @@ class ApiAccountsNew(APIView):
 
     --------------------
 
-    Ask for a new account.  Sends an e-mail to the provided e-mail, which must then be clicked to activate the account.
+    Ask for a new account.  Sends an e-mail to the provided e-mail, which must
+    then be clicked to activate the account.
 
-    The account create depends on creation of an account in the associated user database.  The authentication as
-    well as the user database host information is used to make this request.
+    The account create depends on creation of an account in the associated
+    user database.  The authentication as well as the user database host
+    information is used to make this request.
 
     ```JSON
     {
@@ -385,7 +387,7 @@ class ApiAccountsNew(APIView):
     }
     ```
     """
-
+    
     # Anyone can ask for a new account
     authentication_classes = []
     permission_classes = []
@@ -410,6 +412,7 @@ class ApiAccountsNew(APIView):
             500: "Unable to save the new account or send authentication email."
             }, tags=["Account Management"])
     def post(self, request) -> Response:
+        import pdb; pdb.set_trace()
         print("Request: {}".format(request))
         return check_post_and_process(request, POST_api_accounts_new)
 
