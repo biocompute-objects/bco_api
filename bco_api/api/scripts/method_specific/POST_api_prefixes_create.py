@@ -31,7 +31,6 @@ def POST_api_prefixes_create(request):
     rest_framework.response.Response
         An HttpResponse that allows its data to be rendered into
         arbitrary media types.
-
     """
 
     # TODO: replace user/group looping with basic filtering

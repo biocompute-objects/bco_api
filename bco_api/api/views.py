@@ -1166,12 +1166,11 @@ class ApiPrefixesPermissionsSet(APIView):
 
 class ApiPrefixesToken(APIView):
     """
-    Get Prefixes for a Token
+    Get list of prefixes
 
     --------------------
 
-    # Get all available prefixes and their associated permissions for a given token.
-
+    Get all available prefixes and their associated permissions for a given token.
     The word 'Token' must be included in the header.
 
     For example: 'Token 627626823549f787c3ec763ff687169206626149'.
@@ -1194,16 +1193,12 @@ class ApiPrefixesToken(APIView):
 
 class ApiPrefixesTokenFlat(APIView):
     """
-    Get Prefixes for a Token in Flat Format
+    Get a flat list of prefixes
 
     --------------------
 
-    # Get all available prefixes and their associated permissions for a given token in flat format.
-
-    # TODO: What does this do?  Appears to flatten the prefixes (not sure what for)
-    # Answer (Chris, 1/22):  These may be easier for a requestor to parse rapidly on a web page.
-
-    The word 'Token' must be included in the header.
+    Get all available prefixes and their associated permissions for a given
+    token in flat format. The word 'Token' must be included in the header.
 
     For example: 'Token 627626823549f787c3ec763ff687169206626149'.
     """
