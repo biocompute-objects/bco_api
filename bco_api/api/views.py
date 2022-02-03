@@ -898,7 +898,7 @@ class ApiPrefixesCreate(APIView):
                     {
                         "description": "Just another prefix.",
                         "expiration_date": "2023-01-01-01-01-01",
-                        "prefix": "othER"                        
+                        "prefix": "othER"
                     }
                 ]
             }
@@ -954,9 +954,7 @@ class ApiPrefixesDelete(APIView):
     ```JSON
     {
         "POST_api_prefixes_delete": [
-            "PRFX",
-            "OTR",
-            "GLY",
+            "OTHER",
             "TESTR"
         ]
     }
@@ -974,8 +972,10 @@ class ApiPrefixesDelete(APIView):
         description="Provide a list of prefixes to delete.",
         required=['prefixes'],
         properties={
-            'prefixes': openapi.Schema(type=openapi.TYPE_STRING,
-            description='Any prefix in the API.'),
+            'prefixes': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                description='Any prefix in the API.', 
+                items=openapi.Items(type=openapi.TYPE_STRING)),
         }
     )
 

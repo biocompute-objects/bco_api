@@ -387,12 +387,12 @@ class UserUtils:
 
             return bco_specific
 
-    def user_from_request(self, rq):
+    def user_from_request(self, request):
         """Returns a user object from a request.
 
         Parameters
         ----------
-        rq: rest_framework.request.Request
+        request: rest_framework.request.Request
             Django request object.
         
         Returns
@@ -401,5 +401,5 @@ class UserUtils:
         """
 
         user_id = Token.objects.get(
-            key=rq.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
+            key=request.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
         return User.objects.get(id=user_id)
