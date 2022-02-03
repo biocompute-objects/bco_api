@@ -604,15 +604,20 @@ class ApiObjectsDraftsPublish(APIView):
     permission_classes = [IsAuthenticated]
 
     POST_api_objects_drafts_publish_schema = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['draft_id', 'prefix'],
-            properties={
-                    'prefix'      : openapi.Schema(type=openapi.TYPE_STRING, description='BCO Prefix to publish with.'),
-                    'draft_id'    : openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object Draft ID.'),
-                    'object_id'   : openapi.Schema(type=openapi.TYPE_STRING, description='BCO Object ID.'),
-                    'delete_draft': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Whether or not to delete the draft.  False by default.'),
-                    }
-            )
+        type=openapi.TYPE_OBJECT,
+        required=['draft_id', 'prefix'],
+        properties={
+            'prefix': openapi.Schema(type=openapi.TYPE_STRING,
+                description='BCO Prefix to publish with.'),
+            'draft_id': openapi.Schema(type=openapi.TYPE_STRING,
+                description='BCO Object Draft ID.'),
+            'object_id': openapi.Schema(type=openapi.TYPE_STRING,
+                description='BCO Object ID.'),
+            'delete_draft': openapi.Schema(type=openapi.TYPE_BOOLEAN,
+                description='Whether or not to delete the draft.'
+                    ' False by default.'),
+        }
+    )
 
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -620,10 +625,12 @@ class ApiObjectsDraftsPublish(APIView):
             description="Parameters that are supported when setting publishing BCOs.",
             required=['POST_api_objects_drafts_publish'],
             properties={
-                    'POST_api_objects_drafts_publish': openapi.Schema(type=openapi.TYPE_ARRAY,
-                                                                      items=POST_api_objects_drafts_publish_schema,
-                                                                      description='BCO drafts to publish.'),
-                    })
+                'POST_api_objects_drafts_publish': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=POST_api_objects_drafts_publish_schema,
+                    description='BCO drafts to publish.')
+            }
+        )
 
     @swagger_auto_schema(request_body=request_body, responses={
             200: "BCO Publication is successful.",
@@ -996,7 +1003,7 @@ class ApiPrefixesModify(APIView):
 
     --------------------
 
-    # Modify a prefix which already exists.
+    Modify a prefix which already exists.
 
     The requestor *must* be in the group prefix_admins to modify a prefix.
 
@@ -1015,7 +1022,7 @@ class ApiPrefixesModify(APIView):
                     {
                         "description": "Just another prefix description here as well.",
                         "expiration_date": "2025-01-01-01-01-01",
-                        "prefix": "othER"                        
+                        "prefix": "othER"
                     }
                 ]
             }
@@ -1027,21 +1034,62 @@ class ApiPrefixesModify(APIView):
 
     # Permissions - prefix admins only
     permission_classes = [RequestorInPrefixAdminsGroup]
+    prefixes_object_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=[],
+        properties={
+            'description': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='A description of what this prefix should'
+                    ' represent.  For example, the prefix \'GLY\' would be '
+                    'related to BCOs which were derived from GlyGen workflows.'
+                ),
+            'expiration_date': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='The datetime at which this prefix expires in the'
+                    ' format YYYY-MM-DD-HH-MM-SS.'),
+            'prefix': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='Any prefix which satsifies the naming standard')
+        }
+
+
+    )
+    POST_api_prefixes_modify_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=[],
+        properties={
+            'owner_group': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='Which group should own the prefix.  *The'
+                    ' requestor does not have to be in the owner group to'
+                    ' assign this.*'),
+            'owner_user': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='Which user should own the prefix.  *The requestor'
+                    ' does not have to be owner_user but owner_user must be in'
+                    ' owner_group*.'),
+            'prefixes': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=prefixes_object_schema,
+                description='Any prefix which satsifies the naming standard')
+        }
+    )
 
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Prefix Modification Schema",
-            description="Several parameters are required to modify a prefix.",
-            required=['prefix'],
-            properties={
-                    'description': openapi.Schema(type=openapi.TYPE_STRING, description='A description of what this prefix should represent.  For example, the prefix \'GLY\' would be related to BCOs which were derived from GlyGen workflows.'),
-                    'expiration_date': openapi.Schema(type=openapi.TYPE_STRING, description='The datetime at which this prefix expires in the format YYYY-MM-DD-HH-MM-SS.'),
-                    'owner_group': openapi.Schema(type=openapi.TYPE_STRING, description='Which group should own the prefix.  *The requestor does not have to be in the owner group to assign this.*'),
-                    'owner_user': openapi.Schema(type=openapi.TYPE_STRING, description='Which user should own the prefix.  *The requestor does not have to be owner_user but owner_user must be in owner_group*.'),
-                    'prefix': openapi.Schema(type=openapi.TYPE_STRING, description='Any prefix which satsifies the naming standard (see link...)'),
-                    })
-
+        type=openapi.TYPE_OBJECT,
+        title="Prefix Modification Schema",
+        description="Several parameters are required to modify a prefix.",
+        required=['POST_api_prefixes_modify'],
+        properties={
+            'POST_api_prefixes_modify': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=POST_api_prefixes_modify_schema,
+                description=''
+            )
+        }) # TODO: ADD LINK FOR PREFIX DOCUMENTATION
+            
     @swagger_auto_schema(request_body=request_body, responses={
             200: "The prefix was successfully modified.",
             400: "Bad request because owner_user and/or owner_group do not exist.",

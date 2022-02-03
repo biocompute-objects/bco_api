@@ -1,37 +1,40 @@
-# For getting objects out of the database.
+#!/usr/bin/env python3
+"""Modify a Prefix
+
+Modify a prefix which already exists.
+
+The requestor *must* be in the group prefix_admins to modify a prefix.
+"""
 from api.scripts.utilities import DbUtils
-
-# Checking that a user is in a group.
 from api.scripts.utilities import UserUtils
-
-# Model fields
 from api.models import prefixes
-
-# Responses
 from rest_framework import status
 from rest_framework.response import Response
 
 
 
 
-def POST_api_prefixes_modify(
-    incoming
-):
-    
+def POST_api_prefixes_modify(request):
+    """Modify a Prefix
+
+    Parameters
+    ----------
+    request: rest_framework.request.Request
+            Django request object.
+
+    Returns
+    -------
+    rest_framework.response.Response
+        An HttpResponse that allows its data to be rendered into
+        arbitrary media types.
+    """
     # Instantiate any necessary imports.
-    db = DbUtils.DbUtils()
-    uu = UserUtils.UserUtils()
+    db_utils = DbUtils.DbUtils()
+    user_utils = UserUtils.UserUtils()
 
-    # Define the bulk request.
-    bulk_request = incoming.data['POST_api_prefixes_modify']
-
-    # Get all existing prefixes.
+    bulk_request = request.data['POST_api_prefixes_modify']
     available_prefixes = list(
-        prefixes.objects.all().values_list(
-                'prefix', 
-                flat = True
-            )
-        )
+        prefixes.objects.all().values_list('prefix', flat = True))
 
     # Construct an array to return information about processing
     # the request.
@@ -59,31 +62,31 @@ def POST_api_prefixes_modify(
                 
                 # Update the request status.
                 # Bad request.
-                errors['404_missing_prefix'] = db.messages(
+                errors['404_missing_prefix'] = db_utils.messages(
                         parameters = {
                             'prefix': standardized
                         }
                     )['404_missing_prefix']
             
             # Does the user exist?
-            if uu.check_user_exists(un = creation_object['owner_user']) is False:
+            if user_utils.check_user_exists(un = creation_object['owner_user']) is False:
                 
                 error_check = True
                 
                 # Bad request.
-                errors['404_user_not_found'] = db.messages(
+                errors['404_user_not_found'] = db_utils.messages(
                         parameters = {
                             'username': creation_object['owner_user']
                         }
                     )['404_user_not_found']
             
             # Does the group exist?
-            if uu.check_group_exists(n = creation_object['owner_group']) is False:
+            if user_utils.check_group_exists(n = creation_object['owner_group']) is False:
                 
                 error_check = True
                 
                 # Bad request.
-                errors['404_group_not_found'] = db.messages(
+                errors['404_group_not_found'] = db_utils.messages(
                         parameters = {
                             'group': creation_object['owner_group']
                         }
@@ -92,12 +95,12 @@ def POST_api_prefixes_modify(
             # Was the expiration date validly formatted and, if so,
             # is it after right now?
             if 'expiration_date' in prfx:
-                if db.check_expiration(dt_string = prfx['expiration_date']) is not None:
+                if db_utils.check_expiration(dt_string = prfx['expiration_date']) is not None:
                     
                     error_check = True
 
                     # Bad request.
-                    errors['400_invalid_expiration_date'] = db.messages(
+                    errors['400_invalid_expiration_date'] = db_utils.messages(
                         parameters = {
                             'expiration_date': prfx['expiration_date']
                         }
@@ -112,8 +115,8 @@ def POST_api_prefixes_modify(
                     p_model_name = 'prefixes',
                     p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
                     p_data = {
-                        'created_by': uu.user_from_request(
-                            rq = incoming
+                        'created_by': user_utils.user_from_request(
+                            request = request
                         ).username,
                         'description': prfx['description'],
                         'owner_group': creation_object['owner_group'],
@@ -123,7 +126,7 @@ def POST_api_prefixes_modify(
                 )
 
                 # Created the prefix.
-                errors['201_prefix_modify'] = db.messages(
+                errors['201_prefix_modify'] = db_utils.messages(
                         parameters = {
                             'prefix': standardized
                         }
