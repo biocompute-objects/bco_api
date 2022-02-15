@@ -412,7 +412,6 @@ class ApiAccountsNew(APIView):
             500: "Unable to save the new account or send authentication email."
             }, tags=["Account Management"])
     def post(self, request) -> Response:
-        import pdb; pdb.set_trace()
         print("Request: {}".format(request))
         return check_post_and_process(request, POST_api_accounts_new)
 
