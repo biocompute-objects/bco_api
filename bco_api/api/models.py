@@ -1,19 +1,15 @@
-# Explanation of optional fields:  https://stackoverflow.com/questions/16349545/optional-fields-in-django-models
-# TextField is used here because it has no character limit.
+"""
+Explanation of optional fields:  https://stackoverflow.com/questions/16349545/optional-fields-in-django-models
+TextField is used here because it has no character limit.
 
-# Create a base model, then inherit for each table.
-# See the 4th example under "Model Inheritance" at https://docs.djangoproject.com/en/3.1/topics/db/models/#model-inheritance
+Create a base model, then inherit for each table.
+See the 4th example under "Model Inheritance" at https://docs.djangoproject.com/en/3.1/topics/db/models/#model-inheritance
+"""
 
 from django.db import models
-
-# --- Permissions imports --- #
-
-
 # Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
-
 # For setting the anonymous key.
 from django.conf import settings
-
 # The user model is straight from Django.
 from django.contrib.auth.models import Group, Permission, User
 from django.db.models.signals import post_save, post_delete, pre_delete
@@ -36,62 +32,57 @@ from rest_framework.authtoken.models import Token
 
 
 # Generic BCO model
-class bco(models.Model):
-    # The entirety of the object.
+class BCO(models.Model):
+    """
+    Class used to represent BioCompute Objects(BCO).
 
+    Attributes
+    ----------
+    object_id: str
+        BCO id and primary key for this DB
+    contents: str, JSON
+        Raw JSON contents of BCO
+    object_class: str, optional
+        Used to describe overall purpose of the object.
+    owner_group: ForeignKey
+        The object owner group.
+    owner_user: ForeignKey
+        The object owner group
+    prefix: ForeignKey
+        prefix the object falls under
+    schema: str
+        Schema defining object
+    state: str
+        The state of the object, is it a draft, embargoed, or published
+    last_update: DateTimeField
+        When the draft was last updated
+    """
+
+    object_id = models.TextField(primary_key=True)
     # Field is required.
     contents = models.JSONField()
-
-    # Embargo field.
-    # TODO
-
-    # What is the class of the object (typically used to describe overall
-    # purpose of the object)?
-
-    # Field is optional.
+    # TODO Embargo field.
     object_class = models.TextField(blank=True, null=True)
-
-    # The unique object ID.
-
-    # Field is required.
-    object_id = models.TextField()
-
-    # The object owner (should be a group).
-    owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
-
-    # The object owner (should be a user).
-    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
-
-    # Which prefix the object falls under.
-
-    # Field is required.
-    prefix = models.CharField(max_length=5)
-
-    # The schema under which the object falls.
-
-    # Field is required.
+    owner_group = models.ForeignKey(Group, on_delete=models.SET_NULL, to_field='name', null=True)
+    owner_user = models.ForeignKey(User, on_delete=models.SET_NULL, to_field='username', null=True)
+    prefix = models.ForeignKey(Prefix, on_delete=models.SET_NULL)
     schema = models.TextField()
-
-    # The state of the object, is it a draft, embargoed, or published?
-
-    # Field is required.
     state = models.TextField()
-
-    # When was the draft last updated?
-
-    # Field is automatically generated.
     last_update = models.DateTimeField()
 
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
-        return self.object_id
+        return str(self.object_id)
 
-# Some additional information for Group.
-# This information is stored separately from
-# Group so as to not complicate or compromise
-# anything relating to authentication.
-class group_info(models.Model):
-    # Delete group members on group deletion?
+class GroupInfo(models.Model):
+    """
+    Some additional information for Group.
+    This information is stored separately from
+    Group so as to not complicate or compromise
+    anything relating to authentication.
+    Delete group members on group deletion?
+    """
+
     delete_members_on_group_deletion = models.BooleanField(default=False)
 
     # The group
@@ -124,7 +115,7 @@ class prefix_table(models.Model):
     # Which prefix the object falls under.
 
     # Field is required.
-    prefix = models.CharField(max_length=5)
+    prefix = models.CharField(primary_key=True, max_length=5)
 
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
@@ -320,7 +311,7 @@ def create_permissions_for_prefix(
                     name='Can ' + perm + ' BCOs with prefix ' + instance.prefix,
                     content_type=ContentType.objects.get(
                         app_label='api',
-                        model='bco'
+                        model='BCO'
                     ),
                     codename=perm + '_' + instance.prefix
                 )
@@ -396,7 +387,7 @@ def delete_permissions_for_prefix(
 
 
 # Link group creation to permission creation.
-@receiver(post_save, sender=group_info)
+@receiver(post_save, sender=GroupInfo)
 def create_group_perms(
     sender, 
     instance=None, 
@@ -433,7 +424,7 @@ def create_group_perms(
 # Link draft creation to permission creation
 @receiver(
     post_save,
-    sender=bco
+    sender=BCO
 )
 def create_object_perms(
         sender,
@@ -460,7 +451,7 @@ def create_object_perms(
                         name='Can ' + p,
                         content_type=ContentType.objects.get(
                             app_label='api',
-                            model='bco'
+                            model='BCO'
                         ),
                         codename=p
                     )
@@ -499,7 +490,7 @@ def create_object_perms(
                     name='Can publish a new version of an existing published object',
                     content_type=ContentType.objects.get(
                         app_label='api',
-                        model='bco'
+                        model='BCO'
                     ),
                     codename='publish_new_version_' + instance.object_id
                 )

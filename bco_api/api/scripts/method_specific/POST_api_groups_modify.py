@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from ..utilities import DbUtils
 # Checking that a user is in a group.
 from ..utilities import UserUtils
-from ...models import group_info
+from ...models import GroupInfo
 
 
 def POST_api_groups_modify(request):
@@ -49,9 +49,9 @@ def POST_api_groups_modify(request):
             # Check that the requestor is the group admin.
             if requestor_info.is_superuser == True or grouped in requestor_info.groups.all():
                 try:
-                    group_information = group_info.objects.get(group=grouped)
+                    group_information = GroupInfo.objects.get(group=grouped)
                 except:
-                    group_information = group_info.objects.create(group=grouped, owner_user=requestor_info)
+                    group_information = GroupInfo.objects.create(group=grouped, owner_user=requestor_info)
                 # Process the request.
                 # We only care about the actions at this point.
                 if 'actions' in modification_object:

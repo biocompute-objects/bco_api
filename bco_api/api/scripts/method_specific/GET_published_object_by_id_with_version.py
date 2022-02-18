@@ -1,5 +1,5 @@
 # The BCO model
-from ...models import bco
+from ...models import BCO
 
 # Responses
 from rest_framework import status
@@ -22,7 +22,7 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
     # Split by '_'
     underscores = oi_root.count("_")
     if underscores < 1:
-        # ERROR - there should be an underscore separating the prefix and the bco name
+        # ERROR - there should be an underscore separating the prefix and the BCO name
         return Response(
                 data='This API requires that the prefix and the BCO name be separated by an underscore \'_\' in the object_id_root PATH variable.',
                 status=status.HTTP_400_BAD_REQUEST
@@ -30,11 +30,11 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
 
     # TODO: This allows BCO Names to support underscores - not sure if that is valid though
     #       This can be 'fixed' by adding in a check for > 1 above
-    #       Might be a better idea to split prefix, bco name, and version into a three part get
+    #       Might be a better idea to split prefix, BCO name, and version into a three part get
     bco_prefix, bco_name = oi_root.split("_", maxsplit=1)
 
     # retrieved = list(
-    #         bco.objects.filter(
+    #         BCO.objects.filter(
     #                 # contents__search=bco_name,
     #                 prefix=bco_prefix,
     #                 contents__provenance_domain__name=bco_name,
@@ -47,7 +47,7 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
     #         )
     # The object ID either exists or it does not.
     retrieved = list(
-            bco.objects.filter(
+            BCO.objects.filter(
                     object_id__regex=rf'(.*?)/{oi_root}/{oi_version}',
                     state='PUBLISHED'
                     ).values_list(

@@ -6,7 +6,7 @@ def populate_models(sender, **kwargs):
 
 
     # Direct model access.
-    from .models import bco
+    from .models import BCO
 
     # DB Utilities
     from .scripts.utilities import DbUtils
