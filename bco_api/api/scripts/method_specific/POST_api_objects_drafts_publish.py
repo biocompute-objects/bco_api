@@ -4,7 +4,7 @@
 publish a draft
 """
 
-from api.models import BCO, prefix_table
+from api.models import BCO, Prefix
 from api.scripts.utilities import DbUtils, UserUtils
 from django.contrib.auth.models import Group
 from django.utils import timezone
@@ -43,7 +43,7 @@ def POST_api_objects_drafts_publish(request):
     bulk_request = request.data['POST_api_objects_drafts_publish']
     for publish_object in bulk_request:
         prefix = publish_object['prefix']
-        prefix_counter = prefix_table.objects.get(prefix=prefix)
+        prefix_counter = Prefix.objects.get(prefix=prefix)
         delete_draft = publish_object['delete_draft']
         draft_id = publish_object['draft_id']
         if 'object_id' not in publish_object:

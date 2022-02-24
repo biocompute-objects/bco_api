@@ -35,7 +35,7 @@ def GET_activate_account(username,temp_identifier):
     # in the temporary table?
     if db_utils.check_activation_credentials(
             p_app_label='api',
-            p_model_name='new_users',
+            p_model_name='NewUsers',
             p_email=username,
             p_temp_identifier=temp_identifier
             ):

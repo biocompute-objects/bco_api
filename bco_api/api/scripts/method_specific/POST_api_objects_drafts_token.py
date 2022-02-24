@@ -220,7 +220,7 @@ def POST_api_objects_drafts_token(rqst, internal=False):
                 }
         for key, value in bcos.items():
             unique_published.add(value['bco_object']['id'])
-        unique_published = bco.objects.filter(id__in=unique_published)
+        unique_published = BCO.objects.filter(id__in=unique_published)
         result_list = chain(unique_published.values(*return_values), prefix_objects.values(*return_values))
         return Response(data=result_list, status=status.HTTP_200_OK)
 

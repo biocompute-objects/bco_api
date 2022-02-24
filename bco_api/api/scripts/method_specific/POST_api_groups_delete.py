@@ -17,6 +17,10 @@ from rest_framework.response import Response
 
 
 def POST_api_groups_delete(request):
+    """
+    Delete a group
+    """
+
     # Instantiate any necessary imports.
     db = DbUtils.DbUtils()
     uu = UserUtils.UserUtils()
@@ -37,7 +41,6 @@ def POST_api_groups_delete(request):
             flat=True
         )
     )
-
     # Construct an array to return information about processing
     # the request.
     returning = []
@@ -53,7 +56,7 @@ def POST_api_groups_delete(request):
             # Get the group and its information.
             grouped = Group.objects.get(name=standardized)
             group_information = GroupInfo.objects.get(group=grouped.name)
-
+            import pdb; pdb.set_trace()
             # Check that the requestor is the group admin.
             if requestor_info.username == group_information.owner_user.username:
                 # Delete the group, checking to see if all users

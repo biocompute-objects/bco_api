@@ -40,7 +40,7 @@ def POST_api_accounts_new(request):
 
     # Does the account associated with this e-mail already
     # exist in either a temporary or a permanent user profile?
-    if db.check_user_exists( p_app_label='api', p_model_name='new_users', p_email=bulk_request['email']) is None:
+    if db.check_user_exists( p_app_label='api', p_model_name='NewUsers', p_email=bulk_request['email']) is None:
         if User.objects.filter(email=bulk_request['email']).exists():
             # Account has already been activated.
             return Response(status=status.HTTP_409_CONFLICT, data={"message": "Account has already been activated."})
@@ -72,7 +72,7 @@ def POST_api_accounts_new(request):
 
         objects_written = db.write_object(
             p_app_label='api',
-            p_model_name='new_users',
+            p_model_name='NewUsers',
             p_fields=['email', 'temp_identifier', 'hostname', 'token'],
             p_data=p_data
         )
