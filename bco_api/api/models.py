@@ -10,7 +10,10 @@ from django.db import models
 # Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
 # For setting the anonymous key.
 from django.conf import settings
-# The user model is straight from Django.
+# The user model is straight from Django. (BAD WAY TO DO THIS) Should be: 
+#   from django.contrib.auth import get_user_model
+#   User = get_user_model()
+
 from django.contrib.auth.models import Group, Permission, User
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
@@ -70,7 +73,7 @@ class Prefix(models.Model):
         default='wheel')
     description = models.TextField(blank = True, null = True)
     expires = models.DateTimeField(blank = True, null = True)
-    n_objects = models.IntegerField(default=0)
+    n_objects = models.IntegerField(default=1)
     owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
     owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
 
@@ -272,7 +275,7 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
     """
 
     if created:
-
+        import pdb; pdb.set_trace()
         # Check to see whether or not the permissions
         # have already been created for this prefix.
         try:
@@ -280,37 +283,19 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
             for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']:
                 Permission.objects.create(
                     name='Can ' + perm + ' BCOs with prefix ' + instance.prefix,
-                    content_type=ContentType.objects.get(
-                        app_label='api',
-                        model='bco'
-                    ),
+                    content_type=ContentType.objects.get(app_label='api', model='bco'),
                     codename=perm + '_' + instance.prefix
                 )
 
                 # Give FULL permissions to the prefix user owner
                 # and their group.
-
-                # No try/except necessary here as the user's existence
-                # has already been verified upstream.
-
-                # Source: https://stackoverflow.com/a/20361273
-
-                User.objects.get(
-                    username=instance.owner_user
-                ).user_permissions.add(
-                    Permission.objects.get(
-                        codename=perm + '_' + instance.prefix
-                    )
-                )
-
-                Group.objects.get(
-                    name=instance.owner_user
-                ).permissions.add(
-                    Permission.objects.get(
-                        codename=perm + '_' + instance.prefix
-                    )
-                )
-
+                owner_user = User.objects.get(username=instance.owner_user)
+                for permission in Permission.objects.filter(codename=perm + '_' + instance.prefix):
+                    owner_user.user_permissions.add(permission)
+                owner_group = Group.objects.get(name=instance.owner_user)
+                for permission in Permission.objects.filter(codename=perm + '_' + instance.prefix):
+                    owner_group.permissions.add(permission)
+ 
         except PermErrors.IntegrityError:
 
             # The permissions already exist.
