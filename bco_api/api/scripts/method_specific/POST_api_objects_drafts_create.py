@@ -7,7 +7,7 @@ Creates a new BCO draft object.
 """
 
 from api.scripts.utilities import DbUtils, UserUtils
-from api.models import prefix_table
+from api.models import Prefix
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.utils import timezone
@@ -87,7 +87,7 @@ def POST_api_objects_drafts_create(request):
                 prefix_length = len(standardized)
                 constructed_name = constructed_name[0:prefix_location+prefix_length]
                 # Create a draft ID that is essentially randomized.
-                prefix_counter = prefix_table.objects.get(prefix=standardized)
+                prefix_counter = Prefix.objects.get(prefix=standardized)
                 creation_object['object_id'] =  constructed_name + '_' + \
                     '{:06d}'.format(prefix_counter.n_objects) + '/DRAFT'
 

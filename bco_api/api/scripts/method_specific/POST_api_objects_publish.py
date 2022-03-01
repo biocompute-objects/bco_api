@@ -5,7 +5,7 @@
 Take the bulk request and publish objects directly.
 """
 
-from ...models import bco
+from ...models import BCO
 # For getting objects out of the database.
 from ..utilities import DbUtils
 
@@ -120,7 +120,7 @@ def POST_api_objects_publish(request):
 
                     # When an object ID is provided, the requestor must
                     # have publish permissions for the published object.
-                    objected = bco.objects.get(
+                    objected = BCO.objects.get(
                         object_id = publish_object['object_id']
                     )
 

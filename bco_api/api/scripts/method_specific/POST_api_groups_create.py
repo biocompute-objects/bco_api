@@ -4,7 +4,7 @@
 This API call creates a BCO group in ths system. The name of the group is
 required but all other parameters are optional.
 """
-from ...models import group_info
+from ...models import GroupInfo
 
 # For getting objects out of the database.
 from ..utilities import DbUtils
@@ -87,7 +87,7 @@ def POST_api_groups_create(request):
 
     
             if 'expiration' not in creation_object:
-                group_info.objects.create(
+                GroupInfo.objects.create(
                     delete_members_on_group_deletion=bool(creation_object['delete_members_on_group_deletion']),
                     description=creation_object['description'],
                     group=Group.objects.get(name=creation_object['name']),
@@ -95,7 +95,7 @@ def POST_api_groups_create(request):
                     owner_user=group_admin
                 )
             else:
-                group_info.objects.create(
+                GroupInfo.objects.create(
                     delete_members_on_group_deletion=bool(creation_object['delete_members_on_group_deletion']),
                     description=creation_object['description'],
                     expiration=creation_object['expiration'],
