@@ -4,7 +4,7 @@
 Sets the permissions for a BCO object.  The BCO object must be in draft form.
 """
 
-from api.models import bco
+from api.models import BCO
 from api.scripts.utilities import DbUtils
 from api.scripts.utilities import UserUtils
 from guardian.shortcuts import assign_perm, get_perms, get_groups_with_perms
@@ -71,9 +71,9 @@ def POST_api_objects_drafts_permissions_set(request):
             # group that has object-level change permissions.
 
             # To check these options, we need the actual object.
-            if bco.objects.filter(object_id=permission_object['object_id']).exists():
+            if BCO.objects.filter(object_id=permission_object['object_id']).exists():
 
-                objected = bco.objects.get(
+                objected = BCO.objects.get(
                         object_id=permission_object['object_id']
                         )
 

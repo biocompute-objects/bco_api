@@ -1,8 +1,8 @@
 # Utilities
-from ...models import prefix_table
+from api.models import Prefix
 
 # Checking versioning rules
-from ...models import bco
+from api.models import BCO
 
 # For writing objects to the database.
 from ...serializers import getGenericSerializer
@@ -43,13 +43,14 @@ import uuid
 
 
 class DbUtils:
+    """
+    Class Description
+    -----------------
 
-    # Class Description
-    # -----------------
+    These methods are for interacting with our sqlite database.
 
-    # These methods are for interacting with our sqlite database.
-
-    # Checking whether or not an object exists.
+    Checking whether or not an object exists.
+    """
     def check_object_id_exists(
             self,
             p_app_label,
@@ -111,7 +112,7 @@ class DbUtils:
         """
 
         # Does the provided object ID exist?
-        if bco.objects.filter(object_id=published_id).exists():
+        if BCO.objects.filter(object_id=published_id).exists():
 
             split_up = published_id.split('/')
             # Get the version.
@@ -182,7 +183,7 @@ class DbUtils:
             # http://127.0.0.1:8000/BCO_5 if we did not have the trailing
             # slash).
             all_versions = list(
-                    bco.objects.filter(
+                    BCO.objects.filter(
                             object_id__regex=rf'{root_uri}/',
                             state='PUBLISHED'
                             ).values_list(
@@ -324,7 +325,7 @@ class DbUtils:
             else:
 
                 # The time stamp has expired, so delete
-                # the entry in new_users.
+                # the entry in NewUsers.
                 user_info.delete()
 
                 # We can't activate this user.
@@ -379,7 +380,7 @@ class DbUtils:
         api_models = []
 
         # Define any tables to exclude here.
-        exclude = ['meta', 'new_users']
+        exclude = ['meta', 'NewUsers']
 
         for ct in ContentType.objects.all():
             m = ct.model_class()
@@ -477,7 +478,7 @@ class DbUtils:
         # use it to make the update call to userdb.
         token = apps.get_model(
                 app_label='api',
-                model_name='new_users'
+                model_name='NewUsers'
                 ).objects.get(
                 email=p_email
                 ).token
@@ -512,7 +513,7 @@ class DbUtils:
         # Delete the record in the temporary table.
         apps.get_model(
                 app_label='api',
-                model_name='new_users'
+                model_name='NewUsers'
                 ).objects.filter(
                 email=p_email
                 ).delete()
@@ -755,7 +756,7 @@ class DbUtils:
         owner_user: str
             Name of owner user
         prfx: str
-        publishable: api.models.bco
+        publishable: api.models.BCO
         publishable_id: dict
 
         Returns
@@ -812,9 +813,9 @@ class DbUtils:
                     prefix
                     )
             constructed_name = constructed_name[0:prefix_location + prefix_length]
-
+        
             # Get the object number counter from meta information about the prefix.
-            prefix_counter = prefix_table.objects.get(prefix=prefix)
+            prefix_counter = prefix.objects.get(prefix=prefix)
 
             # Create the contents field.
             published['contents'] = publishable
@@ -846,7 +847,7 @@ class DbUtils:
             # Publish.
             self.write_object(
                     p_app_label='api',
-                    p_model_name='bco',
+                    p_model_name='BCO',
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data=published
                     )
@@ -893,7 +894,7 @@ class DbUtils:
             # Publish.
             self.write_object(
                     p_app_label='api',
-                    p_model_name='bco',
+                    p_model_name='BCO',
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data=publishable.contents
                     )

@@ -4,7 +4,7 @@
 Returns the permissions for requested BCO objects.
 """
 
-from api.models import bco
+from api.models import BCO
 from api.scripts.utilities import DbUtils
 from api.scripts.utilities import UserUtils
 from django.contrib.auth.models import Group
@@ -47,7 +47,7 @@ def POST_api_objects_drafts_permissions(request):
         # Does the requestor have view permissions for
         # the *prefix*?
         if 'view_' + standardized in px_perms:
-            print('bulk_request', list(bco.objects.filter(object_id=creation_object['object_id'])))
+            print('bulk_request', list(BCO.objects.filter(object_id=creation_object['object_id'])))
             # The requestor has change view for
             # the prefix, but do they have object-level
             # view permissions?
@@ -58,8 +58,8 @@ def POST_api_objects_drafts_permissions(request):
             # group that has object-level view permissions.
 
             # To check these options, we need the actual object.
-            if bco.objects.filter(object_id=creation_object['object_id']).exists():
-                objected = bco.objects.get(object_id=creation_object['object_id'])
+            if BCO.objects.filter(object_id=creation_object['object_id']).exists():
+                objected = BCO.objects.get(object_id=creation_object['object_id'])
 
                 # We don't care where the view permission comes from,
                 # be it a User permission or a Group permission.

@@ -9,7 +9,7 @@ import re
 # Concatenating QuerySets
 from itertools import chain
 from typing import Optional, Tuple
-from api.models import bco
+from api.models import BCO
 from api.scripts.utilities import UserUtils
 # Object-level permissions
 from guardian.shortcuts import get_objects_for_user
@@ -122,10 +122,10 @@ def POST_api_objects_drafts_token(rqst, internal=False):
 
     # Use an empty list of perms to get ANY perm.
     # Source: https://stackoverflow.com/a/24980558
-    user_objects = get_objects_for_user(user=user_info, perms=[], klass=bco, any_perm=True)
+    user_objects = get_objects_for_user(user=user_info, perms=[], klass=BCO, any_perm=True)
 
     # Now get all objects under these prefixes.
-    prefix_objects = bco.objects.filter(prefix__in=user_prefixes, state='DRAFT')
+    prefix_objects = BCO.objects.filter(prefix__in=user_prefixes, state='DRAFT')
 
     # Assume all the values are supposed to be returned.
     # Source: https://stackoverflow.com/a/51733590
@@ -180,7 +180,7 @@ def POST_api_objects_drafts_token(rqst, internal=False):
         # TODO: This needs to only return the most recent PUBLISHED objects not all of the versions
         # import pdb; pdb.set_trace()
 
-        published = bco.objects.filter(state='PUBLISHED').values()
+        published = BCO.objects.filter(state='PUBLISHED').values()
         # unique_published = []
         unique_published = set()
 
@@ -220,7 +220,7 @@ def POST_api_objects_drafts_token(rqst, internal=False):
                 }
         for key, value in bcos.items():
             unique_published.add(value['bco_object']['id'])
-        unique_published = bco.objects.filter(id__in=unique_published)
+        unique_published = BCO.objects.filter(id__in=unique_published)
         result_list = chain(unique_published.values(*return_values), prefix_objects.values(*return_values))
         return Response(data=result_list, status=status.HTTP_200_OK)
 

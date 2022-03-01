@@ -1,5 +1,5 @@
 # Prefixes
-from ...models import prefixes
+from ...models import Prefix
 
 # For returning server information.
 from django.conf import settings
@@ -25,17 +25,8 @@ class UserUtils:
     Attributes
     ----------
 
-<<<<<<< HEAD
-    # These are methods for interacting with user information.
-
-    def check_permission_exists(
-            self,
-            perm
-        ):
-=======
     Methods
     -------
->>>>>>> main
 
     """
     def check_permission_exists(self, perm):
@@ -102,7 +93,7 @@ class UserUtils:
         ):
 
         # Check if a user owns a prefix.
-        return prefixes.objects.filter(owner_user=un, prefix=prfx).exists()
+        return Prefix.objects.filter(owner_user=un, prefix=prfx).exists()
 
     def get_user_groups_by_token(
             self,

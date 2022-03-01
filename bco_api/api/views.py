@@ -30,7 +30,7 @@ from .scripts.method_specific.GET_published_object_by_id_with_version import GET
 # Request-specific methods
 from .scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
 from .scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
-from .scripts.method_specific.POST_api_groups_create import POST_api_groups_create
+from .scripts.groups import post_api_groups_create as POST_api_groups_create
 from .scripts.method_specific.POST_api_groups_delete import POST_api_groups_delete
 from .scripts.method_specific.POST_api_groups_modify import POST_api_groups_modify
 from .scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create

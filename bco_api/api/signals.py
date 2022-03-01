@@ -1,12 +1,15 @@
 # Source: https://stackoverflow.com/a/42744626/5029459
 
+from turtle import pd
+
+
 def populate_models(sender, **kwargs):
     
     
 
 
     # Direct model access.
-    from .models import bco
+    from .models import BCO
 
     # DB Utilities
     from .scripts.utilities import DbUtils
@@ -62,8 +65,7 @@ def populate_models(sender, **kwargs):
         )
     
     # Make bco_publisher the group owner of the prefix 'BCO'.
-    if bco.objects.filter(prefix = 'BCO').exists():
-
+    if BCO.objects.filter(prefix = 'BCO').exists():
         # dummy block
         pass
 
@@ -77,7 +79,7 @@ def populate_models(sender, **kwargs):
         
         DbUtils.DbUtils().write_object(
             p_app_label = 'api',
-            p_model_name = 'prefixes',
+            p_model_name = 'Prefix',
             p_fields = ['created_by', 'owner_group', 'owner_user', 'prefix'],
             p_data = {
                 'created_by': user,
@@ -130,7 +132,7 @@ def populate_models(sender, **kwargs):
             name = 'prefix_admins'
         ).permissions.add(
             Permission.objects.get(
-                codename = perm + '_prefixes'
+                codename = perm + '_prefix'
             )
         )
     
