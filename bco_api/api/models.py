@@ -275,7 +275,6 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
     """
 
     if created:
-        import pdb; pdb.set_trace()
         # Check to see whether or not the permissions
         # have already been created for this prefix.
         try:
