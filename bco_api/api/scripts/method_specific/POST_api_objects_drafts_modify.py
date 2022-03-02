@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_api_objects_drafts_modify(request):
+def post_api_objects_drafts_modify(request):
     """ Modify Draft
 
     Take the bulk request and modify a draft object from it.
@@ -64,16 +64,13 @@ def POST_api_objects_drafts_modify(request):
             # The requestor has change permissions for
             # the prefix, but do they have object-level
             # change permissions?
-
             # This can be checked by seeing if the requestor
             # is the object owner OR they are a user with
             # object-level change permissions OR if they are in a
             # group that has object-level change permissions.
             # To check these options, we need the actual object.
             if BCO.objects.filter(object_id = draft_object['contents']['object_id']).exists():
-                objected = BCO.objects.get(
-                    object_id = draft_object['contents']['object_id']
-                )
+                objected = BCO.objects.get(object_id = draft_object['contents']['object_id'])
 
                 # We don't care where the view permission comes from,
                 # be it a User permission or a Group permission.
@@ -82,7 +79,8 @@ def POST_api_objects_drafts_modify(request):
                 # TODO: add permission setting view...
                 # if user.pk == object.owner_user or 'change_' + prefix in all_permissions:
                 if user.username == objected.owner_user.username or \
-                    'add_' + prefix in all_permissions:
+                    'change_' + prefix in all_permissions or \
+                    'change_' + prefix in px_perms: # had to add this condition for users in a group to modify a bco prefix
 
                     # # User does *NOT* have to be in the owner group!
                     # # to assign the object's group owner.
@@ -115,6 +113,7 @@ def POST_api_objects_drafts_modify(request):
             else:
                 returning.append(db_utils.messages(parameters = {
                     'object_id': draft_object['object_id']}))['404_object_id']
+
                 any_failed = True
         else:
             returning.append(
