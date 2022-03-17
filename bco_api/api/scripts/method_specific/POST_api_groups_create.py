@@ -24,7 +24,7 @@ def POST_api_groups_create(request):
     bulk_request = request.data['POST_api_groups_create']
 
     # Establish who is the group administrator.
-    group_admin = uu.user_from_request(rq=request)
+    group_admin = uu.user_from_request(request=request)
 
     # Get all group names.
 

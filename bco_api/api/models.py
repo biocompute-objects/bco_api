@@ -240,81 +240,74 @@ def associate_user_group(
             User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_drafter'))
             User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_publisher'))
 
-# Link user creation to token generation.
-# Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
-@receiver(
-    post_save,
-    sender=User
-)
-def create_auth_token(
-        sender,
-        instance=None,
-        created=False,
-        **kwargs
-):
-    if created:
 
+@receiver(post_save, sender=User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    """Link user creation to token generation.
+    Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+    """
+    if created:
         # The anonymous user's token is hard-coded
         # in server.conf.
         if instance.username == 'anon':
-
             # Create anon's record with the hard-coded key.
-            Token.objects.create(
-                user=instance,
-                key=settings.ANON_KEY
-            )
-
+            Token.objects.create(user=instance, key=settings.ANON_KEY)
         else:
-
             # Create a normal user's record.
-            Token.objects.create(
-                user=instance
-            )
+            Token.objects.create(user=instance)
 
 
 # --- Group --- #
-
-
-# Link group deletion to permissions deletion.
-
-# pre_delete and NOT post_delete because we need
-# to get the Group's information before deleting it.
-@receiver(
-    pre_delete,
-    sender=Group
-)
-def delete_group_perms(
-        sender,
-        instance=None,
-        **kwargs
-):
+@receiver(pre_delete, sender=Group)
+def delete_group_perms(sender, instance=None, **kwargs):
+    """
+    Link group deletion to permissions deletion.
+    pre_delete and NOT post_delete because we need
+    to get the Group's information before deleting it.
+    """
     for perm in ['add_members_' + instance.name, 'delete_members_' + instance.name]:
-        Permission.objects.filter(
-            codename=perm
-        ).delete()
+        Permission.objects.filter(codename=perm).delete()
 
 
 # --- Prefix --- #
+@receiver(post_save, sender=prefixes)
+def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
+    """Link prefix creation to permissions creation.
+        Check to see whether or not the permissions
+        have already been created for this prefix.
+        Create the macro-level, draft, and publish permissions.
+        Give FULL permissions to the prefix user owner
+        and their group.
 
+        No try/except necessary here as the user's existence
+        has already been verified upstream.
 
-# Link prefix creation to permissions creation.
-@receiver(
-    post_save,
-    sender=prefixes
-)
-def create_permissions_for_prefix(
-        sender,
-        instance=None,
-        created=False,
-        **kwargs
-):
+        Source: https://stackoverflow.com/a/20361273
+    """
+
     if created:
+        user = User.objects.get(username=instance.owner_user)
+        user_group = Group.objects.get(name=instance.owner_user)
+        draft = instance.prefix.lower() + '_drafters'
+        publish = instance.prefix.lower() + '_publishers'
+        
+        if len(Group.objects.filter(name=draft)) != 0:
+            drafters = Group.objects.get(name=draft)
+            user.groups.add(drafters)
+        else:
+            Group.objects.create(name=draft)
+            drafters = Group.objects.get(name=draft)
+            user.groups.add(drafters)
 
-        # Check to see whether or not the permissions
-        # have already been created for this prefix.
+        if len(Group.objects.filter(name=publish)) != 0:
+            publishers = Group.objects.get(name=publish)
+            user.groups.add(publishers)
+        else:
+            Group.objects.create(name=publish)
+            publishers = Group.objects.get(name=publish)
+            user.groups.add(publishers)
+
         try:
-
-            # Create the macro-level, draft, and publish permissions.
             for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']:
                 Permission.objects.create(
                     name='Can ' + perm + ' BCOs with prefix ' + instance.prefix,
@@ -324,85 +317,40 @@ def create_permissions_for_prefix(
                     ),
                     codename=perm + '_' + instance.prefix
                 )
-
-                # Give FULL permissions to the prefix user owner
-                # and their group.
-
-                # No try/except necessary here as the user's existence
-                # has already been verified upstream.
-
-                # Source: https://stackoverflow.com/a/20361273
-
-                User.objects.get(
-                    username=instance.owner_user
-                ).user_permissions.add(
-                    Permission.objects.get(
-                        codename=perm + '_' + instance.prefix
-                    )
-                )
-
-                Group.objects.get(
-                    name=instance.owner_user
-                ).permissions.add(
-                    Permission.objects.get(
-                        codename=perm + '_' + instance.prefix
-                    )
-                )
-
+                new_perm = Permission.objects.get(
+                    codename=perm + '_' + instance.prefix)
+                user.user_permissions.add(new_perm)
+                user_group.permissions.add(new_perm)
+                publishers.permissions.add(new_perm)
+                if perm == 'publish':
+                    pass
+                else:
+                    drafters.permissions.add(new_perm)
+            
         except PermErrors.IntegrityError:
-
             # The permissions already exist.
             pass
 
 
-# Link prefix deletion to permissions deletion.
-@receiver(
-    post_delete,
-    sender=prefixes
-)
-def delete_permissions_for_prefix(
-        sender,
-        instance=None,
-        **kwargs
-):
-    # No risk of raising an error when using
-    # a filter.
-    Permission.objects.filter(
-        codename='add_' + instance.prefix
-    ).delete()
+@receiver(post_delete, sender=prefixes)
+def delete_permissions_for_prefix(sender, instance=None, **kwargs):
+    """Link prefix deletion to permissions deletion.
+    No risk of raising an error when using
+    a filter.
+    """
 
-    Permission.objects.filter(
-        codename='change_' + instance.prefix
-    ).delete()
-
-    Permission.objects.filter(
-        codename='delete_' + instance.prefix
-    ).delete()
-
-    Permission.objects.filter(
-        codename='view_' + instance.prefix
-    ).delete()
-
-    Permission.objects.filter(
-        codename='draft_' + instance.prefix
-    ).delete()
-
-    Permission.objects.filter(
-        codename='publish_' + instance.prefix
-    ).delete()
+    Permission.objects.filter(codename='add_' + instance.prefix).delete()
+    Permission.objects.filter(codename='change_' + instance.prefix).delete()
+    Permission.objects.filter(codename='delete_' + instance.prefix).delete()
+    Permission.objects.filter(codename='view_' + instance.prefix).delete()
+    Permission.objects.filter(codename='draft_' + instance.prefix).delete()
+    Permission.objects.filter(codename='publish_' + instance.prefix).delete()
 
 
 # --- Group info --- #
-
-
 # Link group creation to permission creation.
 @receiver(post_save, sender=group_info)
-def create_group_perms(
-    sender, 
-    instance=None, 
-    created=False, 
-    **kwargs
-):
+def create_group_perms(sender, instance=None, created=False, **kwargs):
     if created:
         # Check to see whether or not the permissions
         # have already been created for this prefix.
@@ -410,16 +358,15 @@ def create_group_perms(
             # Create the permissions, then use group_info to give the group admin
             # the admin permissions.
             # Create the administrative permissions for the group.
-            for perm in ['add_members_' + Group.objects.get(id=instance.group_id).name,
-                         'delete_members_' + Group.objects.get(id=instance.group_id).name]:
+            for perm in ['add_members_' + instance.group_id,
+                         'delete_members_' + instance.group_id]:
                 Permission.objects.create(
                     name='Can ' + perm,
                     content_type=ContentType.objects.get(app_label='auth', model='group'),
                     codename=perm)
                 # Give the administrative permissions to the user
                 # creating this group.
-                import pdb; pdb.set_trace()
-                User.objects.get(id=instance.owner_user_id).user_permissions.add(Permission.objects.get(codename=perm))
+                User.objects.get(id=instance.id).user_permissions.add(Permission.objects.get(codename=perm))
 
         except PermErrors.IntegrityError:
 
@@ -428,8 +375,6 @@ def create_group_perms(
 
 
 # --- BCO --- #
-
-
 # Link draft creation to permission creation
 @receiver(
     post_save,

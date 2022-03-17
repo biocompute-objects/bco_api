@@ -24,7 +24,7 @@ def POST_api_groups_delete(request):
     bulk_request = request.data['POST_api_groups_delete']['names']
 
     # Establish who has made the request.
-    requestor_info = uu.user_from_request(rq=request)
+    requestor_info = uu.user_from_request(request=request)
 
     # Get all group names.
 
@@ -69,6 +69,7 @@ def POST_api_groups_delete(request):
                     any_failed = True
                     continue
                 elif deleted_count > 1:
+                    print(deleted_count, 'deleted_count')
                     # We don't expect there to be duplicates, so while this was successful it should throw a warning
                     returning.append(db.messages(parameters={
                             'group': grouped.name })['418_too_many_deleted'])

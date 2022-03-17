@@ -21,7 +21,7 @@ def POST_api_groups_modify(request):
     bulk_request = request.data['POST_api_groups_modify']
 
     # Establish who has made the request.
-    requestor_info = uu.user_from_request(rq=request)
+    requestor_info = uu.user_from_request(request=request)
 
     # Get all group names.
 
@@ -44,7 +44,6 @@ def POST_api_groups_modify(request):
 
             # Get the group and its information.
             grouped = Group.objects.get(name=standardized)
-            import pdb; pdb.set_trace()
 
             # Check that the requestor is the group admin.
             if requestor_info.is_superuser == True or grouped in requestor_info.groups.all():
@@ -113,13 +112,9 @@ def POST_api_groups_modify(request):
                     # Removals are processed first, then additions.
                     # Remove the users provided, if any.
                     if 'remove_users' in action_set:
-                        all_users = all_users - set(
-                            list(
-                                User.objects.filter(
-                                    username__in=action_set['remove_users']
-                                ).values_list('username', flat=True)
-                            )
-                        )
+                        users = User.objects.filter(username__in=action_set['remove_users'])
+                        for user in users:
+                            user.groups.remove(grouped)
 
                     # Get the users in the groups provided, if any.
                     if 'disinherit_from' in action_set:
@@ -138,13 +133,10 @@ def POST_api_groups_modify(request):
 
                     # Add the users provided, if any.
                     if 'add_users' in action_set:
-                        all_users.update(
-                            list(
-                                User.objects.filter(
-                                    username__in=action_set['add_users']
-                                ).values_list('username', flat=True)
-                            )
-                        )
+                        users = User.objects.filter(username__in=action_set['add_users'])
+                        for user in users:
+                            user.groups.add(grouped)
+
 
                     # Get the users in the groups provided, if any.
                     if 'inherit_from' in action_set:

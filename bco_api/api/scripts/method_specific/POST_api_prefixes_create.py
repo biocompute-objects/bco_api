@@ -54,6 +54,7 @@ def POST_api_prefixes_create(request):
 
     # Since bulk_request is an array, go over each
     # item in the array.
+
     for creation_object in bulk_request:
         # Go over each prefix proposed.
         for prfx in creation_object['prefixes']:

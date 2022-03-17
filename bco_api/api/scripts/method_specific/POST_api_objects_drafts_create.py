@@ -50,7 +50,6 @@ def POST_api_objects_drafts_create(request):
     # Since bulk_request is an array, go over each
     # item in the array.
     for creation_object in bulk_request:
-
         # Standardize the prefix.
         standardized = creation_object['prefix'].upper()
 

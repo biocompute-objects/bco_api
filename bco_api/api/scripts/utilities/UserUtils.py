@@ -273,13 +273,9 @@ class UserUtils:
                         )
                 )
 
-    # Prefix permissions for a given user.
-    def prefix_perms_for_user(
-            self,
-            user_object,
-            flatten=True,
-            specific_permission=None
-        ):
+
+    def prefix_perms_for_user(self, user_object, flatten=True, specific_permission=None):
+        """Prefix permissions for a given user."""
 
         if specific_permission is None:
             specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
@@ -300,8 +296,6 @@ class UserUtils:
         #         flat = True
         #     )
         # )
-
-        # import pdb;pdb.set_trace()
 
         prefixed = self.get_user_info(
                 user_object

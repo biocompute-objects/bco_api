@@ -67,14 +67,13 @@ def populate_models(sender, **kwargs):
         # dummy block
         pass
 
-    else:
-        
+    else:     
         # Django wants a primary key for the Group...
         group = Group.objects.get(name = 'bco_publisher').name
 
         # Django wants a primary key for the User...
         user = User.objects.get(username = 'bco_publisher').username
-        
+    
         DbUtils.DbUtils().write_object(
             p_app_label = 'api',
             p_model_name = 'prefixes',

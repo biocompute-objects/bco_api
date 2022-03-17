@@ -60,40 +60,31 @@ class RequestorInGroupAdminsGroup(
 
 
 
-class RequestorInPrefixAdminsGroup(
-    permissions.BasePermission
-):
-
-    def has_permission(
-        self, 
-        request,
-        view
-    ):
-
-        # Check to see if the requester is in the prefix admins group.
+class RequestorInPrefixAdminsGroup(permissions.BasePermission):
+    """
+    Check to see if the requester is in the prefix admins group.
         
-        # Get the groups for this token (user).
+        Get the groups for this token (user).
 
-        # Slight tweak in case the proper headers were not provided...
-        # In particular, Swagger will cause an Internal Error 500
-        # if this logic is not here AND a view uses non-object-level
-        # permissions (i.e. RequestorInPrefixAdminsGroup, see 
-        # ApiPrefixesPermissionsSet in views.py)
+        Slight tweak in case the proper headers were not provided...
+        In particular, Swagger will cause an Internal Error 500
+        if this logic is not here AND a view uses non-object-level
+        permissions (i.e. RequestorInPrefixAdminsGroup, see 
+        ApiPrefixesPermissionsSet in views.py)
+    """
+    def has_permission(self, request, view):
+        """
+            This means getting the user ID for the token,
+            then the username.
+            Get the prefix admins.
+        """
         if 'HTTP_AUTHORIZATION' in request.META:
-
-            # This means getting the user ID for the token,
-            # then the username.
             user_id = Token.objects.get(
-                key = request.META.get(
-                    'HTTP_AUTHORIZATION'
-                ).split(' ')[1]
+                key = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
             ).user_id
 
-            username = User.objects.get(
-                id = user_id
-            )
-            
-            # Get the prefix admins.
+            username = User.objects.get(id = user_id)
+
             prefix_admins = Group.objects.filter(
                 user = username,
                 name = 'prefix_admins'
@@ -102,7 +93,6 @@ class RequestorInPrefixAdminsGroup(
             return len(prefix_admins) > 0
 
         else:
-
             return False
         
         
