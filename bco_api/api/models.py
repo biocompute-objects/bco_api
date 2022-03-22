@@ -114,13 +114,13 @@ class new_users(models.Model):
     created = models.DateTimeField(default=timezone.now)
 
 
-# Link prefixes to groups and users.
+# Link Prefix to groups and users.
 
 # Be careful about related_name.
 # Source: https://stackoverflow.com/questions/53651114/using-same-foreign-key-twice-in-a-model-in-django-as-different-fields
-class prefixes(models.Model):
-    
-    # Which server is this prefix certified with?
+class Prefix(models.Model):
+    """Which server is this prefix certified with?"""
+
     certifying_server = models.TextField(blank = True, null = True)
 
     # What is the certifying key?
@@ -162,7 +162,7 @@ class prefixes(models.Model):
     
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
-        return self.prefix
+        return "{}".format(self.prefix)
 
 # def get_first_name(self):
 #     return self.first_name
@@ -224,7 +224,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
             Token.objects.create(user=instance)
 
 # --- Prefix --- #
-@receiver(post_save, sender=prefixes)
+@receiver(post_save, sender=Prefix)
 def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
     """Link prefix creation to permissions creation.
         Check to see whether or not the permissions
@@ -286,7 +286,7 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
             pass
 
 
-@receiver(post_delete, sender=prefixes)
+@receiver(post_delete, sender=Prefix)
 def delete_permissions_for_prefix(sender, instance=None, **kwargs):
     """Link prefix deletion to permissions deletion.
     No risk of raising an error when using
