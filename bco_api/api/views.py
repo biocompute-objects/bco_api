@@ -23,35 +23,40 @@ from rest_framework.views import APIView
 
 from .permissions import RequestorInPrefixAdminsGroup
 # FIX
-from .scripts.method_specific.GET_activate_account import GET_activate_account
-from .scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
-from .scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
-from .scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
+from api.scripts.method_specific.GET_activate_account import GET_activate_account
+from api.scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
+from api.scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
+from api.scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
 # Request-specific methods
-from .scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
-from .scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
-from .scripts.method_specific.POST_api_groups_create import POST_api_groups_create
-from .scripts.method_specific.POST_api_groups_delete import POST_api_groups_delete
-from .scripts.method_specific.POST_api_groups_modify import POST_api_groups_modify
-from .scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create
-from .scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
-from .scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
-from .scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
-from .scripts.method_specific.POST_api_objects_drafts_publish import POST_api_objects_drafts_publish
-from .scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
-from .scripts.method_specific.POST_api_objects_drafts_token import POST_api_objects_drafts_token
-from .scripts.method_specific.POST_api_objects_publish import POST_api_objects_publish
-from .scripts.method_specific.POST_api_objects_published import POST_api_objects_published
-from .scripts.method_specific.POST_api_objects_search import POST_api_objects_search
-from .scripts.method_specific.POST_api_objects_token import POST_api_objects_token
-from .scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
-from .scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
-from .scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify
-from .scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
-from .scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
-from .scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
+from api.scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
+from api.scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
+
+# from api.scripts.method_specific.POST_api_groups_create import POST_api_groups_create
+from api.groups import post_api_groups_create
+# from api.scripts.method_specific.POST_api_groups_delete import POST_api_groups_delete
+from api.groups import post_api_groups_delete
+# from api.scripts.method_specific.POST_api_groups_modify import POST_api_groups_modify
+from api.groups import post_api_groups_modify
+
+from api.scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create
+from api.scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
+from api.scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
+from api.scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
+from api.scripts.method_specific.POST_api_objects_drafts_publish import POST_api_objects_drafts_publish
+from api.scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
+from api.scripts.method_specific.POST_api_objects_drafts_token import POST_api_objects_drafts_token
+from api.scripts.method_specific.POST_api_objects_publish import POST_api_objects_publish
+from api.scripts.method_specific.POST_api_objects_published import POST_api_objects_published
+from api.scripts.method_specific.POST_api_objects_search import POST_api_objects_search
+from api.scripts.method_specific.POST_api_objects_token import POST_api_objects_token
+from api.scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
+from api.scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
+from api.scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify
+from api.scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
+from api.scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
+from api.scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
 # For helper functions
-from .scripts.utilities import UserUtils
+from api.scripts.utilities import UserUtils
 
 
 ################################################################################################
@@ -241,7 +246,7 @@ class ApiGroupsCreate(APIView):
             409: "Group conflict.  There is already a group with this name."
             }, tags=["Group Management"])
     def post(self, request):
-        return check_post_and_process(request, POST_api_groups_create)
+        return check_post_and_process(request, post_api_groups_create)
 
 
 class ApiGroupsDelete(APIView):
@@ -290,7 +295,7 @@ class ApiGroupsDelete(APIView):
         }, tags=["Group Management"])
     
     def post(self, request):
-        return check_post_and_process(request, POST_api_groups_delete)
+        return check_post_and_process(request, post_api_groups_delete)
 
 
 class ApiGroupsModify(APIView):
@@ -363,7 +368,7 @@ class ApiGroupsModify(APIView):
             403: "Insufficient privileges."
             }, tags=["Group Management"])
     def post(self, request):
-        return check_post_and_process(request, POST_api_groups_modify)
+        return check_post_and_process(request, post_api_groups_modify)
 
 
 class ApiAccountsNew(APIView):
