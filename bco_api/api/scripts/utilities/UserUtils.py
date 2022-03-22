@@ -1,5 +1,5 @@
-# Prefixes
-from ...models import prefixes
+# Prefix
+from api.models import Prefix
 
 # For returning server information.
 from django.conf import settings
@@ -102,7 +102,7 @@ class UserUtils:
         ):
 
         # Check if a user owns a prefix.
-        return prefixes.objects.filter(owner_user=un, prefix=prfx).exists()
+        return Prefix.objects.filter(owner_user=un, prefix=prfx).exists()
 
     def get_user_groups_by_token(
             self,
@@ -253,7 +253,7 @@ class UserUtils:
                 'other_info'             : other_info
                 }
 
-    # Prefixes for a given user.
+    # Prefix for a given user.
     def prefixes_for_user(
             self,
             user_object
@@ -285,7 +285,7 @@ class UserUtils:
 
         # Get the prefixes for the user and their groups, then filter.
         # pxs = list(
-        #         prefixes.objects.filter(
+        #         Prefix.objects.filter(
         #         Q(owner_user = user_object.id) |
         #         Q(owner_group__in = list(user_object.groups.all().values_list(
         #             'id', 

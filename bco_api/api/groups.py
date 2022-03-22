@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Functions for operations with groups
 """
+
 from django.db import models
 import django.db.utils as PermErrors
 from django.db.models.signals import post_save, post_delete, pre_delete
@@ -11,7 +12,6 @@ from django.dispatch import receiver
 from django.utils import timezone
 from guardian.shortcuts import assign_perm
 from rest_framework import status
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
 from api.scripts.utilities import DbUtils
@@ -26,23 +26,11 @@ class GroupInfo(models.Model):
     """
 
     delete_members_on_group_deletion = models.BooleanField(default=False)
-
-    # The group
     group = models.OneToOneField(Group, on_delete=models.CASCADE)
-    # Delete group members on group deletion?
-    delete_members_on_group_deletion = models.BooleanField(default=False)
-    # Description of the group
     description = models.TextField(blank = True)
-    # Expiration date
     expiration = models.DateTimeField(blank=True, null=True)
-
-    # The group
     group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
-
-    # Size limit for the number of members
     max_n_members = models.IntegerField(blank=True, null=True)
-
-    # Which user owns it?
     owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
 
 # --- Group --- #

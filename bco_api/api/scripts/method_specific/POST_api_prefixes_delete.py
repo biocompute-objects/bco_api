@@ -8,7 +8,7 @@ as /api/objects/drafts/read/, will not allow any requestor access to particular
 objects.
 """
 from api.scripts.utilities import DbUtils
-from api.models import prefixes
+from api.models import Prefix
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -33,7 +33,7 @@ def POST_api_prefixes_delete(request):
 
     # Get all existing prefixes.
     available_prefixes = list(
-            prefixes.objects.all().values_list('prefix', flat=True))
+            Prefix.objects.all().values_list('prefix', flat=True))
 
     returning = []
 
@@ -60,7 +60,7 @@ def POST_api_prefixes_delete(request):
             # just delete straight up.
             # Source: https://stackoverflow.com/a/3681691
             # Django *DOESN'T* want primary keys now...
-            prefixed = prefixes.objects.get(prefix=standardized)
+            prefixed = Prefix.objects.get(prefix=standardized)
             prefixed.delete()
             # Deleted the prefix.
             errors['200_OK_prefix_delete'] = db_utils.messages(parameters={
