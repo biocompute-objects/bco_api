@@ -114,12 +114,12 @@ class new_users(models.Model):
     created = models.DateTimeField(default=timezone.now)
 
 
-# Link Prefix to groups and users.
-
-# Be careful about related_name.
-# Source: https://stackoverflow.com/questions/53651114/using-same-foreign-key-twice-in-a-model-in-django-as-different-fields
 class Prefix(models.Model):
-    """Which server is this prefix certified with?"""
+    """Link Prefix to groups and users.
+
+    Be careful about related_name.
+    Source: https://stackoverflow.com/questions/53651114/using-same-foreign-key-twice-in-a-model-in-django-as-different-fields
+    Which server is this prefix certified with?"""
 
     certifying_server = models.TextField(blank = True, null = True)
 
@@ -159,10 +159,10 @@ class Prefix(models.Model):
 
     # The actual prefix.
     prefix = models.CharField(max_length=5)
-    
+
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
-        return "{}".format(self.prefix)
+        return f"{self.prefix}"
 
 # def get_first_name(self):
 #     return self.first_name

@@ -260,3 +260,4 @@ elif server_config['PRODUCTION']['production'] == 'False':
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
