@@ -121,8 +121,13 @@ def POST_api_objects_drafts_modify(request):
                 db_utils.messages(parameters = {'prefix': prefix}
                 )['401_prefix_unauthorized'])
             any_failed = True
-
-    if any_failed:
+    import pdb; pdb.set_trace()
+    if any_failed and len(returning) == 1:
+        if returning[0]['status_code'] == '403':
+            return Response(status=status.HTTP_403_FORBIDDEN, data=returning)
+        else:
+            return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+    if any_failed and len(returning) > 1:
         return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
     else:
         return Response(status = status.HTTP_200_OK, data = returning)
