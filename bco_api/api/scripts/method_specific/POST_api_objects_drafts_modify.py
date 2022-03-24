@@ -78,11 +78,9 @@ def POST_api_objects_drafts_modify(request):
                 # We don't care where the view permission comes from,
                 # be it a User permission or a Group permission.
                 all_permissions = get_perms(user, objected)
-
                 # TODO: add permission setting view...
-                # if user.pk == object.owner_user or 'change_' + prefix in all_permissions:
                 if user.username == objected.owner_user.username or \
-                    'add_' + prefix in all_permissions:
+                    'add_' + prefix in px_perms:
 
                     # # User does *NOT* have to be in the owner group!
                     # # to assign the object's group owner.
@@ -121,7 +119,6 @@ def POST_api_objects_drafts_modify(request):
                 db_utils.messages(parameters = {'prefix': prefix}
                 )['401_prefix_unauthorized'])
             any_failed = True
-    import pdb; pdb.set_trace()
     if any_failed and len(returning) == 1:
         if returning[0]['status_code'] == '403':
             return Response(status=status.HTTP_403_FORBIDDEN, data=returning)

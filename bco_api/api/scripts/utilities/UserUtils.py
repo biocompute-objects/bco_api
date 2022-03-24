@@ -25,17 +25,8 @@ class UserUtils:
     Attributes
     ----------
 
-<<<<<<< HEAD
-    # These are methods for interacting with user information.
-
-    def check_permission_exists(
-            self,
-            perm
-        ):
-=======
     Methods
     -------
->>>>>>> main
 
     """
     def check_permission_exists(self, perm):
@@ -129,58 +120,45 @@ class UserUtils:
                 user=username
                 )
 
-    def get_user_groups_by_username(
-            self,
-            un
-        ):
-
-        # Takes usernames to give groups.
-
-        # Get the groups for this username (at a minimum the user
-        # group created when the account was created should show up).
-        return Group.objects.filter(
-                user=User.objects.get(
-                        username=un
-                        )
-                )
+    def get_user_groups_by_username(self, un):
+        """Takes usernames to give groups.
+        Get the groups for this username (at a minimum the user
+        group created when the account was created should show up).
+        """
+        return Group.objects.filter(user=User.objects.get(username=un))
 
     # Get all user information.
-    def get_user_info(
-            self,
-            username
-        ):
+    def get_user_info(self,username):
+        """Get User Info
 
-        # Arguments
-        # ---------
+        Arguments
+        ---------
 
-        # username:  the username.
+        username:  the username.
 
-        # Returns
-        # -------
+        Returns
+        -------
 
-        # A dict with the user information.
+        A dict with the user information.
 
-        # Slight error the the django-rest-framework documentation
-        # as we need the user id and not the username.
-        # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
-        user_id = User.objects.get(
-                username=username
-                ).pk
+        Slight error the the django-rest-framework documentation
+        as we need the user id and not the username.
+        Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+        """
+        user_id = User.objects.get(username=username).pk
 
         # No token creation as the user has to specifically
         # confirm their account before a token is created
         # for them.
-        token = Token.objects.get(
-                user=user_id
-                )
+        token = Token.objects.get(user=user_id)
 
         # Get the other information for this user.
         # Source: https://stackoverflow.com/a/48592813
         other_info = {
-                'permissions'       : { },
-                'account_creation'  : '',
-                'account_expiration': ''
-                }
+            'permissions'       : { },
+            'account_creation'  : '',
+            'account_expiration': ''
+        }
 
         # First, get the django-native User object.
         user = User.objects.get(username=username)
@@ -195,9 +173,9 @@ class UserUtils:
 
         # Define a dictionary to hold the permissions.
         user_perms = {
-                'user'  : { },
-                'groups': { }
-                }
+            'user'  : { },
+            'groups': { }
+        }
 
         # First, by the user.
         for p in user.user_permissions.all():
@@ -254,24 +232,16 @@ class UserUtils:
                 }
 
     # Prefix for a given user.
-    def prefixes_for_user(
-            self,
-            user_object
-        ):
+    def prefixes_for_user(self, user_object):
+        """Simple function to return prefixes
+        that a user has ANY permission on.
 
-        # Simple function to return prefixes
-        # that a user has ANY permission on.
-
-        # Recall that having any permission on
-        # a prefix automatically means viewing
-        # permission.
-        return list(
-                set(
-                        [
-                                i.split('_')[1] for i in user_object.get_all_permissions()
-                                ]
-                        )
-                )
+        Recall that having any permission on
+        a prefix automatically means viewing
+        permission.
+        """
+        
+        return list(set([i.split('_')[1] for i in user_object.get_all_permissions()]))
 
 
     def prefix_perms_for_user(self, user_object, flatten=True, specific_permission=None):

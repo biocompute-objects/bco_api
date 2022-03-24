@@ -28,16 +28,13 @@ from api.scripts.method_specific.GET_draft_object_by_id import GET_draft_object_
 from api.scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
 # Request-specific methods
-from api.scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
-from api.scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
-
-# from api.scripts.method_specific.POST_api_groups_create import POST_api_groups_create
 from api.groups import post_api_groups_create
-# from api.scripts.method_specific.POST_api_groups_delete import POST_api_groups_delete
+from api.groups import post_api_groups_info
 from api.groups import post_api_groups_delete
-# from api.scripts.method_specific.POST_api_groups_modify import POST_api_groups_modify
 from api.groups import post_api_groups_modify
 
+from api.scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
+from api.scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
 from api.scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create
 from api.scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
 from api.scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
@@ -198,9 +195,42 @@ class ApiAccountsDescribe(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class ApiGroupsCreate(APIView):
+class ApiGroupsInfo(APIView):
+    """Group Info
+
+    --------------------
+
+    This API call checks a user's groups and permissions in ths system.  The User token is
+    required but all other parameters are optional.
     """
-    Create group
+
+    auth = [
+        openapi.Parameter('Authorization',
+            openapi.IN_HEADER,
+            description="Authorization Token",
+            type=openapi.TYPE_STRING
+        )
+    ]
+
+    @swagger_auto_schema(manual_parameters=auth, responses={
+            200: "Authorization is successful.",
+            400: "Bad request.  Authorization is not provided in the request headers.",
+            401: "Unauthorized. Authentication credentials were not provided."
+            }, tags=["Account Management"])
+    def post(self, request):
+        """
+        Pass the request to the handling function
+        Source: https://stackoverflow.com/a/31813810 
+        """
+        if 'Authorization' in request.headers:
+            token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+            return post_api_groups_info(token=token)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ApiGroupsCreate(APIView):
+    """Create group
 
     --------------------
     This API call creates a BCO group in ths system.  The name of the group is
