@@ -22,6 +22,7 @@ from .views import (
     ApiAccountsDescribe,
     ApiAccountsNew,
     ApiGroupsCreate,
+    ApiGroupsInfo,
     ApiGroupsDelete,
     ApiGroupsModify,
     ApiObjectsDraftsCreate,
@@ -133,6 +134,9 @@ elif PUBLISH_ONLY == 'False':
              ),
         path('api/accounts/new/',
              ApiAccountsNew.as_view()
+             ),
+        path('api/accounts/group_info/',
+             ApiGroupsInfo.as_view()
              ),
         path('api/groups/create/',
              ApiGroupsCreate.as_view()
