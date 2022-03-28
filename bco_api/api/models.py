@@ -77,7 +77,7 @@ class bco(models.Model):
 
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
-        return self.object_id
+        return str(self.object_id)
 
 
 # Generic meta data model
