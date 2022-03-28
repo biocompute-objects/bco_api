@@ -93,7 +93,6 @@ def POST_api_objects_drafts_modify(request):
                     objected.contents = draft_object['contents']
 
                     if draft_object['state'] == 'DELETE':
-                        import pdb; pdb.set_trace()
                         objected.state = 'DELETE'
 
                     # Set the update time.
