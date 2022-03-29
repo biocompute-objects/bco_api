@@ -6,6 +6,7 @@
 Creates a new BCO draft object.
 """
 
+from email import message
 from api.scripts.utilities import DbUtils, UserUtils
 from api.models import prefix_table
 from django.conf import settings
@@ -14,7 +15,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 
-def POST_api_objects_drafts_create(request):
+def post_api_objects_drafts_create(request):
     """Create BCO Draft
 
     Parameters
@@ -49,6 +50,88 @@ def POST_api_objects_drafts_create(request):
 
     # Since bulk_request is an array, go over each
     # item in the array.
+
+    if len(bulk_request) == 1:
+        creation_object = bulk_request[0]
+        standardized = creation_object['prefix'].upper()
+        if 'add_' + standardized in prefix_perms and \
+            'draft_' + standardized in prefix_perms:
+            if Group.objects.filter(
+                name = creation_object['owner_group'].lower()).exists():
+                constructed_name = object_naming_info['uri_regex'].replace(
+                    'root_uri',
+                    object_naming_info['root_uri']
+                )
+                constructed_name = constructed_name.replace('prefix', standardized)
+                prefix_location = constructed_name.index(standardized)
+                prefix_length = len(standardized)
+                constructed_name = constructed_name[0:prefix_location+prefix_length]
+                prefix_counter = prefix_table.objects.get(prefix=standardized)
+                creation_object['object_id'] =  constructed_name + '_' + \
+                    '{:06d}'.format(prefix_counter.n_objects) + '/DRAFT'
+
+                creation_object['contents']['object_id'] = creation_object['object_id']
+                bco_id = creation_object['object_id']
+                owner_group = Group.objects.get(name = creation_object['owner_group'])
+                creation_object['owner_group'] = owner_group.name
+                creation_object['owner_user'] = user.username
+                creation_object['prefix'] = standardized
+                creation_object['state'] = 'DRAFT'
+                creation_object['last_update'] = timezone.now()
+                objects_written = db_utils.write_object(
+                    p_app_label = 'api',
+                    p_model_name = 'bco',
+                    p_fields = [
+                        'contents',
+                        'last_update',
+                        'object_id',
+                        'owner_group',
+                        'owner_user',
+                        'prefix',
+                        'schema',
+                        'state'],
+                    p_data = creation_object
+                )
+                prefix_counter.n_objects = prefix_counter.n_objects + 1
+                prefix_counter.save()
+
+                if objects_written < 1:
+                    # Issue with writing out to DB
+                    return Response(
+                        status=status.HTTP_400_BAD_REQUEST, 
+                        data='The request could not be processed with the'\
+                        ' parameters provided.'
+                    )
+                
+                return Response(
+                    status=status.HTTP_201_CREATED,
+                    data= {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '201',
+                        'message'       : f'The object with ID {bco_id} was'\
+                                            ' created on the server.',
+                        'object_id'     : bco_id
+                        },
+                )
+
+            else:
+                # Update the request status.
+                returning.append(db_utils.messages(parameters = {})
+                ['400_bad_request'])
+                any_failed = True
+
+        else:
+            # Update the request status.
+            return Response(
+                status=status.HTTP_401_UNAUTHORIZED,
+                data= {
+                    'request_status': 'FAILURE',
+                    'status_code'   : '401',
+                    'message'       : 'The token provided does not have draft'\
+                        f'permissions for prefix {standardized}.'
+                    }
+                )
+
     for creation_object in bulk_request:
         # Standardize the prefix.
         standardized = creation_object['prefix'].upper()

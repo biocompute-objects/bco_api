@@ -35,7 +35,7 @@ from api.groups import post_api_groups_modify
 
 from api.scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
 from api.scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
-from api.scripts.method_specific.POST_api_objects_drafts_create import POST_api_objects_drafts_create
+from api.scripts.method_specific.POST_api_objects_drafts_create import post_api_objects_drafts_create
 from api.scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
 from api.scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
 from api.scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
@@ -494,7 +494,7 @@ class ApiObjectsDraftsCreate(APIView):
             403: "Invalid token."
             }, tags=["BCO Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_objects_drafts_create)
+        return check_post_and_process(request, post_api_objects_drafts_create)
 
 
 class ApiObjectsDraftsModify(APIView):

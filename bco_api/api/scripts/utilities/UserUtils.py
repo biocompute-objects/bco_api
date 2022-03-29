@@ -30,28 +30,28 @@ class UserUtils:
 
     """
     def check_permission_exists(self, perm):
-        # Does the user exist?
+        """Does the user exist?"""
         return Permission.objects.get(codename='test')
 
     def check_group_exists(self, n):
-        # Does the user exist?
+        """Does the user exist?"""
         return Group.objects.filter(name=n).exists()
 
     def check_user_exists(self, un):
-        # Does the user exist?
+        """Does the user exist?"""
         return User.objects.filter(username=un).exists()
 
     def check_user_in_group(self, un, gn):
+        """Check if a user is in a group.
 
-        # Check if a user is in a group.
+        First check that the user exists.
+        Then check that the groups exists.
+        Finally, check that the user is in
+        the group.
 
-        # First check that the user exists.
-        # Then check that the groups exists.
-        # Finally, check that the user is in
-        # the group.
-
-        # Try/except is preferred because
-        # the query is only run one time.
+        Try/except is preferred because
+        the query is only run one time.
+        """
 
         try:
 
@@ -86,39 +86,24 @@ class UserUtils:
             # Bad user.
             return False
 
-    def check_user_owns_prefix(
-            self,
-            un,
-            prfx
-        ):
+    def check_user_owns_prefix(self, un, prfx):
+        """Check if a user owns a prefix."""
 
-        # Check if a user owns a prefix.
         return Prefix.objects.filter(owner_user=un, prefix=prfx).exists()
 
-    def get_user_groups_by_token(
-            self,
-            token
-        ):
+    def get_user_groups_by_token(self, token):
+        """Takes token to give groups.
+        First, get the groups for this token.
+        This means getting the user ID for the token,
+        then the username."""
 
-        # Takes token to give groups.
-
-        # First, get the groups for this token.
-
-        # This means getting the user ID for the token,
-        # then the username.
-        user_id = Token.objects.get(
-                key=token
-                ).user_id
-
-        username = User.objects.get(
-                id=user_id
-                )
+        user_id = Token.objects.get(key=token).user_id
+        username = User.objects.get(id=user_id)
 
         # Get the groups for this username (at a minimum the user
         # group created when the account was created should show up).
-        return Group.objects.filter(
-                user=username
-                )
+
+        return Group.objects.filter(user=username)
 
     def get_user_groups_by_username(self, un):
         """Takes usernames to give groups.
