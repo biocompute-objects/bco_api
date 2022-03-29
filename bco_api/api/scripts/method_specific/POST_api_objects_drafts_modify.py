@@ -89,9 +89,11 @@ def POST_api_objects_drafts_modify(request):
                     # ).exists():
                     #
                     # Update the object.
-
                     # *** COMPLETELY OVERWRITES CONTENTS!!! ***
                     objected.contents = draft_object['contents']
+
+                    if draft_object['state'] == 'DELETE':
+                        objected.state = 'DELETE'
 
                     # Set the update time.
                     objected.last_update = timezone.now()
