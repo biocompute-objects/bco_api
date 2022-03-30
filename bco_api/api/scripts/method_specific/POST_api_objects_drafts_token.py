@@ -3,8 +3,7 @@
 
 
 """
-from bdb import set_trace
-import pdb
+
 import re
 # Concatenating QuerySets
 from itertools import chain
@@ -178,7 +177,6 @@ def POST_api_objects_drafts_token(rqst, internal=False):
         # Get the user's DRAFT objects AND
         # add in the published objects.
         # TODO: This needs to only return the most recent PUBLISHED objects not all of the versions
-        # import pdb; pdb.set_trace()
 
         published = bco.objects.filter(state='PUBLISHED').values()
         # unique_published = []

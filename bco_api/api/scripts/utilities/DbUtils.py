@@ -902,7 +902,7 @@ class DbUtils:
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data=publishable.contents
                     )
-            import pdb; pdb.set_trace()
+
             # Successfully saved the object.
             return {
                     'published_id': published['object_id']
