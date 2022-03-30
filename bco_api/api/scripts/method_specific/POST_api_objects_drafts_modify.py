@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_api_objects_drafts_modify(request):
+def post_api_objects_drafts_modify(request):
     """ Modify Draft
 
     Take the bulk request and modify a draft object from it.
@@ -92,9 +92,10 @@ def POST_api_objects_drafts_modify(request):
                     # *** COMPLETELY OVERWRITES CONTENTS!!! ***
                     objected.contents = draft_object['contents']
 
-                    if draft_object['state'] == 'DELETE':
-                        objected.state = 'DELETE'
-
+                    if 'state' in draft_object:
+                        if draft_object['state'] == 'DELETE':
+                            objected.state = 'DELETE'
+        
                     # Set the update time.
                     objected.last_update = timezone.now()
 
@@ -113,8 +114,9 @@ def POST_api_objects_drafts_modify(request):
                     any_failed = True
 
             else:
-                returning.append(db_utils.messages(parameters = {
-                    'object_id': draft_object['object_id']}))['404_object_id']
+                returning.append(
+                    db_utils.messages(parameters = {'object_id': draft_object['object_id']}
+                    )['404_object_id'])
                 any_failed = True
         else:
             returning.append(

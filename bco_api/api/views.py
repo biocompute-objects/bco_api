@@ -36,7 +36,7 @@ from api.groups import post_api_groups_modify
 from api.scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
 from api.scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
 from api.scripts.method_specific.POST_api_objects_drafts_create import post_api_objects_drafts_create
-from api.scripts.method_specific.POST_api_objects_drafts_modify import POST_api_objects_drafts_modify
+from api.scripts.method_specific.POST_api_objects_drafts_modify import post_api_objects_drafts_modify
 from api.scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
 from api.scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
 from api.scripts.method_specific.POST_api_objects_drafts_publish import POST_api_objects_drafts_publish
@@ -44,7 +44,7 @@ from api.scripts.method_specific.POST_api_objects_drafts_read import POST_api_ob
 from api.scripts.method_specific.POST_api_objects_drafts_token import POST_api_objects_drafts_token
 from api.scripts.method_specific.POST_api_objects_publish import POST_api_objects_publish
 from api.scripts.method_specific.POST_api_objects_published import POST_api_objects_published
-from api.scripts.method_specific.POST_api_objects_search import POST_api_objects_search
+from api.scripts.method_specific.POST_api_objects_search import post_api_objects_search
 from api.scripts.method_specific.POST_api_objects_token import POST_api_objects_token
 from api.scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
 from api.scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
@@ -123,9 +123,7 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
     permission_classes = []
 
     # For the success and error messages
-    renderer_classes = [
-            TemplateHTMLRenderer
-            ]
+    renderer_classes = [TemplateHTMLRenderer]
     template_name = 'api/account_activation_message.html'
 
     auth = []
@@ -533,7 +531,7 @@ class ApiObjectsDraftsModify(APIView):
             403: "Invalid token."
             }, tags=["BCO Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_objects_drafts_modify)
+        return check_post_and_process(request, post_api_objects_drafts_modify)
 
 
 class ApiObjectsDraftsPermissions(APIView):
@@ -806,6 +804,8 @@ class ApiObjectsSearch(APIView):
     Search for available BCO objects that match criteria.
     """
 
+    # authentication_classes = []
+    # permission_classes = []
     # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -822,7 +822,7 @@ class ApiObjectsSearch(APIView):
             403: "Invalid token."
             }, tags=["BCO Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_objects_search)
+        return check_post_and_process(request, post_api_objects_search)
 
 
 class ApiObjectsToken(APIView):
