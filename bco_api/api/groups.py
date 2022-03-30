@@ -42,7 +42,7 @@ def post_api_groups_info(token):
     """Retrieve Group information by user
     
     """
-    import pdb; pdb.set_trace()
+
     group_list = list(Group.objects.all())#.values_list('name', flat=True))
     user = Token.objects.get(key = token).user
     username = user.username
@@ -102,7 +102,7 @@ def post_api_groups_create(request):
 
     
             if 'expiration' not in creation_object:
-                import pdb; pdb.set_trace()
+
                 GroupInfo.objects.create(
                     delete_members_on_group_deletion=bool(creation_object['delete_members_on_group_deletion']),
                     description=creation_object['description'],
