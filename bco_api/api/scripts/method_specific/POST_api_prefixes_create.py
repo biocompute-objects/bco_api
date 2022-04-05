@@ -10,7 +10,7 @@ import re
 
 from api.scripts.utilities import DbUtils
 from api.scripts.utilities import UserUtils
-from api.models import prefixes
+from api.models import Prefix
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -46,7 +46,7 @@ def POST_api_prefixes_create(request):
 
     # Get all existing prefixes.
     available_prefixes = list(
-        prefixes.objects.all().values_list('prefix', flat = True))
+        Prefix.objects.all().values_list('prefix', flat = True))
 
     # Construct an array to return information about processing
     # the request.
@@ -118,7 +118,7 @@ def POST_api_prefixes_create(request):
                 # The prefix has not been created, so create it.                
                 DbUtils.DbUtils().write_object(
                     p_app_label = 'api',
-                    p_model_name = 'prefixes',
+                    p_model_name = 'Prefix',
                     p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
                     p_data = {
                         'created_by': user_utils.user_from_request(

@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
-def POST_api_objects_drafts_modify(request):
+def post_api_objects_drafts_modify(request):
     """ Modify Draft
 
     Take the bulk request and modify a draft object from it.
@@ -78,11 +78,9 @@ def POST_api_objects_drafts_modify(request):
                 # We don't care where the view permission comes from,
                 # be it a User permission or a Group permission.
                 all_permissions = get_perms(user, objected)
-
                 # TODO: add permission setting view...
-                # if user.pk == object.owner_user or 'change_' + prefix in all_permissions:
                 if user.username == objected.owner_user.username or \
-                    'add_' + prefix in all_permissions:
+                    'add_' + prefix in px_perms:
 
                     # # User does *NOT* have to be in the owner group!
                     # # to assign the object's group owner.
@@ -91,10 +89,13 @@ def POST_api_objects_drafts_modify(request):
                     # ).exists():
                     #
                     # Update the object.
-
                     # *** COMPLETELY OVERWRITES CONTENTS!!! ***
                     objected.contents = draft_object['contents']
 
+                    if 'state' in draft_object:
+                        if draft_object['state'] == 'DELETE':
+                            objected.state = 'DELETE'
+        
                     # Set the update time.
                     objected.last_update = timezone.now()
 
@@ -113,16 +114,21 @@ def POST_api_objects_drafts_modify(request):
                     any_failed = True
 
             else:
-                returning.append(db_utils.messages(parameters = {
-                    'object_id': draft_object['object_id']}))['404_object_id']
+                returning.append(
+                    db_utils.messages(parameters = {'object_id': draft_object['object_id']}
+                    )['404_object_id'])
                 any_failed = True
         else:
             returning.append(
                 db_utils.messages(parameters = {'prefix': prefix}
                 )['401_prefix_unauthorized'])
             any_failed = True
-
-    if any_failed:
+    if any_failed and len(returning) == 1:
+        if returning[0]['status_code'] == '403':
+            return Response(status=status.HTTP_403_FORBIDDEN, data=returning)
+        else:
+            return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+    if any_failed and len(returning) > 1:
         return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
     else:
         return Response(status = status.HTTP_200_OK, data = returning)

@@ -76,7 +76,7 @@ def populate_models(sender, **kwargs):
     
         DbUtils.DbUtils().write_object(
             p_app_label = 'api',
-            p_model_name = 'prefixes',
+            p_model_name = 'Prefix',
             p_fields = ['created_by', 'owner_group', 'owner_user', 'prefix'],
             p_data = {
                 'created_by': user,
@@ -129,7 +129,7 @@ def populate_models(sender, **kwargs):
             name = 'prefix_admins'
         ).permissions.add(
             Permission.objects.get(
-                codename = perm + '_prefixes'
+                codename = perm + '_prefix'
             )
         )
     

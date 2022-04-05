@@ -641,6 +641,11 @@ class DbUtils:
                         'status_code'   : '201',
                         'message'       : 'The prefix \'' + parameters['prefix'] + '\' was successfully created.'
                         },
+                '204_no_content'                        : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '204',
+                        'message'       : 'The search you performed returned ZERO results.'
+                        },
                 '400_bad_request'                          : {
                         'request_status': 'FAILURE',
                         'status_code'   : '400',
@@ -897,7 +902,7 @@ class DbUtils:
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data=publishable.contents
                     )
-            import pdb; pdb.set_trace()
+
             # Successfully saved the object.
             return {
                     'published_id': published['object_id']

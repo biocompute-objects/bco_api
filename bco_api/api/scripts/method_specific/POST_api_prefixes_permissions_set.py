@@ -1,5 +1,5 @@
 # Prefixes
-from ...models import prefixes
+from api.models import Prefix
 
 # DB utilities
 from ..utilities import DbUtils
@@ -37,7 +37,7 @@ def POST_api_prefixes_permissions_set(
 
 	# Get all existing prefixes.
 	available_prefixes = list(
-		prefixes.objects.all().values_list(
+		Prefix.objects.all().values_list(
 				'prefix', 
 				flat = True
 		)

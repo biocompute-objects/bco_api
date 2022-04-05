@@ -1,37 +1,30 @@
-# Explanation of optional fields:  https://stackoverflow.com/questions/16349545/optional-fields-in-django-models
-# TextField is used here because it has no character limit.
+#!/usr/bin/env python3
+"""Explanation of optional fields:  https://stackoverflow.com/questions/16349545/optional-fields-in-django-models
+TextField is used here because it has no character limit.
 
-# Create a base model, then inherit for each table.
-# See the 4th example under "Model Inheritance" at https://docs.djangoproject.com/en/3.1/topics/db/models/#model-inheritance
+Create a base model, then inherit for each table.
+See the 4th example under "Model Inheritance" at https://docs.djangoproject.com/en/3.1/topics/db/models/#model-inheritance
+--- Permissions imports --- #
+Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
+For setting the anonymous key.
+The user model is straight from Django.
+Referencing models.
+Issue with timezones.
+Source: https://stackoverflow.com/a/32411560
+Object-level permissions.
+For token creation.
+Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+"""
 
 from django.db import models
-
-# --- Permissions imports --- #
-
-
-# Source: https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
-
-# For setting the anonymous key.
 from django.conf import settings
-
-# The user model is straight from Django.
 from django.contrib.auth.models import Group, Permission, User
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 import django.db.utils as PermErrors
-
-# Referencing models.
 from django.contrib.contenttypes.models import ContentType
-
-# Issue with timezones.
-# Source: https://stackoverflow.com/a/32411560
 from django.utils import timezone
-
-# Object-level permissions.
 from guardian.shortcuts import assign_perm
-
-# For token creation.
-# Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
 from rest_framework.authtoken.models import Token
 
 
@@ -84,33 +77,7 @@ class bco(models.Model):
 
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
-        return self.object_id
-
-# Some additional information for Group.
-# This information is stored separately from
-# Group so as to not complicate or compromise
-# anything relating to authentication.
-class group_info(models.Model):
-    # Delete group members on group deletion?
-    delete_members_on_group_deletion = models.BooleanField(default=False)
-
-    # The group
-    group = models.OneToOneField(Group, on_delete=models.CASCADE)
-    # Delete group members on group deletion?
-    delete_members_on_group_deletion = models.BooleanField(default=False)
-    # Description of the group
-    description = models.TextField(blank = True)
-    # Expiration date
-    expiration = models.DateTimeField(blank=True, null=True)
-
-    # The group
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
-
-    # Size limit for the number of members
-    max_n_members = models.IntegerField(blank=True, null=True)
-
-    # Which user owns it?
-    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
+        return str(self.object_id)
 
 
 # Generic meta data model
@@ -132,9 +99,9 @@ class prefix_table(models.Model):
 
 # For registering new users.
 class new_users(models.Model):
-    # Instead of using the User model, just use
-    # a crude table to store the temporary information
-    # when someone asks for a new account.
+    """Instead of using the User model, just use
+    a crude table to store the temporary information
+    when someone asks for a new account."""
     email = models.EmailField()
     temp_identifier = models.TextField(max_length=100)
     # In case we are writing back to UserDB.
@@ -147,13 +114,13 @@ class new_users(models.Model):
     created = models.DateTimeField(default=timezone.now)
 
 
-# Link prefixes to groups and users.
+class Prefix(models.Model):
+    """Link Prefix to groups and users.
 
-# Be careful about related_name.
-# Source: https://stackoverflow.com/questions/53651114/using-same-foreign-key-twice-in-a-model-in-django-as-different-fields
-class prefixes(models.Model):
-    
-    # Which server is this prefix certified with?
+    Be careful about related_name.
+    Source: https://stackoverflow.com/questions/53651114/using-same-foreign-key-twice-in-a-model-in-django-as-different-fields
+    Which server is this prefix certified with?"""
+
     certifying_server = models.TextField(blank = True, null = True)
 
     # What is the certifying key?
@@ -192,10 +159,10 @@ class prefixes(models.Model):
 
     # The actual prefix.
     prefix = models.CharField(max_length=5)
-    
+
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
-        return self.prefix
+        return f"{self.prefix}"
 
 # def get_first_name(self):
 #     return self.first_name
@@ -256,21 +223,8 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
             # Create a normal user's record.
             Token.objects.create(user=instance)
 
-
-# --- Group --- #
-@receiver(pre_delete, sender=Group)
-def delete_group_perms(sender, instance=None, **kwargs):
-    """
-    Link group deletion to permissions deletion.
-    pre_delete and NOT post_delete because we need
-    to get the Group's information before deleting it.
-    """
-    for perm in ['add_members_' + instance.name, 'delete_members_' + instance.name]:
-        Permission.objects.filter(codename=perm).delete()
-
-
 # --- Prefix --- #
-@receiver(post_save, sender=prefixes)
+@receiver(post_save, sender=Prefix)
 def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
     """Link prefix creation to permissions creation.
         Check to see whether or not the permissions
@@ -332,7 +286,7 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
             pass
 
 
-@receiver(post_delete, sender=prefixes)
+@receiver(post_delete, sender=Prefix)
 def delete_permissions_for_prefix(sender, instance=None, **kwargs):
     """Link prefix deletion to permissions deletion.
     No risk of raising an error when using
@@ -345,33 +299,6 @@ def delete_permissions_for_prefix(sender, instance=None, **kwargs):
     Permission.objects.filter(codename='view_' + instance.prefix).delete()
     Permission.objects.filter(codename='draft_' + instance.prefix).delete()
     Permission.objects.filter(codename='publish_' + instance.prefix).delete()
-
-
-# --- Group info --- #
-# Link group creation to permission creation.
-@receiver(post_save, sender=group_info)
-def create_group_perms(sender, instance=None, created=False, **kwargs):
-    if created:
-        # Check to see whether or not the permissions
-        # have already been created for this prefix.
-        try:
-            # Create the permissions, then use group_info to give the group admin
-            # the admin permissions.
-            # Create the administrative permissions for the group.
-            for perm in ['add_members_' + instance.group_id,
-                         'delete_members_' + instance.group_id]:
-                Permission.objects.create(
-                    name='Can ' + perm,
-                    content_type=ContentType.objects.get(app_label='auth', model='group'),
-                    codename=perm)
-                # Give the administrative permissions to the user
-                # creating this group.
-                User.objects.get(id=instance.id).user_permissions.add(Permission.objects.get(codename=perm))
-
-        except PermErrors.IntegrityError:
-
-            # The permissions already exist.
-            pass
 
 
 # --- BCO --- #

@@ -1,5 +1,5 @@
-# Prefixes
-from ...models import prefixes
+# Prefix
+from api.models import Prefix
 
 # For returning server information.
 from django.conf import settings
@@ -25,42 +25,33 @@ class UserUtils:
     Attributes
     ----------
 
-<<<<<<< HEAD
-    # These are methods for interacting with user information.
-
-    def check_permission_exists(
-            self,
-            perm
-        ):
-=======
     Methods
     -------
->>>>>>> main
 
     """
     def check_permission_exists(self, perm):
-        # Does the user exist?
+        """Does the user exist?"""
         return Permission.objects.get(codename='test')
 
     def check_group_exists(self, n):
-        # Does the user exist?
+        """Does the user exist?"""
         return Group.objects.filter(name=n).exists()
 
     def check_user_exists(self, un):
-        # Does the user exist?
+        """Does the user exist?"""
         return User.objects.filter(username=un).exists()
 
     def check_user_in_group(self, un, gn):
+        """Check if a user is in a group.
 
-        # Check if a user is in a group.
+        First check that the user exists.
+        Then check that the groups exists.
+        Finally, check that the user is in
+        the group.
 
-        # First check that the user exists.
-        # Then check that the groups exists.
-        # Finally, check that the user is in
-        # the group.
-
-        # Try/except is preferred because
-        # the query is only run one time.
+        Try/except is preferred because
+        the query is only run one time.
+        """
 
         try:
 
@@ -95,92 +86,63 @@ class UserUtils:
             # Bad user.
             return False
 
-    def check_user_owns_prefix(
-            self,
-            un,
-            prfx
-        ):
+    def check_user_owns_prefix(self, un, prfx):
+        """Check if a user owns a prefix."""
 
-        # Check if a user owns a prefix.
-        return prefixes.objects.filter(owner_user=un, prefix=prfx).exists()
+        return Prefix.objects.filter(owner_user=un, prefix=prfx).exists()
 
-    def get_user_groups_by_token(
-            self,
-            token
-        ):
+    def get_user_groups_by_token(self, token):
+        """Takes token to give groups.
+        First, get the groups for this token.
+        This means getting the user ID for the token,
+        then the username."""
 
-        # Takes token to give groups.
-
-        # First, get the groups for this token.
-
-        # This means getting the user ID for the token,
-        # then the username.
-        user_id = Token.objects.get(
-                key=token
-                ).user_id
-
-        username = User.objects.get(
-                id=user_id
-                )
+        user_id = Token.objects.get(key=token).user_id
+        username = User.objects.get(id=user_id)
 
         # Get the groups for this username (at a minimum the user
         # group created when the account was created should show up).
-        return Group.objects.filter(
-                user=username
-                )
+        return Group.objects.filter(user=username)
 
-    def get_user_groups_by_username(
-            self,
-            un
-        ):
-
-        # Takes usernames to give groups.
-
-        # Get the groups for this username (at a minimum the user
-        # group created when the account was created should show up).
-        return Group.objects.filter(
-                user=User.objects.get(
-                        username=un
-                        )
-                )
+    def get_user_groups_by_username(self, un):
+        """Takes usernames to give groups.
+        Get the groups for this username (at a minimum the user
+        group created when the account was created should show up).
+        """
+        return Group.objects.filter(user=User.objects.get(username=un))
 
     # Get all user information.
-    def get_user_info(
-            self,
-            username
-        ):
+    def get_user_info(self,username):
+        """Get User Info
 
-        # Arguments
-        # ---------
+        Arguments
+        ---------
 
-        # username:  the username.
+        username:  the username.
 
-        # Returns
-        # -------
+        Returns
+        -------
 
-        # A dict with the user information.
+        A dict with the user information.
 
-        # Slight error the the django-rest-framework documentation
-        # as we need the user id and not the username.
-        # Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
-        user_id = User.objects.get(
-                username=username
-                ).pk
+        Slight error the the django-rest-framework documentation
+        as we need the user id and not the username.
+        Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+        """
+        user_id = User.objects.get(username=username).pk
 
         # No token creation as the user has to specifically
         # confirm their account before a token is created
         # for them.
-        token = Token.objects.get(
-                user=user_id
-                )
+        token = Token.objects.get(user=user_id)
 
         # Get the other information for this user.
         # Source: https://stackoverflow.com/a/48592813
         other_info = {
-                'permissions'       : { },
-                'account_creation'  : '',
-                'account_expiration': ''
-                }
+            'permissions'       : { },
+            'account_creation'  : '',
+            'account_expiration': ''
+        }
 
         # First, get the django-native User object.
         user = User.objects.get(username=username)
@@ -195,9 +157,9 @@ class UserUtils:
 
         # Define a dictionary to hold the permissions.
         user_perms = {
-                'user'  : { },
-                'groups': { }
-                }
+            'user'  : { },
+            'groups': { }
+        }
 
         # First, by the user.
         for p in user.user_permissions.all():
@@ -253,25 +215,17 @@ class UserUtils:
                 'other_info'             : other_info
                 }
 
-    # Prefixes for a given user.
-    def prefixes_for_user(
-            self,
-            user_object
-        ):
+    # Prefix for a given user.
+    def prefixes_for_user(self, user_object):
+        """Simple function to return prefixes
+        that a user has ANY permission on.
 
-        # Simple function to return prefixes
-        # that a user has ANY permission on.
-
-        # Recall that having any permission on
-        # a prefix automatically means viewing
-        # permission.
-        return list(
-                set(
-                        [
-                                i.split('_')[1] for i in user_object.get_all_permissions()
-                                ]
-                        )
-                )
+        Recall that having any permission on
+        a prefix automatically means viewing
+        permission.
+        """
+        
+        return list(set([i.split('_')[1] for i in user_object.get_all_permissions()]))
 
 
     def prefix_perms_for_user(self, user_object, flatten=True, specific_permission=None):
@@ -285,7 +239,7 @@ class UserUtils:
 
         # Get the prefixes for the user and their groups, then filter.
         # pxs = list(
-        #         prefixes.objects.filter(
+        #         Prefix.objects.filter(
         #         Q(owner_user = user_object.id) |
         #         Q(owner_group__in = list(user_object.groups.all().values_list(
         #             'id', 

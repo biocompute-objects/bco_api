@@ -1,146 +1,95 @@
-# BCO model
-from ...models import bco
+#!/usr/bin/env python3
+"""BCO Search
 
-# For getting objects out of the database.
-from ..utilities import DbUtils
+"""
 
-# User information
-from ..utilities import UserUtils
-
-# Permisions for objects
-from guardian.shortcuts import get_perms
-
-# Responses
+from itertools import chain
+from api.models import bco, Prefix
+from api.scripts.utilities import UserUtils
+from guardian.shortcuts import get_objects_for_user
 from rest_framework import status
 from rest_framework.response import Response
 
+def post_api_objects_search(request):
+    """Search for BCOs
 
+    Parameters
+    ----------
+    request: rest_framework.request.Request
+        Django request object.
 
+    Returns
+    -------
+    List of BCOs that met search criteria
 
-def POST_api_objects_search(
-	incoming
-):
+    """
 
-	# View doesn't work yet...
-	return Response(
-		status = status.HTTP_400_BAD_REQUEST
-	)
-	
-	# Take the bulk request and search for objects.
+    return_values = [
+        'contents',
+        'last_update',
+        'object_class',
+        'object_id',
+        'owner_group',
+        'owner_user',
+        'prefix',
+        'schema',
+        'state'
+    ]
 
-	# Instantiate any necessary imports.
-	db = DbUtils.DbUtils()
-	uu = UserUtils.UserUtils()
-	
-	# The token has already been validated,
-	# so the user is guaranteed to exist.
+    query = request.data['POST_api_objects_search'][0]
+    search_type = query['type']
+    try:
+        search_value = query['search']
+    except KeyError:
+        search_value = ''
+    user_utils = UserUtils.UserUtils()
+    user_info = request._user
+    
+    if search_type == 'bco_id':
+        if user_info.username == 'anon':
+            bco_list = bco.objects.filter(object_id__icontains=search_value, state='PUBLISHED')
+            result_list = chain(bco_list.values(*return_values))
+        else:
+            user_objects = get_objects_for_user(user=user_info, perms=[], klass=bco, any_perm=True)
+            bco_list = bco.objects.filter(object_id__icontains=search_value).exclude(state='DELETE')
+            for i in bco_list:
+                if i not in user_objects:
+                    bco_list.exclude(pk=i.id)
+            result_list = chain(bco_list.values(*return_values))
 
-	# Before any permissions, we want to actually search
-	# for objects.
+    if search_type == 'prefix':
+        search_value = search_value.upper()
+        user_prefixes = user_utils.prefixes_for_user(user_object=user_info)
+        try:
+            prefix = Prefix.objects.get(prefix=search_value).prefix
 
-	# Construct the search
+        except Prefix.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={
+                'request_status': 'FAILURE',
+                'status_code'   : '404',
+                'message'       : 'The prefix was not found on the server.'
+                })
 
-	# Get the User object.
-	user = uu.user_from_request(
-		rq = incoming
-	)
+        if prefix in user_prefixes:
+            bco_list = bco.objects.filter(prefix=prefix).values().exclude(state='DELETE')
+            result_list = chain(bco_list.values(*return_values))
 
-	# Get the user's prefix permissions.
-	px_perms = uu.prefix_perms_for_user(
-		flatten = True,
-		user_object = user,
-		specific_permission = ['view']
-	)
+        else:
+            return Response(status=status.HTTP_403_FORBIDDEN, data={
+                'request_status': 'FAILURE',
+                'status_code'   : '403',
+                'message'       : 'The token provided does not have sufficient'\
+                                  ' permissions for the requested object.'
+                }
+            )
 
-	# Define the bulk request.
-	bulk_request = incoming.data['POST_api_objects_search']
+    if search_type == 'mine':
+        if user_info.username == 'anon':
+            result_list = chain(bco.objects.filter(state='PUBLISHED').values(*return_values))
 
-	# Construct an array to return the objects.
-	returning = []
+        else:
+            result_list = chain(bco.objects.filter(
+                owner_user=user_info).exclude(state='DELETE'
+            ).values(*return_values))
 
-	# Since bulk_request is an array, go over each
-	# item in the array.
-	for read_object in bulk_request:
-		
-		# Get the prefix for this draft.
-		standardized = read_object['object_id'].split('/')[-1].split('_')[0].upper()
-
-		# Does the requestor have view permissions for
-		# the *prefix*?
-		if 'view_' + standardized in px_perms:
-		
-			# The requestor has view permissions for
-			# the prefix, but do they have object-level
-			# view permissions?
-
-			# This can be checked by seeing if the requestor
-			# is the object owner OR they are a user with
-			# object-level view permissions OR if they are in a 
-			# group that has object-level view permissions.
-
-			# To check these options, we need the actual object.
-			if bco.objects.filter(object_id = read_object['object_id']).exists():
-
-				objected = bco.objects.get(
-					object_id = read_object['object_id']
-				)
-
-				# We don't care where the view permission comes from,
-				# be it a User permission or a Group permission.
-				all_permissions = get_perms(
-					user,
-					objected
-				)
-				
-				if user.pk == objected.owner_user.pk or 'view_' + standardized in all_permissions:
-
-					# Read the object.
-					returning.append(
-						db.messages(
-							parameters = {
-								'contents': objected.contents,
-								'object_id': read_object['object_id']
-							}
-						)['200_OK_object_delete']
-					)
-					
-				else:
-
-					# Insufficient permissions.
-					returning.append(
-						db.messages(
-							parameters = {}
-						)['403_insufficient_permissions']
-					)
-
-			else:
-
-				# Couldn't find the object.
-				returning.append(
-					db.messages(
-						parameters = {
-							'object_id': read_object['object_id']
-						}
-					)
-				)['404_object_id']
-			
-		else:
-			
-			# Update the request status.
-			returning.append(
-				db.messages(
-					parameters = {
-						'prefix': standardized
-					}
-				)['401_prefix_unauthorized']
-			)
-	
-	# As this view is for a bulk operation, status 200
-	# means that the request was successfully processed,
-	# but NOT necessarily each item in the request.
-	# For example, a table may not have been found for the first
-	# requested draft.
-	return Response(
-		status = status.HTTP_200_OK,
-		data = returning
-	)
+    return Response(status=status.HTTP_200_OK, data=result_list)
