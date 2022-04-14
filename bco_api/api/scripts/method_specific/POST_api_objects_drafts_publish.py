@@ -4,7 +4,8 @@
 publish a draft
 """
 
-from api.models import BCO, prefix_table
+from api.models import BCO
+from api.model.prefix import prefix_table
 from api.scripts.utilities import DbUtils, UserUtils
 from django.contrib.auth.models import Group
 from django.utils import timezone
