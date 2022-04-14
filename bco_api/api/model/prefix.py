@@ -5,7 +5,7 @@
 import re
 from django.db import models
 from django.contrib.auth.models import Group, Permission, User
-from django.db.models.signals import post_save, post_delete, pre_delete
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 import django.db.utils as PermErrors
 from django.contrib.contenttypes.models import ContentType
@@ -194,7 +194,6 @@ def post_api_prefixes_create(request):
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
     return Response(status = status.HTTP_200_OK, data = returning)
-
 
 def post_api_prefixes_delete(request):
     """Deletes a prefix
@@ -602,7 +601,6 @@ def post_api_prefixes_token(request):
         user_object = UserUtils.UserUtils().user_from_request(
             request = request).username, flatten = False)
     return Response(status = status.HTTP_200_OK, data = prefixes)
-
 
 def post_api_prefixes_token_flat(request):
     """Get Prefixes for a Token
