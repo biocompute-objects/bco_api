@@ -1,5 +1,5 @@
 # The BCO model
-from ...models import bco
+from ...models import BCO
 
 # Responses
 from rest_framework import status
@@ -60,7 +60,7 @@ def GET_published_object_by_id(oi_root):
     See if the root ID even exists.
 
     We have to query twice because we don't
-    have a field in the bco model to hold
+    have a field in the BCO model to hold
     the object version...
 
     Note the trailing slash in the regex search to prevent
@@ -75,7 +75,7 @@ def GET_published_object_by_id(oi_root):
     #       since I'm not sure why it was ever added (maybe there is a reason?)
     # oi_root = oi_root.split("_")[0] +  '{:06d}'.format(int(oi_root.split("_")[1]))
     all_versions = list(
-            bco.objects.filter(
+            BCO.objects.filter(
                     object_id__regex=rf'(.*?)/{oi_root}/',
                     state='PUBLISHED'
                     ).values_list(
@@ -97,7 +97,7 @@ def GET_published_object_by_id(oi_root):
 
         # Kick back the latest version.
         return Response(
-                data=bco.objects.filter(
+                data=BCO.objects.filter(
                         object_id__regex=rf'{oi_root}/{l_version.major}.{l_version.minor}?.?{l_version.patch}',
                         state='PUBLISHED'
                         ).values_list(

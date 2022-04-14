@@ -80,7 +80,7 @@ def post_api_objects_drafts_create(request):
                 creation_object['last_update'] = timezone.now()
                 objects_written = db_utils.write_object(
                     p_app_label = 'api',
-                    p_model_name = 'bco',
+                    p_model_name = 'BCO',
                     p_fields = [
                         'contents',
                         'last_update',
