@@ -29,10 +29,12 @@ from rest_framework.authtoken.models import Token
 
 
 # Generic BCO model
-class bco(models.Model):
-    # The entirety of the object.
+class BCO(models.Model):
+    """The entirety of the object.
 
-    # Field is required.
+    Field is required.
+    """
+
     contents = models.JSONField()
 
     # Embargo field.
@@ -305,7 +307,7 @@ def delete_permissions_for_prefix(sender, instance=None, **kwargs):
 # Link draft creation to permission creation
 @receiver(
     post_save,
-    sender=bco
+    sender=BCO
 )
 def create_object_perms(
         sender,

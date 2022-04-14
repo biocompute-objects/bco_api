@@ -1,12 +1,13 @@
 # Source: https://stackoverflow.com/a/42744626/5029459
 
 def populate_models(sender, **kwargs):
-    
+    """Initial DB setup
+    """
     
 
 
     # Direct model access.
-    from .models import bco
+    from api.models import BCO
 
     # DB Utilities
     from .scripts.utilities import DbUtils
@@ -62,7 +63,7 @@ def populate_models(sender, **kwargs):
         )
     
     # Make bco_publisher the group owner of the prefix 'BCO'.
-    if bco.objects.filter(prefix = 'BCO').exists():
+    if BCO.objects.filter(prefix = 'BCO').exists():
 
         # dummy block
         pass

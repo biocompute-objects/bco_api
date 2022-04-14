@@ -4,7 +4,7 @@
 """
 
 from itertools import chain
-from api.models import bco, Prefix
+from api.models import BCO, Prefix
 from api.scripts.utilities import UserUtils
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import status
@@ -47,11 +47,11 @@ def post_api_objects_search(request):
     
     if search_type == 'bco_id':
         if user_info.username == 'anon':
-            bco_list = bco.objects.filter(object_id__icontains=search_value, state='PUBLISHED')
+            bco_list = BCO.objects.filter(object_id__icontains=search_value, state='PUBLISHED')
             result_list = chain(bco_list.values(*return_values))
         else:
-            user_objects = get_objects_for_user(user=user_info, perms=[], klass=bco, any_perm=True)
-            bco_list = bco.objects.filter(object_id__icontains=search_value).exclude(state='DELETE')
+            user_objects = get_objects_for_user(user=user_info, perms=[], klass=BCO, any_perm=True)
+            bco_list = BCO.objects.filter(object_id__icontains=search_value).exclude(state='DELETE')
             for i in bco_list:
                 if i not in user_objects:
                     bco_list.exclude(pk=i.id)
@@ -71,7 +71,7 @@ def post_api_objects_search(request):
                 })
 
         if prefix in user_prefixes:
-            bco_list = bco.objects.filter(prefix=prefix).values().exclude(state='DELETE')
+            bco_list = BCO.objects.filter(prefix=prefix).values().exclude(state='DELETE')
             result_list = chain(bco_list.values(*return_values))
 
         else:
@@ -85,10 +85,10 @@ def post_api_objects_search(request):
 
     if search_type == 'mine':
         if user_info.username == 'anon':
-            result_list = chain(bco.objects.filter(state='PUBLISHED').values(*return_values))
+            result_list = chain(BCO.objects.filter(state='PUBLISHED').values(*return_values))
 
         else:
-            result_list = chain(bco.objects.filter(
+            result_list = chain(BCO.objects.filter(
                 owner_user=user_info).exclude(state='DELETE'
             ).values(*return_values))
 

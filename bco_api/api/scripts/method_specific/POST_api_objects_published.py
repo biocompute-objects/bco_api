@@ -1,5 +1,5 @@
 # BCOs
-from ...models import bco
+from ...models import BCO
 
 # User information
 from ..utilities import UserUtils
@@ -65,7 +65,7 @@ def POST_api_objects_published():
     Get All published objects (publicly available)
     """
 
-    published = bco.objects.filter(state='PUBLISHED').values()
+    published = BCO.objects.filter(state='PUBLISHED').values()
     unique_published = []
 
     # E.g.
