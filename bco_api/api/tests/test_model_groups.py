@@ -4,12 +4,9 @@
 
 """
 
-from curses.ascii import NUL
 import json
-from unicodedata import name
 from django.test import TestCase
-from django.utils import timezone
-from django.contrib.auth.models import Group, Permission, User
+from django.contrib.auth.models import Group, User
 # from django.urls import reverse
 from api.model.groups import GroupInfo
 
@@ -29,7 +26,6 @@ class GroupsTestCase(TestCase):
             GroupInfo.objects.create(
                 delete_members_on_group_deletion=False,
                 group=Group.objects.get(name='test'),
-                max_n_members=NUL,
                 owner_user=User.objects.get(username='wheel'),
             )
         ]

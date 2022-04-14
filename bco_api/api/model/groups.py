@@ -3,14 +3,9 @@
 """
 
 from django.db import models
-import django.db.utils as PermErrors
-from django.db.models.signals import post_save, post_delete, pre_delete
-from django.conf import settings
-from django.contrib.auth.models import Group, Permission, User
-from django.contrib.contenttypes.models import ContentType
+from django.db.models.signals import post_save
+from django.contrib.auth.models import Group, User
 from django.dispatch import receiver
-from django.utils import timezone
-from guardian.shortcuts import assign_perm
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response

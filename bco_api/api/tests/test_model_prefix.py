@@ -5,7 +5,6 @@
 """
 
 import json
-from sys import prefix
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import Group, Permission, User
