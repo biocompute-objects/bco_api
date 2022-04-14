@@ -4,7 +4,8 @@
 """
 
 from itertools import chain
-from api.models import BCO, Prefix
+from api.models import BCO
+from api.model.prefix import Prefix
 from api.scripts.utilities import UserUtils
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import status

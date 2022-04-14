@@ -28,10 +28,20 @@ from api.scripts.method_specific.GET_draft_object_by_id import GET_draft_object_
 from api.scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
 # Request-specific methods
-from api.groups import post_api_groups_create
-from api.groups import post_api_groups_info
-from api.groups import post_api_groups_delete
-from api.groups import post_api_groups_modify
+from api.model.groups import (
+    post_api_groups_modify,
+    post_api_groups_delete,
+    post_api_groups_info,
+    post_api_groups_create,
+)
+from api.model.prefix import (
+    post_api_prefixes_create,
+    post_api_prefixes_delete,
+    post_api_prefixes_modify,
+    post_api_prefixes_permissions_set,
+    post_api_prefixes_token,
+    post_api_prefixes_token_flat,
+)
 
 from api.scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
 from api.scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
@@ -46,12 +56,14 @@ from api.scripts.method_specific.POST_api_objects_publish import POST_api_object
 from api.scripts.method_specific.POST_api_objects_published import POST_api_objects_published
 from api.scripts.method_specific.POST_api_objects_search import post_api_objects_search
 from api.scripts.method_specific.POST_api_objects_token import POST_api_objects_token
-from api.scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
-from api.scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
-from api.scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify
-from api.scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
-from api.scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
-from api.scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
+
+# from api.scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
+# from api.scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
+# from api.scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify
+# from api.scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
+# from api.scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
+# from api.scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
+
 # For helper functions
 from api.scripts.utilities import UserUtils
 
@@ -982,7 +994,7 @@ class ApiPrefixesCreate(APIView):
         }, tags=["Prefix Management"]
     )
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_create)
+        return check_post_and_process(request, post_api_prefixes_create)
 
 
 class ApiPrefixesDelete(APIView):
@@ -1031,7 +1043,7 @@ class ApiPrefixesDelete(APIView):
         }, tags=["Prefix Management"]
     )
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_delete)
+        return check_post_and_process(request, post_api_prefixes_delete)
 
 
 class ApiPrefixesModify(APIView):
@@ -1133,7 +1145,7 @@ class ApiPrefixesModify(APIView):
             404: "The prefix provided could not be found."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_modify)
+        return check_post_and_process(request, post_api_prefixes_modify)
 
 
 class ApiPrefixesPermissionsSet(APIView):
@@ -1198,7 +1210,7 @@ class ApiPrefixesPermissionsSet(APIView):
             404: "The prefix provided was not found."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_permissions_set)
+        return check_post_and_process(request, post_api_prefixes_permissions_set)
 
 
 class ApiPrefixesToken(APIView):
@@ -1251,7 +1263,7 @@ class ApiPrefixesTokenFlat(APIView):
         if 'Authorization' in request.headers:
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
-            return POST_api_prefixes_token_flat(request=request)
+            return post_api_prefixes_token_flat(request=request)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 

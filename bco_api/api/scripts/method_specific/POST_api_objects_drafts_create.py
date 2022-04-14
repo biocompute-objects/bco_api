@@ -8,7 +8,7 @@ Creates a new BCO draft object.
 
 from email import message
 from api.scripts.utilities import DbUtils, UserUtils
-from api.models import prefix_table
+from api.model.prefix import prefix_table
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.utils import timezone

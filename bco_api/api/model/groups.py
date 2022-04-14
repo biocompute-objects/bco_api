@@ -31,7 +31,6 @@ class GroupInfo(models.Model):
     """
 
     delete_members_on_group_deletion = models.BooleanField(default=False)
-    group = models.OneToOneField(Group, on_delete=models.CASCADE)
     description = models.TextField(blank = True)
     expiration = models.DateTimeField(blank=True, null=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
@@ -54,7 +53,6 @@ def post_api_groups_info(token):
 
     # user.get_all_permissions()
     # user.get_group_permissions()
-
 
 def post_api_groups_create(request):
     """
@@ -371,3 +369,22 @@ def post_api_groups_modify(request):
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
     return Response(status=status.HTTP_200_OK, data=returning)
+
+@receiver(post_save, sender=User)
+def associate_user_group(sender, instance, created, **kwargs):
+    """Create Group and GroupInfo
+
+    Link user creation to groups.
+    Create a group for this user.
+    Source: https://stackoverflow.com/a/55206382/5029459
+    Automatically add the user to the BCO drafters and publishers groups,
+    if the user isn't anon or the already existent bco_drafter or bco_publisher.
+    """
+
+    if created:
+        Group.objects.create(name=instance)
+        group = Group.objects.get(name=instance)
+        group.user_set.add(instance)
+        if instance.username not in ['anon', 'bco_drafter', 'bco_publisher']:
+            User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_drafter'))
+            User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_publisher'))

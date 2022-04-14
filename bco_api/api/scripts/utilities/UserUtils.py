@@ -1,5 +1,5 @@
 # Prefix
-from api.models import Prefix
+# from api.model.prefix import Prefix
 
 # For returning server information.
 from django.conf import settings

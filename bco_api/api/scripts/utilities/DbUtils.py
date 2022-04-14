@@ -1,16 +1,16 @@
 # Utilities
-from ...models import prefix_table
+# from api.model.prefix import prefix_table
 
 # Checking versioning rules
-from ...models import BCO
+from api.models import BCO
 
 # For writing objects to the database.
-from ...serializers import getGenericSerializer
+from api.serializers import getGenericSerializer
 
 # (OPTIONAL) For sending user information to userdb.
 import json
 import requests
-from . import UserUtils
+from api.scripts.utilities import UserUtils
 
 # For checking datetimes
 import datetime
