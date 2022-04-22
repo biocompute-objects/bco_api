@@ -128,82 +128,58 @@ class UserUtils:
         Slight error the the django-rest-framework documentation
         as we need the user id and not the username.
         Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+        No token creation as the user has to specifically
+        confirm their account before a token is created
+        for them.
+
+        Get the other information for this user.
+        Source: https://stackoverflow.com/a/48592813
+        First, get the django-native User object.
+        Group permissions
+        Get each group's permissions separately,
+        then append them to other_info.
+        Try to get the permissions for the user,
+        split by user and group.
+        Define a dictionary to hold the permissions.
+        First, by the user.
+        Keep the model and the codename.
+        Next, by the group.
+        username.get_group_permissions() sheds the group
+        name (a design flaw in django), so we have to
+        invoke some inefficient logic here.
+        In general, django isn't good at retaining
+        groups and permissions in one step.
+        See the first comment at https://stackoverflow.com/a/27538767
+        for a partial solution.
+        Alternatively, in models.py, we could define
+        our own permissions class, but this is a bit
+        burdensome.
+        Add the group name automatically.
         """
         user_id = User.objects.get(username=username).pk
-
-        # No token creation as the user has to specifically
-        # confirm their account before a token is created
-        # for them.
         token = Token.objects.get(user=user_id)
-
-        # Get the other information for this user.
-        # Source: https://stackoverflow.com/a/48592813
         other_info = {
             'permissions'       : { },
             'account_creation'  : '',
             'account_expiration': ''
         }
 
-        # First, get the django-native User object.
         user = User.objects.get(username=username)
+        user_perms = {'user'  : [], 'groups': []}
 
-        # Group permissions
+        for permission in user.user_permissions.all():
+            if permission.name not in user_perms['user']:
+                user_perms['user'].append(permission.name)
 
-        # Get each group's permissions separately,
-        # then append them to other_info.
+        for group in user.groups.all():
+            if group.name not in user_perms['groups']:
+                user_perms['groups'].append(group.name)
+            for permission in Permission.objects.filter(group=group):
+                if permission.name not in user_perms['user']:
+                    user_perms['user'].append(permission.name)
 
-        # Try to get the permissions for the user,
-        # split by user and group.
-
-        # Define a dictionary to hold the permissions.
-        user_perms = {
-            'user'  : { },
-            'groups': { }
-        }
-
-        # First, by the user.
-        for p in user.user_permissions.all():
-
-            # Keep the model and the codename.
-            if p.content_type.name not in user_perms['user']:
-                user_perms['user'][p.content_type.name] = []
-
-            user_perms['user'][p.content_type.name].append(p.codename)
-
-        # Next, by the group.
-
-        # username.get_group_permissions() sheds the group
-        # name (a design flaw in django), so we have to
-        # invoke some inefficient logic here.
-
-        # In general, django isn't good at retaining
-        # groups and permissions in one step.
-
-        # See the first comment at https://stackoverflow.com/a/27538767
-        # for a partial solution.
-
-        # Alternatively, in models.py, we could define
-        # our own permissions class, but this is a bit
-        # burdensome.
-
-        for g in user.groups.all():
-
-            # Add the group name automatically.
-            if g.name not in user_perms['groups']:
-                user_perms['groups'][g.name] = { }
-
-            for p in Permission.objects.filter(group=g):
-
-                # Keep the model and the codename.
-                if p.content_type.name not in user_perms['groups'][g.name]:
-                    user_perms['groups'][g.name][p.content_type.name] = []
-
-                user_perms['groups'][g.name][p.content_type.name].append(p.codename)
-
-        # Append.
         other_info['permissions'] = user_perms
 
-        # Account created.
         other_info['account_creation'] = user.date_joined
 
         return {
@@ -215,9 +191,10 @@ class UserUtils:
                 'other_info'             : other_info
                 }
 
-    # Prefix for a given user.
+
     def prefixes_for_user(self, user_object):
-        """Simple function to return prefixes
+        """Prefix for a given user.
+        Simple function to return prefixes
         that a user has ANY permission on.
 
         Recall that having any permission on

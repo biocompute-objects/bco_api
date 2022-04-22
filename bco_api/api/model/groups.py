@@ -43,7 +43,6 @@ def post_api_groups_info(token):
     user_groups = {}
     # for group in 
     print(usr_utils.get_user_groups_by_username(un=username))
-    
     return Response(status=status.HTTP_200_OK)
 
     # user.get_all_permissions()
