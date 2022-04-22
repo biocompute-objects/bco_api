@@ -23,6 +23,7 @@ class BcoTestCase(TestCase):
         self.prefix = 'BCO'
         self.schema = 'IEEE'
         self.state = 'PUBLISHED'
+        self.object_id = 'http://localhost:8000/{}{}'.format(self.object_id_root, self.object_id_version)
 
     def create_bco(self):
         """Create Test BCO
@@ -37,7 +38,7 @@ class BcoTestCase(TestCase):
         return BCO.objects.create(
             contents=json.dumps(data[0]),
             object_class=None,
-            object_id='http://localhost:8000/{}{}'.format(self.object_id_root, self.object_id_version),
+            object_id=self.object_id,
             owner_user=User.objects.get(username=self.owner_user),
             owner_group=Group.objects.get(name=self.owner_group),
             prefix=self.prefix,
@@ -55,6 +56,12 @@ class BcoTestCase(TestCase):
         biocompute = self.create_bco()
         self.assertTrue(isinstance(biocompute, BCO))
         self.assertEqual(biocompute.__str__(), biocompute.object_id)
+        self.assertEqual(biocompute.__str__(), self.object_id)
+        self.assertEqual(biocompute.state, self.state)
+        self.assertEqual(biocompute.schema, self.schema)
+        self.assertEqual(str(biocompute.prefix), self.prefix)
+        self.assertEqual(biocompute.owner_group, Group.objects.get(name=self.owner_group))
+        self.assertEqual(biocompute.owner_user, User.objects.get(username=self.owner_user))
 
     def test_bco_view(self):
         """Test BCO Published view submission
@@ -63,6 +70,6 @@ class BcoTestCase(TestCase):
         biocompute = self.create_bco()
         self.assertTrue(isinstance(biocompute, BCO))
         resp = self.client.get(f'/{self.object_id_root}{self.object_id_version}')
-        bco_respone = json.loads(resp.data[0])
-        self.assertTrue(isinstance(bco_respone, dict))
+        bco_response = json.loads(resp.data[0])
+        self.assertTrue(isinstance(bco_response, dict))
         self.assertEqual(resp.status_code, 200)
