@@ -7,7 +7,7 @@ modifiable.  The contents of the BCO will be replaced with the new
 contents provided in the request body.
 """
 
-from api.models import bco
+from api.models import BCO
 from api.scripts.utilities import DbUtils
 from api.scripts.utilities import UserUtils
 
@@ -70,8 +70,8 @@ def post_api_objects_drafts_modify(request):
             # object-level change permissions OR if they are in a
             # group that has object-level change permissions.
             # To check these options, we need the actual object.
-            if bco.objects.filter(object_id = draft_object['contents']['object_id']).exists():
-                objected = bco.objects.get(
+            if BCO.objects.filter(object_id = draft_object['contents']['object_id']).exists():
+                objected = BCO.objects.get(
                     object_id = draft_object['contents']['object_id']
                 )
 

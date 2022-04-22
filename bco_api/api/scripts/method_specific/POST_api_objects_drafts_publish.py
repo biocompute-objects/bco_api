@@ -4,7 +4,8 @@
 publish a draft
 """
 
-from api.models import bco, prefix_table
+from api.models import BCO
+from api.model.prefix import prefix_table
 from api.scripts.utilities import DbUtils, UserUtils
 from django.contrib.auth.models import Group
 from django.utils import timezone
@@ -58,12 +59,12 @@ def POST_api_objects_drafts_publish(request):
         #     published_id=object_id
         # )
         prefix_auth = 'publish_' + prefix in prefix_perms
-        draft_exists = (bco.objects.filter(object_id=publish_object['draft_id'],
+        draft_exists = (BCO.objects.filter(object_id=publish_object['draft_id'],
                 state='DRAFT').exists()
         )
 
         if draft_exists is True:
-            objected = bco.objects.get(object_id=publish_object['draft_id'])
+            objected = BCO.objects.get(object_id=publish_object['draft_id'])
             all_permissions = get_perms(user, objected)
             is_owner = user.username == objected.owner_user.username
             owner_group = Group.objects.get(name=user.username)
@@ -100,7 +101,7 @@ def POST_api_objects_drafts_publish(request):
                         # Write to the database.
                         objects_written = db_utils.write_object(
                             p_app_label = 'api',
-                            p_model_name = 'bco',
+                            p_model_name = 'BCO',
                             p_fields = [
                                 'contents',
                                 'last_update',

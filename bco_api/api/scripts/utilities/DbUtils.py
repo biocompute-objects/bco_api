@@ -1,16 +1,16 @@
 # Utilities
-from ...models import prefix_table
+# from api.model.prefix import prefix_table
 
 # Checking versioning rules
-from ...models import bco
+from api.models import BCO
 
 # For writing objects to the database.
-from ...serializers import getGenericSerializer
+from api.serializers import getGenericSerializer
 
 # (OPTIONAL) For sending user information to userdb.
 import json
 import requests
-from . import UserUtils
+from api.scripts.utilities import UserUtils
 
 # For checking datetimes
 import datetime
@@ -111,7 +111,7 @@ class DbUtils:
         """
 
         # Does the provided object ID exist?
-        if bco.objects.filter(object_id=published_id).exists():
+        if BCO.objects.filter(object_id=published_id).exists():
 
             split_up = published_id.split('/')
             # Get the version.
@@ -182,7 +182,7 @@ class DbUtils:
             # http://127.0.0.1:8000/BCO_5 if we did not have the trailing
             # slash).
             all_versions = list(
-                    bco.objects.filter(
+                    BCO.objects.filter(
                             object_id__regex=rf'{root_uri}/',
                             state='PUBLISHED'
                             ).values_list(
@@ -760,7 +760,7 @@ class DbUtils:
         owner_user: str
             Name of owner user
         prfx: str
-        publishable: api.models.bco
+        publishable: api.models.BCO
         publishable_id: dict
 
         Returns
@@ -851,7 +851,7 @@ class DbUtils:
             # Publish.
             self.write_object(
                     p_app_label='api',
-                    p_model_name='bco',
+                    p_model_name='BCO',
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data=published
                     )
@@ -898,7 +898,7 @@ class DbUtils:
             # Publish.
             self.write_object(
                     p_app_label='api',
-                    p_model_name='bco',
+                    p_model_name='BCO',
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data=publishable.contents
                     )

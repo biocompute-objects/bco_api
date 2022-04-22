@@ -8,7 +8,7 @@ Creates a new BCO draft object.
 
 from email import message
 from api.scripts.utilities import DbUtils, UserUtils
-from api.models import prefix_table
+from api.model.prefix import prefix_table
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.utils import timezone
@@ -80,7 +80,7 @@ def post_api_objects_drafts_create(request):
                 creation_object['last_update'] = timezone.now()
                 objects_written = db_utils.write_object(
                     p_app_label = 'api',
-                    p_model_name = 'bco',
+                    p_model_name = 'BCO',
                     p_fields = [
                         'contents',
                         'last_update',
