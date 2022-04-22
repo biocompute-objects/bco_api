@@ -20,4 +20,3 @@ class ApiConfig(TestCase):
         """Create the anonymous user if they don't exist."""
         post_migrate.connect(populate_models, sender=self)
         print('test')
-self.assertIs()
