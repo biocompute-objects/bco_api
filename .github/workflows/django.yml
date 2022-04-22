@@ -2,9 +2,8 @@ name: Django CI
 
 on:
   push:
-    branches: [ 98-cicd-pipeline ]
+    branches: [ main ]
   pull_request:
-    branches: [ 98-cicd-pipeline ]
 
 jobs:
   build:
