@@ -43,23 +43,17 @@ import uuid
 
 
 class DbUtils:
+    """Class Description
+        -----------------
+        These methods are for interacting with our sqlite database.
+        Checking whether or not an object exists.
+    """
 
-    # Class Description
-    # -----------------
-
-    # These methods are for interacting with our sqlite database.
-
-    # Checking whether or not an object exists.
-    def check_object_id_exists(
-            self,
-            p_app_label,
-            p_model_name,
-            p_object_id
-            ):
-
-        # Simple existence check.
-        # Source: https://stackoverflow.com/a/9089028
-        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+    def check_object_id_exists(self, p_app_label, p_model_name, p_object_id):
+        """Simple existence check.
+        Source: https://stackoverflow.com/a/9089028
+        Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+        """
 
         if apps.get_model(
                 app_label=p_app_label,
@@ -72,16 +66,11 @@ class DbUtils:
             return 1
 
     # Checking whether or not a user exists.
-    def check_user_exists(
-            self,
-            p_app_label,
-            p_model_name,
-            p_email
-            ):
-
-        # Simple existence check.
-        # Source: https://stackoverflow.com/a/9089028
-        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+    def check_user_exists(self, p_app_label, p_model_name, p_email):
+        """Simple existence check.
+            Source: https://stackoverflow.com/a/9089028
+            Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+        """
 
         if apps.get_model(
                 app_label=p_app_label,
@@ -249,7 +238,7 @@ class DbUtils:
                     published_id = published_id + '/' + str(latest_major) + '.' + str(latest_minor + 1)
 
                 # Did everything go properly with the version provided?
-                if failed_version == False:
+                if failed_version is False:
 
                     # The version was valid.
                     return {
@@ -335,12 +324,8 @@ class DbUtils:
             return False
 
     # Check that expiration dates are valid.
-    def check_expiration(
-            self,
-            dt_string
-    ):
-        
-        # Split the string first.
+    def check_expiration(self, dt_string):
+        """Split the string first."""
         try:
                 split_up = dt_string.split('-')
 
@@ -391,18 +376,16 @@ class DbUtils:
         # Returns flat list...
         return api_models
 
-    def activate_account(
-            self,
-            p_email
-            ):
+    def activate_account(self, p_email):
+        """p_email: which e-mail to activate.
 
-        # p_email: which e-mail to activate.
+        Activation means creating an entry in User.
 
-        # Activation means creating an entry in User.
+        To comply with GDPR, we can't keep an e-mail
+        directly.  So, split off the username part
+        of the e-mail and assign a random number.
+        """
 
-        # To comply with GDPR, we can't keep an e-mail
-        # directly.  So, split off the username part
-        # of the e-mail and assign a random number.
         valid_username = False
 
         while not valid_username:
@@ -524,18 +507,14 @@ class DbUtils:
         return [new_username]
 
     # Messages associated with results from sub-requests.
-    def messages(
-            self,
-            parameters,
-            p_content=False
-            ):
+    def messages(self, parameters, p_content=False):
+        """TODO: abstract all of this up into the top level of the class.
+        
+        Define the return messages, if they don't
+        come in defined.
+        """
 
-        
-        # TODO: abstract all of this up into the top level of the class.
-        
-        # Define the return messages, if they don't
-        # come in defined.
-        definable = ['errors', 'expiration_date', 'group', 'object_id', 'object_perms', 'prefix', 'published_id', 'table', 'username', 'contents']
+        definable = ['errors', 'expiration_date', 'group', 'object_id', 'object_perms', 'prefix', 'published_id', 'table', 'username', 'contents', 'users_excluded']
 
         for i in definable:
             if i not in parameters:
@@ -615,11 +594,6 @@ class DbUtils:
                         'status_code'   : '200',
                         'message'       : 'Successfully updated prefix permissions on prefix \'' + parameters['prefix'] + '\'.'
                         },
-                '201_prefix_modify'                        : {
-                        'request_status': 'SUCCESS',
-                        'status_code'   : '200',
-                        'message'       : 'The prefix \'' + parameters['prefix'] + '\' was updated.'
-                        },
                 '200_update'                               : {
                         'request_status': 'SUCCESS',
                         'status_code'   : '200',
@@ -631,15 +605,30 @@ class DbUtils:
                         'message'       : 'The object with ID \'' + parameters['object_id'] + '\' was created on the server.',
                         'object_id'     : parameters['object_id']
                         },
+                '201_prefix_modify'                        : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'The prefix \'' + parameters['prefix'] + '\' was updated.'
+                        },
                 '201_group_create'                         : {
                         'request_status': 'SUCCESS',
                         'status_code'   : '201',
                         'message'       : 'The group \'' + parameters['group'] + '\' was successfully created.'
                         },
+                '201_group_users_excluded'                         : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '201',
+                        'message'       : 'The group \'' + parameters['group'] + '\' was successfully created, but the following users were excluded: ' + str(parameters['users_excluded'])
+                        },
                 '201_prefix_create'                        : {
                         'request_status': 'SUCCESS',
                         'status_code'   : '201',
                         'message'       : 'The prefix \'' + parameters['prefix'] + '\' was successfully created.'
+                        },
+                '202_Accepted'                        : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '202',
+                        'message'       : 'The request you performed has been accepted.'
                         },
                 '204_no_content'                        : {
                         'request_status': 'SUCCESS',
