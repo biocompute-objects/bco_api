@@ -578,10 +578,10 @@ class DbUtils:
                         'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server and the draft was deleted.',
                         'published_id'  : parameters['published_id']
                         },
-                '200_OK_object_publish_draft_failed_delete': {
+                '200_OK_object_publish_draft_not_deleted': {
                         'request_status': 'SUCCESS',
                         'status_code'   : '200',
-                        'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server but the draft was not deleted.',
+                        'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server and the draft was not deleted.',
                         'published_id'  : parameters['published_id']
                         },
                 '200_OK_prefix_delete': {
@@ -730,6 +730,11 @@ class DbUtils:
                         'request_status': 'FAILURE',
                         'status_code'   : '409',
                         'message'       : 'The provided prefix \'' + parameters['prefix'] + '\' has already been created on this server.'
+                        },
+                '409_object_conflict'                       : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '409',
+                        'message'       : 'The provided object ' + parameters['object_id'] + ' has already been created on this server.'
                         },
                 '418_too_many_deleted'                     : {
                         'request_status': 'FAILURE',
