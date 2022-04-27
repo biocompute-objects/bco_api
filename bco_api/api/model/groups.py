@@ -59,6 +59,7 @@ def post_api_groups_info(request):
     group_list = list(Group.objects.all())#.values_list('name', flat=True))
     username = user.username
     user_groups = {}
+
     # print(usr_utils.get_user_groups_by_username(un=username))
     return Response(status=status.HTTP_200_OK)
 
