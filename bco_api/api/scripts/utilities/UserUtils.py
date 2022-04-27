@@ -181,7 +181,6 @@ class UserUtils:
         other_info['permissions'] = user_perms
 
         other_info['account_creation'] = user.date_joined
-
         return {
                 'hostname'               : settings.ALLOWED_HOSTS[0],
                 'human_readable_hostname': settings.HUMAN_READABLE_HOSTNAME,

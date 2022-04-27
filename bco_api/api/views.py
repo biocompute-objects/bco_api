@@ -215,29 +215,41 @@ class ApiGroupsInfo(APIView):
     required but all other parameters are optional.
     """
 
-    auth = [
-        openapi.Parameter('Authorization',
-            openapi.IN_HEADER,
-            description="Authorization Token",
-            type=openapi.TYPE_STRING
+    POST_api_groups_info_schema = openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['names'],
+            properties={
+                'names': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    description='List of groups to delete.',
+                    items=openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                ),
+            }
         )
-    ]
 
-    @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Authorization is successful.",
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Group Information Schema",
+        description="API call checks a user's groups and permissions"
+            " in this system.",
+        required=['POST_api_groups_info'],
+        properties={
+            'POST_api_groups_info': POST_api_groups_info_schema
+        }
+    )
+
+    @swagger_auto_schema(request_body=request_body, responses={
+            200: "Authorization is successful. Group permissions returned",
             400: "Bad request.  Authorization is not provided in the request headers.",
-            401: "Unauthorized. Authentication credentials were not provided."
-            }, tags=["Account Management"])
+            401: "Unauthorized. Authentication credentials were not valid."
+            }, tags=["Group Management"])
+
     def post(self, request):
+        """ Post?
         """
-        Pass the request to the handling function
-        Source: https://stackoverflow.com/a/31813810 
-        """
-        if 'Authorization' in request.headers:
-            token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-            return post_api_groups_info(token=token)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return check_post_and_process(request, post_api_groups_info)
 
 
 class ApiGroupsCreate(APIView):
@@ -287,6 +299,8 @@ class ApiGroupsCreate(APIView):
             409: "Group conflict.  There is already a group with this name."
             }, tags=["Group Management"])
     def post(self, request):
+        """"Post?
+        """
         return check_post_and_process(request, post_api_groups_create)
 
 
