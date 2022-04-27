@@ -36,17 +36,30 @@ class GroupInfo(models.Model):
         """String for representing the GroupInfo model (in Admin site etc.)."""
         return f"{self.group}"
 
-def post_api_groups_info(token):
+def post_api_groups_info(request):
     """Retrieve Group information by user
     
     """
-
+    user = usr_utils.user_from_request(request=request)
+    bulk_request = request.data['POST_api_groups_info']
+    group_info = []
+    for index, value in enumerate(bulk_request['names']):
+        group = Group.objects.get(name=value)
+        group_info_object = GroupInfo.objects.get(group=value)
+        gropu_permissions = group.permissions.all()
+        group_members = group.user_set.all()
+        group_info.append(
+            {
+                'name': group.name,
+                'permissions': gropu_permissions,
+                'members': group_members
+            }
+    )
+    print(group_info)
     group_list = list(Group.objects.all())#.values_list('name', flat=True))
-    user = Token.objects.get(key = token).user
     username = user.username
     user_groups = {}
-    # for group in 
-    print(usr_utils.get_user_groups_by_username(un=username))
+    # print(usr_utils.get_user_groups_by_username(un=username))
     return Response(status=status.HTTP_200_OK)
 
     # user.get_all_permissions()
