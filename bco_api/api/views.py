@@ -24,7 +24,7 @@ from rest_framework.views import APIView
 from .permissions import RequestorInPrefixAdminsGroup
 # FIX
 from api.scripts.method_specific.GET_activate_account import GET_activate_account
-from api.scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
+from api.scripts.method_specific.GET_draft_object_by_id import get_draft_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
 
@@ -50,7 +50,7 @@ from api.scripts.method_specific.POST_api_objects_drafts_create import post_api_
 from api.scripts.method_specific.POST_api_objects_drafts_modify import post_api_objects_drafts_modify
 from api.scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
 from api.scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
-from api.scripts.method_specific.POST_api_objects_drafts_publish import POST_api_objects_drafts_publish
+from api.scripts.method_specific.POST_api_objects_drafts_publish import post_api_objects_drafts_publish
 from api.scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
 from api.scripts.method_specific.POST_api_objects_drafts_token import POST_api_objects_drafts_token
 from api.scripts.method_specific.POST_api_objects_publish import POST_api_objects_publish
@@ -215,29 +215,41 @@ class ApiGroupsInfo(APIView):
     required but all other parameters are optional.
     """
 
-    auth = [
-        openapi.Parameter('Authorization',
-            openapi.IN_HEADER,
-            description="Authorization Token",
-            type=openapi.TYPE_STRING
+    POST_api_groups_info_schema = openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['names'],
+            properties={
+                'names': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    description='List of groups to delete.',
+                    items=openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                ),
+            }
         )
-    ]
 
-    @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Authorization is successful.",
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Group Information Schema",
+        description="API call checks a user's groups and permissions"
+            " in this system.",
+        required=['POST_api_groups_info'],
+        properties={
+            'POST_api_groups_info': POST_api_groups_info_schema
+        }
+    )
+
+    @swagger_auto_schema(request_body=request_body, responses={
+            200: "Authorization is successful. Group permissions returned",
             400: "Bad request.  Authorization is not provided in the request headers.",
-            401: "Unauthorized. Authentication credentials were not provided."
-            }, tags=["Account Management"])
+            401: "Unauthorized. Authentication credentials were not valid."
+            }, tags=["Group Management"])
+
     def post(self, request):
+        """ Post?
         """
-        Pass the request to the handling function
-        Source: https://stackoverflow.com/a/31813810 
-        """
-        if 'Authorization' in request.headers:
-            token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-            return post_api_groups_info(token=token)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return check_post_and_process(request, post_api_groups_info)
 
 
 class ApiGroupsCreate(APIView):
@@ -287,6 +299,8 @@ class ApiGroupsCreate(APIView):
             409: "Group conflict.  There is already a group with this name."
             }, tags=["Group Management"])
     def post(self, request):
+        """"Post?
+        """
         return check_post_and_process(request, post_api_groups_create)
 
 
@@ -687,7 +701,7 @@ class ApiObjectsDraftsPublish(APIView):
             403: "Invalid token."
             }, tags=["BCO Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_objects_drafts_publish)
+        return check_post_and_process(request, post_api_objects_drafts_publish)
 
 
 class ApiObjectsDraftsRead(APIView):
@@ -1336,9 +1350,8 @@ class DraftObjectId(APIView):
         # TODO: This is not dealing with the draft_object_id parameter being passed in?
         # return GET_draft_object_by_id(do_id=request.build_absolute_uri(), rqst=request)
 
-        # return GET_draft_object_by_id(do_id=draft_object_id, rqst=request)
-        
-        return GET_draft_object_by_id(do_id=object_id, request=request)
+        # return GET_draft_object_by_id(do_id=draft_object_id, rqst=request)   
+        return get_draft_object_by_id(do_id=object_id, request=request)
 
 
 # Allow anyone to view published objects.
