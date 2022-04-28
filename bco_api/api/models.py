@@ -87,6 +87,19 @@ class new_users(models.Model):
     # Source: https://stackoverflow.com/a/32411560
     created = models.DateTimeField(default=timezone.now)
 
+    def __email__(self):
+        return str(self.email)
+
+    def __token__(self):
+        return str(self.token)
+
+    def __hostname__(self):
+        return str(self.hostname)
+
+    def __temp_identifier__(self):
+        return str(self.temp_identifier)
+
+
 
 
 # def get_first_name(self):
