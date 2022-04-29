@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_objects_drafts_publish(request):
+def post_api_objects_drafts_publish(request):
     """Publish draft
 
     publish a draft
@@ -42,14 +42,34 @@ def POST_api_objects_drafts_publish(request):
         flatten=True, user_object=user
     )
     bulk_request = request.data['POST_api_objects_drafts_publish']
+
     for publish_object in bulk_request:
-        prefix = publish_object['prefix']
+        draft_exists = (BCO.objects.filter(
+            object_id=publish_object['draft_id'], state='DRAFT').exists()
+        )
+
+        if draft_exists is False:
+            returning.append(db_utils.messages(
+                parameters={'object_id': publish_object['draft_id'] }
+                )['404_object_id']
+            )
+            any_failed = True
+            continue
+
+        objected = BCO.objects.get(object_id=publish_object['draft_id'])
+        new_version = objected.contents['provenance_domain']['version']
+        prefix = publish_object['prefix'].upper()
         prefix_counter = prefix_table.objects.get(prefix=prefix)
-        delete_draft = publish_object['delete_draft']
         draft_id = publish_object['draft_id']
+
+        if publish_object.get('delete_draft') is not None:
+            delete_draft = publish_object['delete_draft']
+        else: 
+            delete_draft = False
+
         if 'object_id' not in publish_object:
             object_id = publish_object['draft_id'].split('/')[0:4]
-            object_id.append('1.0')
+            object_id.append(new_version)
             object_id = '/'.join(object_id)
         else:
             object_id = publish_object['object_id']
@@ -59,12 +79,18 @@ def POST_api_objects_drafts_publish(request):
         #     published_id=object_id
         # )
         prefix_auth = 'publish_' + prefix in prefix_perms
-        draft_exists = (BCO.objects.filter(object_id=publish_object['draft_id'],
-                state='DRAFT').exists()
-        )
+        object_exists = BCO.objects.filter(object_id=object_id).exists()
+
+        if object_exists is True:
+            print(object_id)
+            parameters = {'object_id': object_id }
+            returning.append(db_utils.messages(parameters)
+                ['409_object_conflict']
+            )
+            any_failed = True
+            continue
 
         if draft_exists is True:
-            objected = BCO.objects.get(object_id=publish_object['draft_id'])
             all_permissions = get_perms(user, objected)
             is_owner = user.username == objected.owner_user.username
             owner_group = Group.objects.get(name=user.username)
@@ -72,7 +98,6 @@ def POST_api_objects_drafts_publish(request):
             if prefix_auth is True:
                 if is_owner is True or can_publish is True:
                     if delete_draft is True:
-                        print('overwirting draft')
                         objected.last_update = timezone.now()
                         objected.state = 'PUBLISHED'
                         objected.owner_group = owner_group
@@ -87,7 +112,6 @@ def POST_api_objects_drafts_publish(request):
 
                     else:
                         new_object = {}
-                        print('making a new one!')
                         new_object['contents'] = objected.contents
                         new_object['object_id'] = object_id
                         new_object['contents']['object_id'] = object_id
@@ -122,7 +146,7 @@ def POST_api_objects_drafts_publish(request):
                         else:
                             # Update the request status.
                             returning.append(db_utils.messages(
-                                parameters=versioned)['200_OK_object_publish_draft_failed_delete']
+                                parameters=versioned)['200_OK_object_publish_draft_not_deleted']
                             )
 
                 else:
@@ -137,14 +161,6 @@ def POST_api_objects_drafts_publish(request):
                 returning.append(db_utils.messages(
                     parameters={'prefix': prefix })['401_prefix_unauthorized'])
                 any_failed = True
-
-        else:
-         # Couldn't find the object.
-            returning.append(db_utils.messages(
-                parameters={'object_id': publish_object['draft_id'] }
-                )['404_object_id']
-            )
-            any_failed = True
 
         #                 published = db_utils.publish(
         #                     owner_group=Group.objects.get(
@@ -177,49 +193,6 @@ def POST_api_objects_drafts_publish(request):
     # For example, a table may not have been found for the first
     # requested draft.
     if any_failed:
-        return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
 
     return Response(status=status.HTTP_200_OK, data=returning)
-# Attempt to publish, but first, verify
-# that the object is IEEE-compliant.
-# TODO: fix the schema check...
-# schema_check = ju.check_object_against_schema(
-# 	object_pass = objected,
-# 	schema_pass =
-# )
-
-
-    # published = db_utils.publish(
-    #     owner_group=Group.objects.get(name=user.username).name,
-    #     owner_useru=user.username,
-    #     prefix=prefix,
-    #     publishable=objected.contents,
-    #     publishable_id='new'
-    # )
-
-    # # Did the publishing go well?
-    # if type(published) is dict:
-    #     # Lastly, if we were given the directive to delete
-    #     # the draft on publish, process that.
-
-    #     # Does the requestor have delete permissions on
-    #     # the object?
-    #     if 'delete_draft' in publish_object:
-    #         if publish_object['delete_draft']:
-    #             if 'delete_' + publish_object['draft_id'] in all_permissions:
-    #                 objected.delete()
-    #                 # Draft was published and deleted as requested.
-    #                 returning.append(db_utils.messages(parameters={
-    #                         'published_id': published['published_id'] })['200_OK_object_publish_draft_deleted'])
-    #             else:
-    #                 # Draft failed to delete because of permissions, but object was published
-    #                 returning.append(db_utils.messages(parameters={
-    #                         'published_id': published['published_id'] })['200_OK_object_publish_draft_failed_delete'])
-    #         else:
-    #             # Draft was published, but not deleted since not requested
-    #             returning.append(db_utils.messages(parameters={
-    #                     'published_id': published['published_id'] })['200_OK_object_publish'])
-    #     else:
-    #         # Draft was published, but not deleted since not requested (not included in request)
-    #         returning.append(db_utils.messages(parameters={
-    #                 'published_id': published['published_id'] })['200_OK_object_publish'])

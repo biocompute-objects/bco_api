@@ -181,7 +181,6 @@ class UserUtils:
         other_info['permissions'] = user_perms
 
         other_info['account_creation'] = user.date_joined
-
         return {
                 'hostname'               : settings.ALLOWED_HOSTS[0],
                 'human_readable_hostname': settings.HUMAN_READABLE_HOSTNAME,
@@ -211,106 +210,64 @@ class UserUtils:
         if specific_permission is None:
             specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
 
-        # flatten - return just the raw perms
-        # specific_permission - looking for a permission in particular?
-
-        # Get the prefixes for the user and their groups, then filter.
-        # pxs = list(
-        #         Prefix.objects.filter(
-        #         Q(owner_user = user_object.id) |
-        #         Q(owner_group__in = list(user_object.groups.all().values_list(
-        #             'id', 
-        #             flat = True
-        #         )))
-        #     ).values_list(
-        #         'prefix',
-        #         flat = True
-        #     )
-        # )
-
         prefixed = self.get_user_info(
                 user_object
                 )['other_info']['permissions']
+        permissions = []
+        for pre in prefixed['user']:
+            permissions.append(Permission.objects.get(name=pre).codename)
 
-        # To store flattened permissions
-        flat_perms = []
+        return permissions
 
-        # We only need the permissions that are specific
-        # to the bco model.
+        # # To store flattened permissions
+        # flat_perms = []
 
-        bco_specific = {
-                'user'  : { },
-                'groups': { }
-                }
+        # # We only need the permissions that are specific
+        # # to the bco model.
 
-       #  {'user': {
-        #
-        #  },
-       #  'groups': {
-       #        'bco_drafter': {
-        # 'bco': ['add_BCO', 'change_BCO', 'delete_BCO', 'draft_BCO', 'publish_BCO', 'view_BCO']
-        #        },
-       #        'bco_publisher': {
-       #            'bco': ['add_BCO', 'change_BCO', 'delete_BCO', 'draft_BCO', 'publish_BCO', 'view_BCO']
-       #         },
-       #         'test230': {
-        #
+        # bco_specific = {
+        #         'user'  : { },
+        #         'groups': { }
         #         }
-        #             lab 5: []
-       #     }
-       # }
 
-        if 'bco' in prefixed['user']:
-            if flatten:
-                flat_perms = prefixed['user']['bco']
-            else:
-                bco_specific['user']['bco'] = prefixed['user']['bco']
-        else:
-            if not flatten:
-                bco_specific['user']['bco'] = { }
-
-        # expected to have groups and bco_publisher
-        # try:
-        #     if 'bco' in prefixed['groups']['bco_publisher']:
-        #         if flatten:
-        #             flat_perms = prefixed['groups']['bco_publisher']['bco']
-        #         else:
-        #             bco_specific['user']['bco'] = prefixed['groups']['bco_publisher']['bco']
+        # if 'bco' in prefixed['user']:
+        #     if flatten:
+        #         flat_perms = prefixed['user']['bco']
         #     else:
-        #         if not flatten:
-        #             bco_specific['user']['bco'] = prefixed['groups']['bco_publisher']
-        # except KeyError as e:
-        #     print("Error!  {}".format(e))
+        #         bco_specific['user']['bco'] = prefixed['user']['bco']
+        # else:
+        #     if not flatten:
+        #         bco_specific['user']['bco'] = { }
 
+        # import pdb; pdb.set_trace()
+        # for k, v in prefixed['groups']:
+        #     if 'bco' in prefixed['groups'][k]:
+        #         if flatten:
+        #             for perm in v['bco']:
+        #                 if perm not in flat_perms:
+        #                     flat_perms.append(perm)
+        #         else:
+        #             bco_specific['groups'][k] = {
+        #                     'bco': v['bco']
+        #                     }
+        #     else:
+        #         bco_specific['groups'][k] = { }
 
-        for k, v in prefixed['groups'].items():
-            if 'bco' in prefixed['groups'][k]:
-                if flatten:
-                    for perm in v['bco']:
-                        if perm not in flat_perms:
-                            flat_perms.append(perm)
-                else:
-                    bco_specific['groups'][k] = {
-                            'bco': v['bco']
-                            }
-            else:
-                bco_specific['groups'][k] = { }
+        # # Get the permissions.
+        # # Source: https://stackoverflow.com/a/952952
 
-        # Get the permissions.
-        # Source: https://stackoverflow.com/a/952952
+        # # Flatten the permissions so that we can
+        # # work with them more easily.
 
-        # Flatten the permissions so that we can
-        # work with them more easily.
-
-        # Return based on what we need.
-        if flatten == True:
+        # # Return based on what we need.
+        # if flatten == True:
         
-            # Only unique permissions are returned.
-            return flat_perms
+        #     # Only unique permissions are returned.
+        #     return flat_perms
 
-        elif flatten == False:
+        # elif flatten == False:
 
-            return bco_specific
+        #     return bco_specific
 
     def user_from_request(self, request):
         """Returns a user object from a request.
