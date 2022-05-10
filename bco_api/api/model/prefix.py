@@ -708,8 +708,7 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
                 if perm == 'publish':
                     pass
                 else:
-                    drafters.permissions.add(new_perm)
-            import pdb; pdb.set_trace()            
+                    drafters.permissions.add(new_perm)    
 
         except PermErrors.IntegrityError:
             # The permissions already exist.
