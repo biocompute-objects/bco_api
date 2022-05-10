@@ -13,9 +13,9 @@ from rest_framework.response import Response
 from api.scripts.utilities.DbUtils import DbUtils
 from api.scripts.utilities.UserUtils import UserUtils
 
-
 usr_utils = UserUtils()
 db_utils = DbUtils()
+
 
 class GroupInfo(models.Model):
     """Some additional information for Group.
@@ -26,7 +26,7 @@ class GroupInfo(models.Model):
     """
 
     delete_members_on_group_deletion = models.BooleanField(default=False)
-    description = models.TextField(blank = True)
+    description = models.TextField(blank=True)
     expiration = models.DateTimeField(blank=True, null=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
     max_n_members = models.IntegerField(blank=True, null=True)
@@ -75,6 +75,7 @@ def post_api_groups_info(request):
     print(group_info)
     return Response(status=status.HTTP_200_OK, data=group_info)
 
+
 def post_api_groups_create(request):
     """
     Instantiate any necessary imports.
@@ -122,7 +123,6 @@ def post_api_groups_create(request):
                 creation_object['max_n_members'] = -1
 
             Group.objects.create(name=creation_object['name'])
-
             group_admin.groups.add(
                 Group.objects.get(name=creation_object['name'])
             )
@@ -187,6 +187,7 @@ def post_api_groups_create(request):
 
     return Response(status=status.HTTP_200_OK, data=return_data)
 
+
 def post_api_groups_delete(request):
     """Instantiate any necessary imports."""
 
@@ -205,7 +206,7 @@ def post_api_groups_delete(request):
     # the request.
     return_data = []
     any_failed = False
-    
+
     # Since bulk_request is an array, go over each
     # item in the array.
     for deletion_object in bulk_request:
@@ -228,16 +229,16 @@ def post_api_groups_delete(request):
                 deleted_count, deleted_info = grouped.delete()
                 if deleted_count < 3:
                     # Too few deleted, error with this delete
-                    return_data.append(db_utils.messages(parameters={
-                            'group': grouped.name })['404_missing_bulk_parameters'])
+                    returning.append(db_utils.messages(parameters={
+                        'group': grouped.name})['404_missing_bulk_parameters'])
                     any_failed = True
                     continue
 
                 elif deleted_count > 3:
                     print(deleted_count, 'deleted_count')
                     # We don't expect there to be duplicates, so while this was successful it should throw a warning
-                    return_data.append(db_utils.messages(parameters={
-                            'group': grouped.name })['418_too_many_deleted'])
+                    returning.append(db_utils.messages(parameters={
+                        'group': grouped.name})['418_too_many_deleted'])
                     any_failed = True
                     continue
                 # Everything looks OK
@@ -256,6 +257,7 @@ def post_api_groups_delete(request):
 
     return Response(status=status.HTTP_200_OK, data=return_data)
 
+
 def post_api_groups_modify(request):
     """Instantiate any necessary imports."""
 
@@ -268,6 +270,10 @@ def post_api_groups_modify(request):
         if standardized in groups:
             grouped = Group.objects.get(name=standardized)
             if requestor_info.is_superuser == True or grouped in requestor_info.groups.all():
+                # TODO: We shouldn't use a try/except as an if statement; I think there is actually
+                #       a get_or_create() function:
+                #       group_information = GroupInfo.objects.get_or_create(group=grouped, owner_user=requestor_info)
+                #       But would need to be tested
                 try:
                     group_information = GroupInfo.objects.get(group=grouped)
                 except:
@@ -355,7 +361,6 @@ def post_api_groups_modify(request):
                         for user in users:
                             user.groups.add(grouped)
 
-
                     # Get the users in the groups provided, if any.
                     if 'inherit_from' in action_set:
                         # Get all the groups first, then get the user list.
@@ -381,6 +386,7 @@ def post_api_groups_modify(request):
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
     return Response(status=status.HTTP_200_OK, data=return_data)
+
 
 @receiver(post_save, sender=User)
 def associate_user_group(sender, instance, created, **kwargs):

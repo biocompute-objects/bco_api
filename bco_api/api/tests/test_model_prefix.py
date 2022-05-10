@@ -10,45 +10,52 @@ from django.utils import timezone
 from django.contrib.auth.models import Group, Permission, User
 # from django.urls import reverse
 from api.model.prefix import Prefix
+from datetime import timedelta
+
 
 class PrefixTestCase(TestCase):
-    """Test for Prefix"""
+    """Test for Prefix
+
+    """
+
+    def setUp(self):
+        self.username = 'wheel'
+        self.name = 'bco_drafter'
+        self.description = 'test prefix'
+        self.prefix = 'TEST'
+        self.expiration = timezone.now() + timedelta(seconds=600)  # make valid for 10 minutes
 
     def create_prefix(self):
         """Create Test BCO
 
         """
 
-        json_file = open('api/tests/test_bcos.json')
-        data = json.load(json_file)
-        # import pdb; pdb.set_trace()
         return Prefix.objects.create(
-            prefix='TEST',
-            created_by=User.objects.get(username='wheel'),
-            owner_group=Group.objects.get(name='bco_drafter'),
-            owner_user=User.objects.get(username='wheel'),
-            description='test prefix',
-            created=timezone.now()
+            prefix=self.prefix,
+            created_by=User.objects.get(username=self.username),
+            owner_group=Group.objects.get(name=self.name),
+            owner_user=User.objects.get(username=self.username),
+            description=self.description,
+            created=timezone.now(),
+            expires=self.expiration
         )
 
-    def test_bco_creation(self):
+    def test_prefix_creation(self):
         """Test prefix creation
 
             Creates prefix,
         """
 
         prefix = self.create_prefix()
+        # Test if the prefix object is actually a Prefix object
         self.assertTrue(isinstance(prefix, Prefix))
-
-    # def test_bco_view(self):
-    #     """Test BCO Published view submission
-    #     """
-
-    #     biocompute = self.create_bco()
-    #     self.assertTrue(isinstance(biocompute, BCO))
-    #     object_id_root = 'BCO_000001'
-    #     object_id_version = '/1.5'
-    #     resp = self.client.get(f'/{object_id_root}{object_id_version}')
-    #     bco_respone = json.loads(resp.data[0])
-    #     self.assertTrue(isinstance(bco_respone, dict))
-    #     self.assertEqual(resp.status_code, 200)
+        # Test that the description was set correctly
+        self.assertEqual(prefix.description, self.description)
+        # Test that the prefix was set correctly
+        self.assertEqual(prefix.__str__(), self.prefix)
+        # Check that the correct user owner is set
+        self.assertEqual(prefix.owner_user, User.objects.get(username=self.username))
+        # Check that the correct group owner is set
+        self.assertEqual(prefix.owner_group, Group.objects.get(name=self.name))
+        # Check that the expiration is set.
+        self.assertEqual(prefix.expires, self.expiration)
