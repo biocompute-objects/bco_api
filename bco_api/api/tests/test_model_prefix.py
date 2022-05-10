@@ -9,7 +9,7 @@ from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import Group, Permission, User
 # from django.urls import reverse
-from api.model.prefix import Prefix
+from api.model.prefix import Prefix, prefix_table
 from datetime import timedelta
 
 
@@ -26,7 +26,7 @@ class PrefixTestCase(TestCase):
         self.expiration = timezone.now() + timedelta(seconds=600)  # make valid for 10 minutes
 
     def create_prefix(self):
-        """Create Test BCO
+        """Create Test Prefix
 
         """
 
@@ -59,3 +59,37 @@ class PrefixTestCase(TestCase):
         self.assertEqual(prefix.owner_group, Group.objects.get(name=self.name))
         # Check that the expiration is set.
         self.assertEqual(prefix.expires, self.expiration)
+
+
+class PrefixTableTestCase(TestCase):
+    """Test for Prefix Table
+
+    """
+
+    def setUp(self):
+        self.n_objects = 4
+        self.prefix = 'TEST'
+
+    def create_prefix_table(self):
+        """Create Test Prefix Table
+
+        """
+
+        return prefix_table.objects.create(
+            prefix=self.prefix,
+            n_objects=self.n_objects
+        )
+
+    def test_prefix_creation(self):
+        """Test prefix creation
+
+            Creates prefix,
+        """
+
+        ptable = self.create_prefix_table()
+        # Test if the prefix object is actually a Prefix Table object
+        self.assertTrue(isinstance(ptable, prefix_table))
+        # Test that the prefix was set correctly
+        self.assertEqual(ptable.__str__(), self.prefix)
+        # Check that the number of records in the table are correct
+        self.assertEqual(ptable.n_objects, self.n_objects)
