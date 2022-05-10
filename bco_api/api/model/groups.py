@@ -28,7 +28,7 @@ class GroupInfo(models.Model):
     delete_members_on_group_deletion = models.BooleanField(default=False)
     description = models.TextField(blank = True)
     expiration = models.DateTimeField(blank=True, null=True)
-    group = models.OneToOneField(Group, on_delete=models.CASCADE, to_field='name', primary_key=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
     max_n_members = models.IntegerField(blank=True, null=True)
     owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
 
