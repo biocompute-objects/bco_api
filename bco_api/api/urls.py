@@ -135,7 +135,7 @@ elif PUBLISH_ONLY == 'False':
         path('api/accounts/new/',
              ApiAccountsNew.as_view()
              ),
-        path('api/accounts/group_info/',
+        path('api/groups/group_info/',
              ApiGroupsInfo.as_view()
              ),
         path('api/groups/create/',

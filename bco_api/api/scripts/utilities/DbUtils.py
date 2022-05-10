@@ -389,33 +389,18 @@ class DbUtils:
         valid_username = False
 
         while not valid_username:
-
             # TODO: We shoudl change this to a hash instead of random number
-
             # # This can replace below (move import to top though) - Needs to be tested
             # import hashlib
             # email_base = p_email.split('@')[0]
             # user_hash = hashlib.md5(b'{}'.format(email_base))
             # new_username = email_base + "_" + user_hash.hexdigest()
-
-            new_username = p_email.split('@')[0] + str(
-                    random.randrange(
-                            1,
-                            100
-                            )
-                    )
-
+            new_username = p_email.split('@')[0] + str(random.randrange(1, 100))
             # Does this username exist (not likely)?
-            if User.objects.filter(
-                    username=new_username
-                    ):
-
+            if User.objects.filter(username=new_username):
                 valid_username = False
-
             else:
-
                 valid_username = True
-
         # We can't use the generic serializer here because of how
         # django processes passwords.
         # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#changing-passwords
@@ -426,52 +411,33 @@ class DbUtils:
         # Save the user.
         # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#creating-users
 
-        user = User.objects.create_user(
-                new_username
-                )
+        user = User.objects.create_user(new_username)
 
         # Setting the password has to be done manually in 
         # order to encrypt it.
         # Source: https://stackoverflow.com/a/39211961
         # Source: https://stackoverflow.com/questions/28347200/django-rest-http-400-error-on-getting-token-authentication-view
-        user.set_password(
-                new_password
-                )
+        user.set_password(new_password)
 
         # Save the user.
         user.save()
 
         # Automatically add the user to the bco_drafter and bco_publisher groups.
-        user.groups.add(
-                Group.objects.get(
-                        name='bco_drafter'
-                        )
-                )
-        user.groups.add(
-                Group.objects.get(
-                        name='bco_publisher'
-                        )
-                )
+        user.groups.add(Group.objects.get(name='bco_drafter'))
+        user.groups.add(Group.objects.get(name='bco_publisher'))
 
         # (OPTIONAL) Make a request to userdb on the portal so that
         # the user's information can be stored there.
 
         # If a token was provided with the initial request,
         # use it to make the update call to userdb.
-        token = apps.get_model(
-                app_label='api',
-                model_name='new_users'
-                ).objects.get(
-                email=p_email
-                ).token
+        token = apps.get_model(app_label='api', model_name='new_users'
+            ).objects.get(email=p_email).token
 
         if token is not None:
-
             # Send the new information to userdb.
-
             # Get the user's information from the database.
             uu = UserUtils.UserUtils()
-
             # Set the headers.
             # Source: https://docs.python-requests.org/en/master/user/quickstart/#custom-headers
             headers = {
@@ -481,16 +447,11 @@ class DbUtils:
 
             # Set the data properly.
             # Source: https://stackoverflow.com/a/56562567
-            r = requests.post(
-                    data=json.dumps(
-                            uu.get_user_info(
-                                    username=new_username
-                                    ),
-                            default=str
-                            ),
-                    headers=headers,
-                    url='http://127.0.0.1:8080/users/add_api/'
-                    )
+            r = requests.post(data=json.dumps(
+                uu.get_user_info(username=new_username),default=str),
+                headers=headers,
+                url='http://127.0.0.1:8181/users/add_api/'
+           )
 
         # Delete the record in the temporary table.
         apps.get_model(
