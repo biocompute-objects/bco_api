@@ -15,7 +15,8 @@ from datetime import timedelta
 from rest_framework.test import force_authenticate, APIRequestFactory
 from api.views import (
     ApiGroupsInfo,
-    ApiGroupsCreate
+    ApiGroupsCreate,
+    ApiGroupsDelete
     )
 from api.tests.test_model_groups import GroupsTestCase
 
@@ -27,15 +28,15 @@ class GroupApiTestCase(TestCase):
 
     def setUp(self):
         """
+        Sets up the test variables.
         """
         # Client allows us to call the endpoints as if the server was running.
         # Since the server isn't running, this lets us use this for testing.
         self.client = Client()
         self.factory = APIRequestFactory()
 
-
         # Sample BCO information for various API calls
-        # This will let us insert direclty in the DB or
+        # This will let us insert directly in the DB or
         # insert via API call.
         json_file = open('api/tests/test_bcos.json')
         data = json.load(json_file)
@@ -56,27 +57,36 @@ class GroupApiTestCase(TestCase):
     def test_post_api_groups_create(self):
         """Test post_api_groups_create API endpoint
 
-            Creates a group.
+           Creates a group.
         """
 
         view = ApiGroupsCreate.as_view()
 
+        # Set up the request to make, this is the API call along with data that would be posted.
         request = self.factory.post('api/groups/create/', {
                 "POST_api_groups_create": [
                         {
-                            'name': 'test',
-                            'delete_members_on_group_deletion': True,
-                            'description': 'This is a test group.',
-                            'max_n_members': 10,
-                            'expiration': self.expiration
-                        }
-                    ]
+                                'name'                            : 'test',
+                                'delete_members_on_group_deletion': True,
+                                'description'                     : 'This is a test group.',
+                                'max_n_members'                   : 10,
+                                'expiration'                      : self.expiration
+                                }
+                        ]
                 }, format='json', HTTP_AUTHORIZATION='Token {}'.format(self.user.auth_token))
 
         # Try to force login as the owner
         force_authenticate(request, user=self.user, token=self.user.auth_token)
+
+        # Get the response as if the API was called via a web browser
         response = view(request)
-        print("\ttest_post_api_groups_create response: {}".format(response))
+
+        # Assert that it was successful
+        self.assertEqual(response.data[0]['request_status'], 'SUCCESS')
+        # Assert the status code is as expected (CREATED).
+        self.assertEqual(response.data[0]['status_code'], '201')
+        # Assert the request status code (returned via code) is set properly
+        self.assertEqual(response.status_code, 200)
 
     def test_post_api_groups_info(self):
         """Test post_api_groups_info API endpoint
@@ -86,7 +96,7 @@ class GroupApiTestCase(TestCase):
 
         view = ApiGroupsInfo.as_view()
 
-        # Create the group
+        # Create the group to be queried
         x = GroupsTestCase()
         x.setUp()
         x.create_group()
@@ -100,4 +110,38 @@ class GroupApiTestCase(TestCase):
         # Try to force login as the owner
         force_authenticate(request, user=self.user, token=self.user.auth_token)
         response = view(request)
-        print("\ttest_post_api_groups_info response: {}".format(response))
+
+        # Assert the status code is as expected.
+        self.assertEqual(response.status_code, 200)
+
+        # TODO: The endpoint isn't completely implemented yet
+        #       Need to revisit assertions once it is.
+        # print("\ttest_post_api_groups_info response: {}".format(response))
+
+    def test_post_api_groups_delete(self):
+        """Test post_api_groups_delete API endpoint
+
+            Deletes a group.
+        """
+
+        view = ApiGroupsDelete.as_view()
+
+        # Create the group to be deleted
+        x = GroupsTestCase()
+        x.setUp()
+        x.create_group()
+
+        request = self.factory.post('api/groups/delete/', {
+                "POST_api_groups_delete":
+                    {
+                            "names": ['test'] }
+                }, format='json', HTTP_AUTHORIZATION='Token {}'.format(self.user.auth_token))
+
+        # Try to force login as the owner
+        force_authenticate(request, user=self.user, token=self.user.auth_token)
+        response = view(request)
+
+        # Assert the status code is as expected.
+        self.assertEqual(response.status_code, 200)
+
+        print("\ttest_post_api_groups_delete response: {}".format(response))

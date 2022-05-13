@@ -180,7 +180,7 @@ def post_api_groups_create(request):
 
 
 def post_api_groups_delete(request):
-    """Instantiate any necessary imports."""
+    """API Endpoint to delete a group."""
 
     bulk_request = request.data['POST_api_groups_delete']['names']
 
