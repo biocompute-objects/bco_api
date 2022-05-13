@@ -43,7 +43,7 @@ class GroupApiTestCase(TestCase):
         self.sample_bco = {
                 "object_id_root"   : 'BCO_000001',
                 "object_id_version": '/1.5',
-                "owner_user"       : 'anon',
+                "owner_user"       : 'wheel',
                 "owner_group"      : 'bco_drafter',
                 "prefix"           : 'BCO',
                 "schema"           : 'IEEE',
@@ -141,7 +141,9 @@ class GroupApiTestCase(TestCase):
         force_authenticate(request, user=self.user, token=self.user.auth_token)
         response = view(request)
 
+        print("\ttest_post_api_groups_delete response: {}".format(response.data))
+
         # Assert the status code is as expected.
         self.assertEqual(response.status_code, 200)
 
-        print("\ttest_post_api_groups_delete response: {}".format(response))
+
