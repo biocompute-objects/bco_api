@@ -46,16 +46,16 @@ def post_api_groups_info(request):
     for index, value in enumerate(bulk_request['names']):
         group = Group.objects.get(name=value)
         group_info_object = GroupInfo.objects.get(group=value)
-        gropu_permissions = group.permissions.all()
+        group_permissions = group.permissions.all()
         group_members = group.user_set.all()
         group_info.append(
             {
                 'name': group.name,
-                'permissions': gropu_permissions,
+                'permissions': group_permissions,
                 'members': group_members
             }
     )
-    print(group_info)
+    # print(group_info)
     group_list = list(Group.objects.all())#.values_list('name', flat=True))
     username = user.username
     user_groups = {}
