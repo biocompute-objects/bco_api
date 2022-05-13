@@ -24,14 +24,25 @@ from rest_framework.views import APIView
 from .permissions import RequestorInPrefixAdminsGroup
 # FIX
 from api.scripts.method_specific.GET_activate_account import GET_activate_account
-from api.scripts.method_specific.GET_draft_object_by_id import GET_draft_object_by_id
+from api.scripts.method_specific.GET_draft_object_by_id import get_draft_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
+
 # Request-specific methods
-from api.groups import post_api_groups_create
-from api.groups import post_api_groups_info
-from api.groups import post_api_groups_delete
-from api.groups import post_api_groups_modify
+from api.model.groups import (
+    post_api_groups_modify,
+    post_api_groups_delete,
+    post_api_groups_info,
+    post_api_groups_create,
+)
+from api.model.prefix import (
+    post_api_prefixes_create,
+    post_api_prefixes_delete,
+    post_api_prefixes_modify,
+    post_api_prefixes_permissions_set,
+    post_api_prefixes_token,
+    post_api_prefixes_token_flat,
+)
 
 from api.scripts.method_specific.POST_api_accounts_describe import POST_api_accounts_describe
 from api.scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
@@ -39,19 +50,21 @@ from api.scripts.method_specific.POST_api_objects_drafts_create import post_api_
 from api.scripts.method_specific.POST_api_objects_drafts_modify import post_api_objects_drafts_modify
 from api.scripts.method_specific.POST_api_objects_drafts_permissions import POST_api_objects_drafts_permissions
 from api.scripts.method_specific.POST_api_objects_drafts_permissions_set import POST_api_objects_drafts_permissions_set
-from api.scripts.method_specific.POST_api_objects_drafts_publish import POST_api_objects_drafts_publish
+from api.scripts.method_specific.POST_api_objects_drafts_publish import post_api_objects_drafts_publish
 from api.scripts.method_specific.POST_api_objects_drafts_read import POST_api_objects_drafts_read
 from api.scripts.method_specific.POST_api_objects_drafts_token import POST_api_objects_drafts_token
 from api.scripts.method_specific.POST_api_objects_publish import POST_api_objects_publish
 from api.scripts.method_specific.POST_api_objects_published import POST_api_objects_published
 from api.scripts.method_specific.POST_api_objects_search import post_api_objects_search
 from api.scripts.method_specific.POST_api_objects_token import POST_api_objects_token
-from api.scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
-from api.scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
-from api.scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify
-from api.scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
-from api.scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
-from api.scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
+
+# from api.scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
+# from api.scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
+# from api.scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify
+# from api.scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
+# from api.scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
+# from api.scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
+
 # For helper functions
 from api.scripts.utilities import UserUtils
 
@@ -202,29 +215,41 @@ class ApiGroupsInfo(APIView):
     required but all other parameters are optional.
     """
 
-    auth = [
-        openapi.Parameter('Authorization',
-            openapi.IN_HEADER,
-            description="Authorization Token",
-            type=openapi.TYPE_STRING
+    POST_api_groups_info_schema = openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['names'],
+            properties={
+                'names': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    description='List of groups to delete.',
+                    items=openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                ),
+            }
         )
-    ]
 
-    @swagger_auto_schema(manual_parameters=auth, responses={
-            200: "Authorization is successful.",
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Group Information Schema",
+        description="API call checks a user's groups and permissions"
+            " in this system.",
+        required=['POST_api_groups_info'],
+        properties={
+            'POST_api_groups_info': POST_api_groups_info_schema
+        }
+    )
+
+    @swagger_auto_schema(request_body=request_body, responses={
+            200: "Authorization is successful. Group permissions returned",
             400: "Bad request.  Authorization is not provided in the request headers.",
-            401: "Unauthorized. Authentication credentials were not provided."
-            }, tags=["Account Management"])
+            401: "Unauthorized. Authentication credentials were not valid."
+            }, tags=["Group Management"])
+
     def post(self, request):
+        """ Post?
         """
-        Pass the request to the handling function
-        Source: https://stackoverflow.com/a/31813810 
-        """
-        if 'Authorization' in request.headers:
-            token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-            return post_api_groups_info(token=token)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return check_post_and_process(request, post_api_groups_info)
 
 
 class ApiGroupsCreate(APIView):
@@ -274,6 +299,8 @@ class ApiGroupsCreate(APIView):
             409: "Group conflict.  There is already a group with this name."
             }, tags=["Group Management"])
     def post(self, request):
+        """"Post?
+        """
         return check_post_and_process(request, post_api_groups_create)
 
 
@@ -674,7 +701,7 @@ class ApiObjectsDraftsPublish(APIView):
             403: "Invalid token."
             }, tags=["BCO Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_objects_drafts_publish)
+        return check_post_and_process(request, post_api_objects_drafts_publish)
 
 
 class ApiObjectsDraftsRead(APIView):
@@ -982,7 +1009,7 @@ class ApiPrefixesCreate(APIView):
         }, tags=["Prefix Management"]
     )
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_create)
+        return check_post_and_process(request, post_api_prefixes_create)
 
 
 class ApiPrefixesDelete(APIView):
@@ -1031,7 +1058,7 @@ class ApiPrefixesDelete(APIView):
         }, tags=["Prefix Management"]
     )
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_delete)
+        return check_post_and_process(request, post_api_prefixes_delete)
 
 
 class ApiPrefixesModify(APIView):
@@ -1133,7 +1160,7 @@ class ApiPrefixesModify(APIView):
             404: "The prefix provided could not be found."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_modify)
+        return check_post_and_process(request, post_api_prefixes_modify)
 
 
 class ApiPrefixesPermissionsSet(APIView):
@@ -1198,7 +1225,7 @@ class ApiPrefixesPermissionsSet(APIView):
             404: "The prefix provided was not found."
             }, tags=["Prefix Management"])
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_prefixes_permissions_set)
+        return check_post_and_process(request, post_api_prefixes_permissions_set)
 
 
 class ApiPrefixesToken(APIView):
@@ -1251,7 +1278,7 @@ class ApiPrefixesTokenFlat(APIView):
         if 'Authorization' in request.headers:
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
-            return POST_api_prefixes_token_flat(request=request)
+            return post_api_prefixes_token_flat(request=request)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -1323,9 +1350,8 @@ class DraftObjectId(APIView):
         # TODO: This is not dealing with the draft_object_id parameter being passed in?
         # return GET_draft_object_by_id(do_id=request.build_absolute_uri(), rqst=request)
 
-        # return GET_draft_object_by_id(do_id=draft_object_id, rqst=request)
-        
-        return GET_draft_object_by_id(do_id=object_id, request=request)
+        # return GET_draft_object_by_id(do_id=draft_object_id, rqst=request)   
+        return get_draft_object_by_id(do_id=object_id, request=request)
 
 
 # Allow anyone to view published objects.

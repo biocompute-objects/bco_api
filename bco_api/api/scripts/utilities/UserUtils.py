@@ -1,5 +1,5 @@
 # Prefix
-from api.models import Prefix
+# from api.model.prefix import Prefix
 
 # For returning server information.
 from django.conf import settings
@@ -128,84 +128,59 @@ class UserUtils:
         Slight error the the django-rest-framework documentation
         as we need the user id and not the username.
         Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
+        No token creation as the user has to specifically
+        confirm their account before a token is created
+        for them.
+
+        Get the other information for this user.
+        Source: https://stackoverflow.com/a/48592813
+        First, get the django-native User object.
+        Group permissions
+        Get each group's permissions separately,
+        then append them to other_info.
+        Try to get the permissions for the user,
+        split by user and group.
+        Define a dictionary to hold the permissions.
+        First, by the user.
+        Keep the model and the codename.
+        Next, by the group.
+        username.get_group_permissions() sheds the group
+        name (a design flaw in django), so we have to
+        invoke some inefficient logic here.
+        In general, django isn't good at retaining
+        groups and permissions in one step.
+        See the first comment at https://stackoverflow.com/a/27538767
+        for a partial solution.
+        Alternatively, in models.py, we could define
+        our own permissions class, but this is a bit
+        burdensome.
+        Add the group name automatically.
         """
         user_id = User.objects.get(username=username).pk
-
-        # No token creation as the user has to specifically
-        # confirm their account before a token is created
-        # for them.
         token = Token.objects.get(user=user_id)
-
-        # Get the other information for this user.
-        # Source: https://stackoverflow.com/a/48592813
         other_info = {
             'permissions'       : { },
             'account_creation'  : '',
             'account_expiration': ''
         }
 
-        # First, get the django-native User object.
         user = User.objects.get(username=username)
+        user_perms = {'user'  : [], 'groups': []}
 
-        # Group permissions
+        for permission in user.user_permissions.all():
+            if permission.name not in user_perms['user']:
+                user_perms['user'].append(permission.name)
 
-        # Get each group's permissions separately,
-        # then append them to other_info.
+        for group in user.groups.all():
+            if group.name not in user_perms['groups']:
+                user_perms['groups'].append(group.name)
+            for permission in Permission.objects.filter(group=group):
+                if permission.name not in user_perms['user']:
+                    user_perms['user'].append(permission.name)
 
-        # Try to get the permissions for the user,
-        # split by user and group.
-
-        # Define a dictionary to hold the permissions.
-        user_perms = {
-            'user'  : { },
-            'groups': { }
-        }
-
-        # First, by the user.
-        for p in user.user_permissions.all():
-
-            # Keep the model and the codename.
-            if p.content_type.name not in user_perms['user']:
-                user_perms['user'][p.content_type.name] = []
-
-            user_perms['user'][p.content_type.name].append(p.codename)
-
-        # Next, by the group.
-
-        # username.get_group_permissions() sheds the group
-        # name (a design flaw in django), so we have to
-        # invoke some inefficient logic here.
-
-        # In general, django isn't good at retaining
-        # groups and permissions in one step.
-
-        # See the first comment at https://stackoverflow.com/a/27538767
-        # for a partial solution.
-
-        # Alternatively, in models.py, we could define
-        # our own permissions class, but this is a bit
-        # burdensome.
-
-        for g in user.groups.all():
-
-            # Add the group name automatically.
-            if g.name not in user_perms['groups']:
-                user_perms['groups'][g.name] = { }
-
-            for p in Permission.objects.filter(group=g):
-
-                # Keep the model and the codename.
-                if p.content_type.name not in user_perms['groups'][g.name]:
-                    user_perms['groups'][g.name][p.content_type.name] = []
-
-                user_perms['groups'][g.name][p.content_type.name].append(p.codename)
-
-        # Append.
         other_info['permissions'] = user_perms
 
-        # Account created.
         other_info['account_creation'] = user.date_joined
-
         return {
                 'hostname'               : settings.ALLOWED_HOSTS[0],
                 'human_readable_hostname': settings.HUMAN_READABLE_HOSTNAME,
@@ -215,9 +190,10 @@ class UserUtils:
                 'other_info'             : other_info
                 }
 
-    # Prefix for a given user.
+
     def prefixes_for_user(self, user_object):
-        """Simple function to return prefixes
+        """Prefix for a given user.
+        Simple function to return prefixes
         that a user has ANY permission on.
 
         Recall that having any permission on
@@ -234,106 +210,64 @@ class UserUtils:
         if specific_permission is None:
             specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
 
-        # flatten - return just the raw perms
-        # specific_permission - looking for a permission in particular?
-
-        # Get the prefixes for the user and their groups, then filter.
-        # pxs = list(
-        #         Prefix.objects.filter(
-        #         Q(owner_user = user_object.id) |
-        #         Q(owner_group__in = list(user_object.groups.all().values_list(
-        #             'id', 
-        #             flat = True
-        #         )))
-        #     ).values_list(
-        #         'prefix',
-        #         flat = True
-        #     )
-        # )
-
         prefixed = self.get_user_info(
                 user_object
                 )['other_info']['permissions']
+        permissions = []
+        for pre in prefixed['user']:
+            permissions.append(Permission.objects.get(name=pre).codename)
 
-        # To store flattened permissions
-        flat_perms = []
+        return permissions
 
-        # We only need the permissions that are specific
-        # to the bco model.
+        # # To store flattened permissions
+        # flat_perms = []
 
-        bco_specific = {
-                'user'  : { },
-                'groups': { }
-                }
+        # # We only need the permissions that are specific
+        # # to the bco model.
 
-       #  {'user': {
-        #
-        #  },
-       #  'groups': {
-       #        'bco_drafter': {
-        # 'bco': ['add_BCO', 'change_BCO', 'delete_BCO', 'draft_BCO', 'publish_BCO', 'view_BCO']
-        #        },
-       #        'bco_publisher': {
-       #            'bco': ['add_BCO', 'change_BCO', 'delete_BCO', 'draft_BCO', 'publish_BCO', 'view_BCO']
-       #         },
-       #         'test230': {
-        #
+        # bco_specific = {
+        #         'user'  : { },
+        #         'groups': { }
         #         }
-        #             lab 5: []
-       #     }
-       # }
 
-        if 'bco' in prefixed['user']:
-            if flatten:
-                flat_perms = prefixed['user']['bco']
-            else:
-                bco_specific['user']['bco'] = prefixed['user']['bco']
-        else:
-            if not flatten:
-                bco_specific['user']['bco'] = { }
-
-        # expected to have groups and bco_publisher
-        # try:
-        #     if 'bco' in prefixed['groups']['bco_publisher']:
-        #         if flatten:
-        #             flat_perms = prefixed['groups']['bco_publisher']['bco']
-        #         else:
-        #             bco_specific['user']['bco'] = prefixed['groups']['bco_publisher']['bco']
+        # if 'bco' in prefixed['user']:
+        #     if flatten:
+        #         flat_perms = prefixed['user']['bco']
         #     else:
-        #         if not flatten:
-        #             bco_specific['user']['bco'] = prefixed['groups']['bco_publisher']
-        # except KeyError as e:
-        #     print("Error!  {}".format(e))
+        #         bco_specific['user']['bco'] = prefixed['user']['bco']
+        # else:
+        #     if not flatten:
+        #         bco_specific['user']['bco'] = { }
 
+        # import pdb; pdb.set_trace()
+        # for k, v in prefixed['groups']:
+        #     if 'bco' in prefixed['groups'][k]:
+        #         if flatten:
+        #             for perm in v['bco']:
+        #                 if perm not in flat_perms:
+        #                     flat_perms.append(perm)
+        #         else:
+        #             bco_specific['groups'][k] = {
+        #                     'bco': v['bco']
+        #                     }
+        #     else:
+        #         bco_specific['groups'][k] = { }
 
-        for k, v in prefixed['groups'].items():
-            if 'bco' in prefixed['groups'][k]:
-                if flatten:
-                    for perm in v['bco']:
-                        if perm not in flat_perms:
-                            flat_perms.append(perm)
-                else:
-                    bco_specific['groups'][k] = {
-                            'bco': v['bco']
-                            }
-            else:
-                bco_specific['groups'][k] = { }
+        # # Get the permissions.
+        # # Source: https://stackoverflow.com/a/952952
 
-        # Get the permissions.
-        # Source: https://stackoverflow.com/a/952952
+        # # Flatten the permissions so that we can
+        # # work with them more easily.
 
-        # Flatten the permissions so that we can
-        # work with them more easily.
-
-        # Return based on what we need.
-        if flatten == True:
+        # # Return based on what we need.
+        # if flatten == True:
         
-            # Only unique permissions are returned.
-            return flat_perms
+        #     # Only unique permissions are returned.
+        #     return flat_perms
 
-        elif flatten == False:
+        # elif flatten == False:
 
-            return bco_specific
+        #     return bco_specific
 
     def user_from_request(self, request):
         """Returns a user object from a request.

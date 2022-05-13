@@ -6,13 +6,13 @@ see if the requestor has permissions
 for it.
 """
 
-from api.models import bco
+from api.models import BCO
 from api.scripts.utilities import UserUtils
 from rest_framework import status
 from rest_framework.response import Response
 from guardian.shortcuts import get_objects_for_user
 
-def GET_draft_object_by_id(do_id, request):
+def get_draft_object_by_id(do_id, request):
     """Get a draft object
 
     Parameters
@@ -28,7 +28,7 @@ def GET_draft_object_by_id(do_id, request):
         it is returned. If not the response is HTTP_403_FORBIDDEN.
     """
 
-    filtered = bco.objects.filter(object_id__regex=rf'(.*?)/{do_id}', state="DRAFT")
+    filtered = BCO.objects.filter(object_id__regex=rf'(.*?)/{do_id}', state="DRAFT")
 
     if filtered.exists():
         if len(filtered) > 1:
@@ -39,15 +39,24 @@ def GET_draft_object_by_id(do_id, request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         # Get the requestor's info.
-        usr_info = UserUtils.UserUtils().user_from_request(request=request)
-        user_objects = get_objects_for_user(user=usr_info, perms=[], klass=bco, any_perm=True)
+        user = UserUtils.UserUtils().user_from_request(request=request)
+        user_perms = UserUtils.UserUtils().prefix_perms_for_user(
+            flatten = True,
+            user_object = user,
+            specific_permission = ['view']
+        )
+        user_objects = get_objects_for_user(user=user, perms=[], klass=BCO, any_perm=True)
 
         # Does the requestor have permissions for the object?
         full_object_id = filtered.values_list('object_id', flat=True)[0]
-        objected = bco.objects.get(object_id=full_object_id)
-        if objected in user_objects:
+        objected = BCO.objects.get(object_id=full_object_id)
+        prefix = objected.prefix
+        object_permission = objected in user_objects
+        group_permission = ('view_' + prefix) in user_perms
+
+        if object_permission is True or group_permission is True:
             return Response(data=objected.contents, status=status.HTTP_200_OK)
-        # Insufficient permissions.
+
         return Response(
             data='The contents of the draft could not be sent back because'
                 ' the requestor did not have appropriate permissions.',

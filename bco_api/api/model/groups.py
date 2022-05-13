@@ -3,14 +3,9 @@
 """
 
 from django.db import models
-import django.db.utils as PermErrors
-from django.db.models.signals import post_save, post_delete, pre_delete
-from django.conf import settings
-from django.contrib.auth.models import Group, Permission, User
-from django.contrib.contenttypes.models import ContentType
+from django.db.models.signals import post_save
+from django.contrib.auth.models import Group, User
 from django.dispatch import receiver
-from django.utils import timezone
-from guardian.shortcuts import assign_perm
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -18,9 +13,9 @@ from rest_framework.response import Response
 from api.scripts.utilities.DbUtils import DbUtils
 from api.scripts.utilities.UserUtils import UserUtils
 
-
 usr_utils = UserUtils()
 db_utils = DbUtils()
+
 
 class GroupInfo(models.Model):
     """Some additional information for Group.
@@ -31,49 +26,93 @@ class GroupInfo(models.Model):
     """
 
     delete_members_on_group_deletion = models.BooleanField(default=False)
-    group = models.OneToOneField(Group, on_delete=models.CASCADE)
-    description = models.TextField(blank = True)
+    description = models.TextField(blank=True)
     expiration = models.DateTimeField(blank=True, null=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
     max_n_members = models.IntegerField(blank=True, null=True)
     owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
 
-def post_api_groups_info(token):
+    def __str__(self):
+        """String for representing the GroupInfo model (in Admin site etc.)."""
+        return f"{self.group}"
+
+def post_api_groups_info(request):
     """Retrieve Group information by user
     
     """
 
-    group_list = list(Group.objects.all())#.values_list('name', flat=True))
-    user = Token.objects.get(key = token).user
-    username = user.username
-    user_groups = {}
-    # for group in 
-    print(usr_utils.get_user_groups_by_username(un=username))
-    
-    return Response(status=status.HTTP_200_OK)
+    user = usr_utils.user_from_request(request=request)
+    bulk_request = request.data['POST_api_groups_info']
+    group_info = []
 
+    for index, value in enumerate(bulk_request['names']):
+        group = Group.objects.get(name=value)
+
+        try:
+            admin = GroupInfo.objects.get(group=value).owner_user == user
+            description = GroupInfo.objects.get(group=value).description
+        except GroupInfo.DoesNotExist:
+            admin=False
+            description = 'N/A'
+
+        group_permissions = list(
+            group.permissions.all().values_list('codename', flat=True)
+        )
+        group_members = list(
+            group.user_set.all().values_list('username', flat=True)
+        )
+        group_info.append({
+            'name': group.name,
+            'permissions': group_permissions,
+            'members': group_members,
+            'admin': admin,
+            'description': description
+        })
+
+    #  print(usr_utils.get_user_groups_by_username(un=username))
     # user.get_all_permissions()
     # user.get_group_permissions()
+    print(group_info)
+    return Response(status=status.HTTP_200_OK, data=group_info)
 
 
 def post_api_groups_create(request):
     """
     Instantiate any necessary imports.
+    Not guaranteed which of username and group
+    will be provided.
+    Create the optional keys if they haven't
+    been provided.
+    The group has not been created, so create it.
+    Update the group info.
+    TODO: Expiration needs to be casted to a datetime object; will likely
+    need to be separate fields in UI
+    The expiration field can't be a blank string because django will complain
+    about the field being a DateTimeField and thus requiring a particular
+    format for "blank" or "null" as defined in the model.
+
+    Note the bool typecast for delete_members_on_group_deletion,
+    this is necessary since the request to create the group
+    doesn't have a concept of type bool.
+    Add users which exist and give an error for those that don't.
+    
+    As this view is for a bulk operation, status 200
+    means that the request was successfully processed,
+    but NOT necessarily each item in the request.
     """
 
     bulk_request = request.data['POST_api_groups_create']
     group_admin = usr_utils.user_from_request(request=request)
     groups = list(Group.objects.all().values_list('name', flat=True))
-    returning = []
+    return_data = []
+    any_failed = False
+
     for creation_object in bulk_request:
+
         standardized = creation_object['name'].lower()
         if standardized not in groups:
-            # Not guaranteed which of username and group
-            # will be provided.
             if 'usernames' not in creation_object:
                 creation_object['usernames'] = []
-            # Create the optional keys if they haven't
-            # been provided.
             if 'delete_members_on_group_deletion' not in creation_object:
                 creation_object['delete_members_on_group_deletion'] = False
 
@@ -83,28 +122,17 @@ def post_api_groups_create(request):
             if 'max_n_members' not in creation_object:
                 creation_object['max_n_members'] = -1
 
-            # The group has not been created, so create it.
             Group.objects.create(name=creation_object['name'])
+            group_admin.groups.add(
+                Group.objects.get(name=creation_object['name'])
+            )
 
-            # Update the group info.
-
-            # TODO: Expiration needs to be casted to a datetime object;
-            #       will likely need to be separate fields in UI
-            # The expiration field can't be a blank string
-            # because django will complain about the field
-            # being a DateTimeField and thus requiring
-            # a particular format for "blank" or "null"
-            # as defined in the model.
-
-            # Note the bool typecast for delete_members_on_group_deletion,
-            # this is necessary since the request to create the group
-            # doesn't have a concept of type bool.
-
-    
-            if 'expiration' not in creation_object:
-
+            if 'expiration' not in creation_object or \
+                creation_object['expiration'] == '':
                 GroupInfo.objects.create(
-                    delete_members_on_group_deletion=bool(creation_object['delete_members_on_group_deletion']),
+                    delete_members_on_group_deletion=bool(
+                        creation_object['delete_members_on_group_deletion']
+                    ),
                     description=creation_object['description'],
                     group=Group.objects.get(name=creation_object['name']),
                     max_n_members=creation_object['max_n_members'],
@@ -112,7 +140,9 @@ def post_api_groups_create(request):
                 )
             else:
                 GroupInfo.objects.create(
-                    delete_members_on_group_deletion=bool(creation_object['delete_members_on_group_deletion']),
+                    delete_members_on_group_deletion=bool(
+                        creation_object['delete_members_on_group_deletion']
+                    ),
                     description=creation_object['description'],
                     expiration=creation_object['expiration'],
                     group=Group.objects.get(
@@ -122,37 +152,45 @@ def post_api_groups_create(request):
                     owner_user=group_admin
                 )
 
-            # Add users which exist and give an error for
-            # those that don't.
+            users_added =[]
+            users_excluded = []
+
             for usrnm in creation_object['usernames']:
-
                 if usr_utils.check_user_exists(un=usrnm):
-
-                    # Add the user to the group.
-                    User.objects.get(username=usrnm
-                    ).groups.add(
-                        Group.objects.get(
-                            name=creation_object['name']
-                        )
+                    User.objects.get(username=usrnm).groups.add(
+                        Group.objects.get(name=creation_object['name'])
                     )
-                    returning.append(db_utils.messages(parameters={'group': standardized})['201_group_create'])
+                    users_added.append(usrnm)
                 else:
-                    # Bad request.  Username doesn't exist
-                    # TODO: Update this to be more informative
-                    returning.append(db_utils.messages(parameters={})['400_bad_request'])
+                    users_excluded.append(usrnm)
+
+            if len(users_excluded) > 0 :
+                return_data.append(db_utils.messages(parameters={
+                    'group': standardized,
+                    'users_excluded': users_excluded
+                })['201_group_users_excluded'])
+
+            else:
+                return_data.append(db_utils.messages(
+                    parameters={'group': standardized})['201_group_create']
+                )
+
         else:
             # Update the request status.
-            returning.append(db_utils.messages(parameters={'group': standardized})['409_group_conflict'])
+            return_data.append(db_utils.messages(
+                parameters={'group': standardized})['409_group_conflict']
+            )
+            any_failed = True
 
-    # As this view is for a bulk operation, status 200
-    # means that the request was successfully processed,
-    # but NOT necessarily each item in the request.
-    return Response(status=status.HTTP_200_OK, data=returning)
+    if any_failed:
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=return_data)
+
+    return Response(status=status.HTTP_200_OK, data=return_data)
+
 
 def post_api_groups_delete(request):
-    "Instantiate any necessary imports."
+    """Instantiate any necessary imports."""
 
-    # Define the bulk request.
     bulk_request = request.data['POST_api_groups_delete']['names']
 
     # Establish who has made the request.
@@ -166,9 +204,9 @@ def post_api_groups_delete(request):
 
     # Construct an array to return information about processing
     # the request.
-    returning = []
+    return_data = []
     any_failed = False
-    
+
     # Since bulk_request is an array, go over each
     # item in the array.
     for deletion_object in bulk_request:
@@ -192,7 +230,7 @@ def post_api_groups_delete(request):
                 if deleted_count < 3:
                     # Too few deleted, error with this delete
                     returning.append(db_utils.messages(parameters={
-                            'group': grouped.name })['404_missing_bulk_parameters'])
+                        'group': grouped.name})['404_missing_bulk_parameters'])
                     any_failed = True
                     continue
 
@@ -200,78 +238,56 @@ def post_api_groups_delete(request):
                     print(deleted_count, 'deleted_count')
                     # We don't expect there to be duplicates, so while this was successful it should throw a warning
                     returning.append(db_utils.messages(parameters={
-                            'group': grouped.name })['418_too_many_deleted'])
+                        'group': grouped.name})['418_too_many_deleted'])
                     any_failed = True
                     continue
                 # Everything looks OK
-                returning.append(db_utils.messages(parameters={'group': grouped.name})['200_OK_group_delete'])
+                return_data.append(db_utils.messages(parameters={'group': grouped.name})['200_OK_group_delete'])
             else:
                 # Requestor is not the admin.
-                returning.append(db_utils.messages(parameters={})['403_insufficient_permissions'])
+                return_data.append(db_utils.messages(parameters={})['403_insufficient_permissions'])
                 any_failed = True
         else:
             # Update the request status.
-            returning.append(db_utils.messages(parameters={})['400_bad_request'])
+            return_data.append(db_utils.messages(parameters={})['400_bad_request'])
             any_failed = True
 
-    # As this view is for a bulk operation, status 200
-    # means that the request was successfully processed,
-    # but NOT necessarily each item in the request.
     if any_failed:
-        return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=return_data)
 
-    return Response(status=status.HTTP_200_OK, data=returning)
+    return Response(status=status.HTTP_200_OK, data=return_data)
+
 
 def post_api_groups_modify(request):
     """Instantiate any necessary imports."""
 
-    # Define the bulk request.
     bulk_request = request.data['POST_api_groups_modify']
-
-    # Establish who has made the request.
     requestor_info = usr_utils.user_from_request(request=request)
-
-    # Get all group names.
-
-    # This is a better solution than querying for
-    # each individual group name.
     groups = list(Group.objects.all().values_list('name', flat=True))
-
-    # Construct an array to return information about processing
-    # the request.
-    returning = []
-
-    # Since bulk_request is an array, go over each
-    # item in the array.
+    return_data = []
     for modification_object in bulk_request:
-
-        # Standardize the group name.
         standardized = modification_object['name'].lower()
-
         if standardized in groups:
-
-            # Get the group and its information.
             grouped = Group.objects.get(name=standardized)
-
-            # Check that the requestor is the group admin.
             if requestor_info.is_superuser == True or grouped in requestor_info.groups.all():
+                # TODO: We shouldn't use a try/except as an if statement; I think there is actually
+                #       a get_or_create() function:
+                #       group_information = GroupInfo.objects.get_or_create(group=grouped, owner_user=requestor_info)
+                #       But would need to be tested
                 try:
                     group_information = GroupInfo.objects.get(group=grouped)
                 except:
-                    group_information = GroupInfo.objects.create(group=grouped, owner_user=requestor_info)
-                # Process the request.
-                # We only care about the actions at this point.
+                    group_information = GroupInfo.objects.create(
+                        group=grouped, owner_user=requestor_info
+                    )
                 if 'actions' in modification_object:
-                    # Set the working object to the actions.
                     action_set = modification_object['actions']
 
                     # Invalid inputs don't throw 400, 401, or 403 for the
                     # request.  That is, provided parameters that don't
                     # exist (for example, an owner_user that does not exist)
                     # simply get skipped over.
-
                     # First do the "easy" tasks - name and description.
-
                     # Change name of group if set in actions
                     if 'rename' in action_set:
                         # Simply re-name to whatever we've been provided,
@@ -345,7 +361,6 @@ def post_api_groups_modify(request):
                         for user in users:
                             user.groups.add(grouped)
 
-
                     # Get the users in the groups provided, if any.
                     if 'inherit_from' in action_set:
                         # Get all the groups first, then get the user list.
@@ -359,15 +374,35 @@ def post_api_groups_modify(request):
                         all_users.update(a_group_users)
                     else:
                         pass
-                returning.append(db_utils.messages(parameters={'group': grouped.name})['200_OK_group_modify'])
+                return_data.append(db_utils.messages(parameters={'group': grouped.name})['200_OK_group_modify'])
             else:
                 # Requestor is not the admin.
-                returning.append(db_utils.messages(parameters={})['403_insufficient_permissions'])
+                return_data.append(db_utils.messages(parameters={})['403_insufficient_permissions'])
         else:
             # Update the request status.
-            returning.append(db_utils.messages(parameters={})['400_bad_request'])
+            return_data.append(db_utils.messages(parameters={})['400_bad_request'])
 
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
-    return Response(status=status.HTTP_200_OK, data=returning)
+    return Response(status=status.HTTP_200_OK, data=return_data)
+
+
+@receiver(post_save, sender=User)
+def associate_user_group(sender, instance, created, **kwargs):
+    """Create Group and GroupInfo
+
+    Link user creation to groups.
+    Create a group for this user.
+    Source: https://stackoverflow.com/a/55206382/5029459
+    Automatically add the user to the BCO drafters and publishers groups,
+    if the user isn't anon or the already existent bco_drafter or bco_publisher.
+    """
+
+    if created:
+        Group.objects.create(name=instance)
+        group = Group.objects.get(name=instance)
+        group.user_set.add(instance)
+        if instance.username not in ['anon', 'bco_drafter', 'bco_publisher']:
+            User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_drafter'))
+            User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_publisher'))

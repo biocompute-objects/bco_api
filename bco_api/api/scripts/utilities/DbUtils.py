@@ -1,16 +1,16 @@
 # Utilities
-from ...models import prefix_table
+# from api.model.prefix import prefix_table
 
 # Checking versioning rules
-from ...models import bco
+from api.models import BCO
 
 # For writing objects to the database.
-from ...serializers import getGenericSerializer
+from api.serializers import getGenericSerializer
 
 # (OPTIONAL) For sending user information to userdb.
 import json
 import requests
-from . import UserUtils
+from api.scripts.utilities import UserUtils
 
 # For checking datetimes
 import datetime
@@ -43,23 +43,17 @@ import uuid
 
 
 class DbUtils:
+    """Class Description
+        -----------------
+        These methods are for interacting with our sqlite database.
+        Checking whether or not an object exists.
+    """
 
-    # Class Description
-    # -----------------
-
-    # These methods are for interacting with our sqlite database.
-
-    # Checking whether or not an object exists.
-    def check_object_id_exists(
-            self,
-            p_app_label,
-            p_model_name,
-            p_object_id
-            ):
-
-        # Simple existence check.
-        # Source: https://stackoverflow.com/a/9089028
-        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+    def check_object_id_exists(self, p_app_label, p_model_name, p_object_id):
+        """Simple existence check.
+        Source: https://stackoverflow.com/a/9089028
+        Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+        """
 
         if apps.get_model(
                 app_label=p_app_label,
@@ -72,16 +66,11 @@ class DbUtils:
             return 1
 
     # Checking whether or not a user exists.
-    def check_user_exists(
-            self,
-            p_app_label,
-            p_model_name,
-            p_email
-            ):
-
-        # Simple existence check.
-        # Source: https://stackoverflow.com/a/9089028
-        # Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+    def check_user_exists(self, p_app_label, p_model_name, p_email):
+        """Simple existence check.
+            Source: https://stackoverflow.com/a/9089028
+            Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
+        """
 
         if apps.get_model(
                 app_label=p_app_label,
@@ -111,7 +100,7 @@ class DbUtils:
         """
 
         # Does the provided object ID exist?
-        if bco.objects.filter(object_id=published_id).exists():
+        if BCO.objects.filter(object_id=published_id).exists():
 
             split_up = published_id.split('/')
             # Get the version.
@@ -182,7 +171,7 @@ class DbUtils:
             # http://127.0.0.1:8000/BCO_5 if we did not have the trailing
             # slash).
             all_versions = list(
-                    bco.objects.filter(
+                    BCO.objects.filter(
                             object_id__regex=rf'{root_uri}/',
                             state='PUBLISHED'
                             ).values_list(
@@ -249,7 +238,7 @@ class DbUtils:
                     published_id = published_id + '/' + str(latest_major) + '.' + str(latest_minor + 1)
 
                 # Did everything go properly with the version provided?
-                if failed_version == False:
+                if failed_version is False:
 
                     # The version was valid.
                     return {
@@ -335,12 +324,8 @@ class DbUtils:
             return False
 
     # Check that expiration dates are valid.
-    def check_expiration(
-            self,
-            dt_string
-    ):
-        
-        # Split the string first.
+    def check_expiration(self, dt_string):
+        """Split the string first."""
         try:
                 split_up = dt_string.split('-')
 
@@ -391,48 +376,31 @@ class DbUtils:
         # Returns flat list...
         return api_models
 
-    def activate_account(
-            self,
-            p_email
-            ):
+    def activate_account(self, p_email):
+        """p_email: which e-mail to activate.
 
-        # p_email: which e-mail to activate.
+        Activation means creating an entry in User.
 
-        # Activation means creating an entry in User.
+        To comply with GDPR, we can't keep an e-mail
+        directly.  So, split off the username part
+        of the e-mail and assign a random number.
+        """
 
-        # To comply with GDPR, we can't keep an e-mail
-        # directly.  So, split off the username part
-        # of the e-mail and assign a random number.
         valid_username = False
 
         while not valid_username:
-
             # TODO: We shoudl change this to a hash instead of random number
-
             # # This can replace below (move import to top though) - Needs to be tested
             # import hashlib
             # email_base = p_email.split('@')[0]
             # user_hash = hashlib.md5(b'{}'.format(email_base))
             # new_username = email_base + "_" + user_hash.hexdigest()
-
-            new_username = p_email.split('@')[0] + str(
-                    random.randrange(
-                            1,
-                            100
-                            )
-                    )
-
+            new_username = p_email.split('@')[0] + str(random.randrange(1, 100))
             # Does this username exist (not likely)?
-            if User.objects.filter(
-                    username=new_username
-                    ):
-
+            if User.objects.filter(username=new_username):
                 valid_username = False
-
             else:
-
                 valid_username = True
-
         # We can't use the generic serializer here because of how
         # django processes passwords.
         # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#changing-passwords
@@ -443,52 +411,33 @@ class DbUtils:
         # Save the user.
         # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#creating-users
 
-        user = User.objects.create_user(
-                new_username
-                )
+        user = User.objects.create_user(new_username)
 
         # Setting the password has to be done manually in 
         # order to encrypt it.
         # Source: https://stackoverflow.com/a/39211961
         # Source: https://stackoverflow.com/questions/28347200/django-rest-http-400-error-on-getting-token-authentication-view
-        user.set_password(
-                new_password
-                )
+        user.set_password(new_password)
 
         # Save the user.
         user.save()
 
         # Automatically add the user to the bco_drafter and bco_publisher groups.
-        user.groups.add(
-                Group.objects.get(
-                        name='bco_drafter'
-                        )
-                )
-        user.groups.add(
-                Group.objects.get(
-                        name='bco_publisher'
-                        )
-                )
+        user.groups.add(Group.objects.get(name='bco_drafter'))
+        user.groups.add(Group.objects.get(name='bco_publisher'))
 
         # (OPTIONAL) Make a request to userdb on the portal so that
         # the user's information can be stored there.
 
         # If a token was provided with the initial request,
         # use it to make the update call to userdb.
-        token = apps.get_model(
-                app_label='api',
-                model_name='new_users'
-                ).objects.get(
-                email=p_email
-                ).token
+        token = apps.get_model(app_label='api', model_name='new_users'
+            ).objects.get(email=p_email).token
 
         if token is not None:
-
             # Send the new information to userdb.
-
             # Get the user's information from the database.
             uu = UserUtils.UserUtils()
-
             # Set the headers.
             # Source: https://docs.python-requests.org/en/master/user/quickstart/#custom-headers
             headers = {
@@ -498,16 +447,11 @@ class DbUtils:
 
             # Set the data properly.
             # Source: https://stackoverflow.com/a/56562567
-            r = requests.post(
-                    data=json.dumps(
-                            uu.get_user_info(
-                                    username=new_username
-                                    ),
-                            default=str
-                            ),
-                    headers=headers,
-                    url='http://127.0.0.1:8080/users/add_api/'
-                    )
+            r = requests.post(data=json.dumps(
+                uu.get_user_info(username=new_username),default=str),
+                headers=headers,
+                url='http://127.0.0.1:8181/users/add_api/'
+           )
 
         # Delete the record in the temporary table.
         apps.get_model(
@@ -524,18 +468,14 @@ class DbUtils:
         return [new_username]
 
     # Messages associated with results from sub-requests.
-    def messages(
-            self,
-            parameters,
-            p_content=False
-            ):
+    def messages(self, parameters, p_content=False):
+        """TODO: abstract all of this up into the top level of the class.
+        
+        Define the return messages, if they don't
+        come in defined.
+        """
 
-        
-        # TODO: abstract all of this up into the top level of the class.
-        
-        # Define the return messages, if they don't
-        # come in defined.
-        definable = ['errors', 'expiration_date', 'group', 'object_id', 'object_perms', 'prefix', 'published_id', 'table', 'username', 'contents']
+        definable = ['errors', 'expiration_date', 'group', 'object_id', 'object_perms', 'prefix', 'published_id', 'table', 'username', 'contents', 'users_excluded']
 
         for i in definable:
             if i not in parameters:
@@ -599,10 +539,10 @@ class DbUtils:
                         'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server and the draft was deleted.',
                         'published_id'  : parameters['published_id']
                         },
-                '200_OK_object_publish_draft_failed_delete': {
+                '200_OK_object_publish_draft_not_deleted': {
                         'request_status': 'SUCCESS',
                         'status_code'   : '200',
-                        'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server but the draft was not deleted.',
+                        'message'       : 'Successfully published  \'' + parameters['published_id'] + '\' on the server and the draft was not deleted.',
                         'published_id'  : parameters['published_id']
                         },
                 '200_OK_prefix_delete': {
@@ -615,11 +555,6 @@ class DbUtils:
                         'status_code'   : '200',
                         'message'       : 'Successfully updated prefix permissions on prefix \'' + parameters['prefix'] + '\'.'
                         },
-                '201_prefix_modify'                        : {
-                        'request_status': 'SUCCESS',
-                        'status_code'   : '200',
-                        'message'       : 'The prefix \'' + parameters['prefix'] + '\' was updated.'
-                        },
                 '200_update'                               : {
                         'request_status': 'SUCCESS',
                         'status_code'   : '200',
@@ -631,15 +566,30 @@ class DbUtils:
                         'message'       : 'The object with ID \'' + parameters['object_id'] + '\' was created on the server.',
                         'object_id'     : parameters['object_id']
                         },
+                '201_prefix_modify'                        : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '200',
+                        'message'       : 'The prefix \'' + parameters['prefix'] + '\' was updated.'
+                        },
                 '201_group_create'                         : {
                         'request_status': 'SUCCESS',
                         'status_code'   : '201',
                         'message'       : 'The group \'' + parameters['group'] + '\' was successfully created.'
                         },
+                '201_group_users_excluded'                         : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '201',
+                        'message'       : 'The group \'' + parameters['group'] + '\' was successfully created, but the following users were excluded: ' + str(parameters['users_excluded'])
+                        },
                 '201_prefix_create'                        : {
                         'request_status': 'SUCCESS',
                         'status_code'   : '201',
                         'message'       : 'The prefix \'' + parameters['prefix'] + '\' was successfully created.'
+                        },
+                '202_Accepted'                        : {
+                        'request_status': 'SUCCESS',
+                        'status_code'   : '202',
+                        'message'       : 'The request you performed has been accepted.'
                         },
                 '204_no_content'                        : {
                         'request_status': 'SUCCESS',
@@ -742,6 +692,11 @@ class DbUtils:
                         'status_code'   : '409',
                         'message'       : 'The provided prefix \'' + parameters['prefix'] + '\' has already been created on this server.'
                         },
+                '409_object_conflict'                       : {
+                        'request_status': 'FAILURE',
+                        'status_code'   : '409',
+                        'message'       : 'The provided object ' + parameters['object_id'] + ' has already been created on this server.'
+                        },
                 '418_too_many_deleted'                     : {
                         'request_status': 'FAILURE',
                         'status_code'   : '418',
@@ -760,7 +715,7 @@ class DbUtils:
         owner_user: str
             Name of owner user
         prfx: str
-        publishable: api.models.bco
+        publishable: api.models.BCO
         publishable_id: dict
 
         Returns
@@ -851,7 +806,7 @@ class DbUtils:
             # Publish.
             self.write_object(
                     p_app_label='api',
-                    p_model_name='bco',
+                    p_model_name='BCO',
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data=published
                     )
@@ -898,7 +853,7 @@ class DbUtils:
             # Publish.
             self.write_object(
                     p_app_label='api',
-                    p_model_name='bco',
+                    p_model_name='BCO',
                     p_fields=['contents', 'last_update', 'object_id', 'owner_group', 'owner_user', 'prefix', 'schema', 'state'],
                     p_data=publishable.contents
                     )

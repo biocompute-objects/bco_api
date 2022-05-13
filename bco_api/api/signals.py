@@ -1,15 +1,12 @@
 # Source: https://stackoverflow.com/a/42744626/5029459
 
 def populate_models(sender, **kwargs):
-    
-    
+    """Initial DB setup
+    """ 
 
-
-    # Direct model access.
-    from .models import bco
-
-    # DB Utilities
-    from .scripts.utilities import DbUtils
+    from api.models import BCO
+    from api.model.groups import GroupInfo
+    from api.scripts.utilities import DbUtils
     
     # The BCO groups need to be created FIRST because
     # models.py listens for user creation and automatically
@@ -45,7 +42,7 @@ def populate_models(sender, **kwargs):
     
     # BCO is the anon (public) prefix.
     
-    # Note that user creation is listened for in 
+    # Note that user creation is listened for in
     # models.py by associate_user_group.
     
     # Create the anonymous user if they don't exist.    
@@ -57,23 +54,18 @@ def populate_models(sender, **kwargs):
     # Create an administrator if they don't exist.
     if User.objects.filter(username = 'wheel').count() == 0:
         User.objects.create_superuser(
-            username = 'wheel', 
+            username = 'wheel',
             password = 'wheel'
         )
-    
+
     # Make bco_publisher the group owner of the prefix 'BCO'.
-    if bco.objects.filter(prefix = 'BCO').exists():
-
-        # dummy block
-        pass
-
-    else:     
+    if BCO.objects.filter(prefix = 'BCO').count() == 0:
         # Django wants a primary key for the Group...
         group = Group.objects.get(name = 'bco_publisher').name
 
         # Django wants a primary key for the User...
         user = User.objects.get(username = 'bco_publisher').username
-    
+
         DbUtils.DbUtils().write_object(
             p_app_label = 'api',
             p_model_name = 'Prefix',
@@ -86,17 +78,17 @@ def populate_models(sender, **kwargs):
             }
         )
 
-
-        
-
     # Create the default (non-anon, non-wheel) groups if they don't exist.
-
     # Group administrators
     if Group.objects.filter(name = 'group_admins').count() == 0:
-        Group.objects.create(
-            name = 'group_admins'
+        Group.objects.create(name = 'group_admins')
+        GroupInfo.objects.create(
+            delete_members_on_group_deletion=False,
+            description='Group administrators',
+            group=Group.objects.get(name='group_admins'),
+            max_n_members=-1,
+            owner_user=User.objects.get(username='wheel')
         )
-    
     # Create the permissions for group administrators.
     for perm in ['add', 'change', 'delete', 'view']:
         
@@ -114,8 +106,13 @@ def populate_models(sender, **kwargs):
     
     # Prefix administrators
     if Group.objects.filter(name = 'prefix_admins').count() == 0:
-        Group.objects.create(
-            name = 'prefix_admins'
+        Group.objects.create(name = 'prefix_admins')
+        GroupInfo.objects.create(
+            delete_members_on_group_deletion=False,
+            description='Prefix administrators',
+            group=Group.objects.get(name='prefix_admins'),
+            max_n_members=-1,
+            owner_user=User.objects.get(username='wheel')
         )
     
     # Create the permissions for prefix administrators.
@@ -127,16 +124,13 @@ def populate_models(sender, **kwargs):
         # Give the group administrators the permissions.
         Group.objects.get(
             name = 'prefix_admins'
-        ).permissions.add(
+            ).permissions.add(
             Permission.objects.get(
                 codename = perm + '_prefix'
             )
         )
-    
+
     # Associate wheel with all groups.
     group = Group.objects.all()
-
     for g in group:
-        User.objects.get(
-            username = 'wheel'
-        ).groups.add(g)
+        User.objects.get(username = 'wheel').groups.add(g)

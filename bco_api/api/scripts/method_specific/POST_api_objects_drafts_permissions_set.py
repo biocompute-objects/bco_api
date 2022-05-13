@@ -1,5 +1,5 @@
 # BCO model
-from ...models import bco
+from ...models import BCO
 
 # For getting objects out of the database.
 from ..utilities import DbUtils
@@ -74,9 +74,9 @@ def POST_api_objects_drafts_permissions_set(incoming):
             # group that has object-level change permissions.
 
             # To check these options, we need the actual object.
-            if bco.objects.filter(object_id=permission_object['object_id']).exists():
+            if BCO.objects.filter(object_id=permission_object['object_id']).exists():
 
-                objected = bco.objects.get(
+                objected = BCO.objects.get(
                         object_id=permission_object['object_id']
                         )
 
