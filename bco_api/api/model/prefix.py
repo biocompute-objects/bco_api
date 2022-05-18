@@ -36,29 +36,62 @@ class prefix_table(models.Model):
         return self.prefix
 
 class Prefix(models.Model):
-    """Link Prefix to groups and users.
+    """
+    
+    Link Prefix to groups and users.
 
     Be careful about related_name.
     Source: https://stackoverflow.com/questions/53651114/using-same-foreign-key-twice-in-a-model-in-django-as-different-fields
+
     Which server is this prefix certified with?
+        A: (Chris, 5/17) This is not a required field and is there only if we eventually have a certifying server set up (i.e. the GW server serving as the master repository for all registered prefixes).
+
     What is the certifying key?
+        A: (Chris, 5/17) This is just the key that would be used on the certifying server at GW.
+
     """
 
-    certifying_server = models.TextField(blank = True, null = True)
-    certifying_key = models.TextField(blank = True, null = True)
-    created = models.DateTimeField(default = timezone.now, blank = True, null = True)
+    certifying_server = models.TextField(
+        blank = True, 
+        null = True
+    )
+    certifying_key = models.TextField(
+        blank = True, 
+        null = True
+    )
+    created = models.DateTimeField( 
+        blank = True,
+        default = timezone.now, 
+        null = True
+    )
     created_by = models.ForeignKey(
         User,
+        default='wheel',
         on_delete = models.CASCADE,
         related_name = 'created_by',
-        to_field = 'username',
-        default='wheel'
+        to_field = 'username'
     )
-    description = models.TextField(blank = True, null = True)
-    expires = models.DateTimeField(blank = True, null = True)
-    owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
-    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
-    prefix = models.CharField(max_length=5)
+    description = models.TextField(
+        blank = True, 
+        null = True
+    )
+    expires = models.DateTimeField(
+        blank = True, 
+        null = True
+    )
+    owner_group = models.ForeignKey(
+        Group, 
+        on_delete=models.CASCADE, 
+        to_field='name'
+    )
+    owner_user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        to_field='username'
+    )
+    prefix = models.CharField(
+        max_length=5
+    )
 
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
@@ -631,13 +664,24 @@ def post_api_prefixes_token_flat(request):
     return Response(status = status.HTTP_200_OK, data = prefixes)
 
 
-# --- Prefix --- #
+
+
+# --- Prefix Listeners --- #
+
+
+
+
 @receiver(post_save, sender=Prefix)
 def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
-    """Link prefix creation to permissions creation.
+    """
+    
+    Link prefix creation to permissions creation.
+
     Check to see whether or not the permissions
     have already been created for this prefix.
+
     Create the macro-level, draft, and publish permissions.
+
     Give FULL permissions to the prefix user owner
     and their group.
 
@@ -645,6 +689,7 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
     has already been verified upstream.
 
     Source: https://stackoverflow.com/a/20361273
+    
     """
 
     # GroupInfo.objects.create(
@@ -732,7 +777,10 @@ def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
 
 @receiver(post_delete, sender=Prefix)
 def delete_permissions_for_prefix(sender, instance=None, **kwargs):
-    """Link prefix deletion to permissions deletion.
+
+    """
+    Link prefix deletion to permissions deletion.
+    
     No risk of raising an error when using
     a filter.
     """
@@ -740,6 +788,6 @@ def delete_permissions_for_prefix(sender, instance=None, **kwargs):
     Permission.objects.filter(codename='add_' + instance.prefix).delete()
     Permission.objects.filter(codename='change_' + instance.prefix).delete()
     Permission.objects.filter(codename='delete_' + instance.prefix).delete()
-    Permission.objects.filter(codename='view_' + instance.prefix).delete()
     Permission.objects.filter(codename='draft_' + instance.prefix).delete()
     Permission.objects.filter(codename='publish_' + instance.prefix).delete()
+    Permission.objects.filter(codename='view_' + instance.prefix).delete()

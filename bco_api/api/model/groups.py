@@ -3,9 +3,21 @@
 """
 
 from django.db import models
-from django.db.models.signals import post_save
-from django.contrib.auth.models import Group, User
+
+# To make sure that group creation based on user creation
+# doesn't cause a server error
+from django.db.utils import IntegrityError
+
+# Managing Groups, Permissions, and Users
+from django.contrib.auth.models import Group, Permission, User
+
+# Custom permissions
+from django.contrib.contenttypes.models import ContentType
+
+# Listeners
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -388,21 +400,96 @@ def post_api_groups_modify(request):
     return Response(status=status.HTTP_200_OK, data=return_data)
 
 
+
+
+# --- Group Listeners --- #
+
+
+
+
 @receiver(post_save, sender=User)
 def associate_user_group(sender, instance, created, **kwargs):
-    """Create Group and GroupInfo
+    """
+    
+    Create Group and GroupInfo
 
-    Link user creation to groups.
-    Create a group for this user.
+    Link user creation to groups, i.e. create
+    a Group for User.
     Source: https://stackoverflow.com/a/55206382/5029459
     Automatically add the user to the BCO drafters and publishers groups,
     if the user isn't anon or the already existent bco_drafter or bco_publisher.
+
     """
 
+    # Only listening for the User created signal.
     if created:
-        Group.objects.create(name=instance)
-        group = Group.objects.get(name=instance)
-        group.user_set.add(instance)
-        if instance.username not in ['anon', 'bco_drafter', 'bco_publisher']:
-            User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_drafter'))
-            User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_publisher'))
+        
+        # Attempt to create the group with the same name
+        # as the user.
+        try:
+            
+            # Create the group with the same name as the sending user.
+            Group.objects.create(name=instance)
+
+            # Get said group object.
+            group = Group.objects.get(name=instance)
+
+            # Add the user to this group.
+            group.user_set.add(instance)
+
+            # Users 'anon', 'bco_drafter', and 'bco_publisher'
+            if instance.username not in ['anon', 'bco_drafter', 'bco_publisher']:
+                User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_drafter'))
+                User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_publisher'))
+        
+        except IntegrityError:
+
+            # TODO: Could write this to a log?
+            print('WARNING: the listener \'associate_user_group\' in \'groups.py\' raised an error since the user-group \'' + instance.username + '\' was already found in the database.  Passing...')
+
+
+
+
+# Group permissions are created here, instead of using Meta
+# in the model definition.
+@receiver(post_save, sender=Group)
+def create_group_permissions(sender, instance, created, **kwargs):
+    """
+    
+    Create Group permissions
+
+    Link Group creation to permissions creation.
+
+    """
+    
+    # Only listening for the Group created signal.
+    if created:
+
+        # Use some nice typecasting so that we can ignore
+        # where the signal comes from.
+        group_name = str(instance.name)
+        
+        # Now the individual permissions for the group are created.
+        # Source: https://docs.djangoproject.com/en/4.0/topics/auth/default/#programmatically-creating-permissions
+        [Permission.objects.create(codename=perm + '_' + group_name, name='Can ' + perm + ' ' + group_name, content_type=ContentType.objects.get_for_model(Group)) for perm in ['add', 'change', 'delete', 'view']]
+
+
+
+
+# Group permissions are deleted here, instead of using Meta
+# in the model definition.
+@receiver(post_delete, sender=Group)
+def delete_group_permissions(sender, instance, **kwargs):
+    """
+    
+    Delete Group permissions
+
+    Link Group deletion to permissions creation.
+
+    """
+
+    # Use some nice typecasting so that we can ignore
+    # where the signal comes from.
+    
+    # Delete the Group permissions.
+    [Permission.objects.filter(codename=i + str(instance.name)).delete() for i in ['add_', 'change_', 'delete_', 'draft_', 'publish_', 'view_']]
