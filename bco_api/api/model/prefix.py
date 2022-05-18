@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
-"""Functions for operations with groups
+
+
+
+
 """
+
+Prefix model, views, and listeners
+
+"""
+
+
+
 
 import re
 from django.db import models
@@ -673,91 +683,116 @@ def post_api_prefixes_token_flat(request):
 
 @receiver(post_save, sender=Prefix)
 def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
+
     """
-    
     Link prefix creation to permissions creation.
-
-    Check to see whether or not the permissions
-    have already been created for this prefix.
-
-    Create the macro-level, draft, and publish permissions.
-
-    Give FULL permissions to the prefix user owner
-    and their group.
-
-    No try/except necessary here as the user's existence
-    has already been verified upstream.
-
-    Source: https://stackoverflow.com/a/20361273
-    
     """
 
-    # GroupInfo.objects.create(
-    #         delete_members_on_group_deletion=False,
-    #         description='Group administrators',
-    #         group=Group.objects.get(name='group_admins'),
-    #         max_n_members=-1,
-    #         owner_user=User.objects.get(username='wheel')
-    #     )
-    if created:
-        owner_user = User.objects.get(username=instance.owner_user)
-        owner_group = Group.objects.get(name=instance.owner_group_id)
-        draft = instance.prefix.lower() + '_drafter'
-        publish = instance.prefix.lower() + '_publisher'
+    # Prefixes are always capitalized.
+    cptlzd = str(instance.prefix).upper()
+    
+    try:
+        for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']:
+            Permission.objects.create(
+                name='Can ' + perm + ' BCOs with prefix ' + cptlzd,
+                content_type=ContentType.objects.get(
+                    app_label='api',
+                    model='bco'
+                ),
+                codename=perm + '_' + cptlzd
+            )   
+
+    except PermErrors.IntegrityError:
+        # The permissions already exist.
+        pass
+
+# @receiver(post_save, sender=Prefix)
+# def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
+#     """
+    
+#     Link prefix creation to permissions creation.
+
+#     Check to see whether or not the permissions
+#     have already been created for this prefix.
+
+#     Create the macro-level, draft, and publish permissions.
+
+#     Give FULL permissions to the prefix user owner
+#     and their group.
+
+#     No try/except necessary here as the user's existence
+#     has already been verified upstream.
+
+#     Source: https://stackoverflow.com/a/20361273
+
+#     """
+
+#     # GroupInfo.objects.create(
+#     #         delete_members_on_group_deletion=False,
+#     #         description='Group administrators',
+#     #         group=Group.objects.get(name='group_admins'),
+#     #         max_n_members=-1,
+#     #         owner_user=User.objects.get(username='wheel')
+#     #     )
+#     if created:
+#         owner_user = User.objects.get(username=instance.owner_user)
+#         owner_group = Group.objects.get(name=instance.owner_group_id)
+#         draft = instance.prefix.lower() + '_drafter'
+#         publish = instance.prefix.lower() + '_publisher'
         
-        if len(Group.objects.filter(name=draft)) != 0:
-            drafters = Group.objects.get(name=draft)
-            owner_user.groups.add(drafters)
-        else:
-            Group.objects.create(name=draft)
-            drafters = Group.objects.get(name=draft)
-            owner_user.groups.add(drafters)
-            GroupInfo.objects.create(
-                delete_members_on_group_deletion=False,
-                description=instance.description,
-                group=drafters,
-                max_n_members=-1,
-                owner_user=owner_user
-            )
+#         if len(Group.objects.filter(name=draft)) != 0:
+#             drafters = Group.objects.get(name=draft)
+#             owner_user.groups.add(drafters)
+#         else:
+#             Group.objects.create(name=draft)
+#             drafters = Group.objects.get(name=draft)
+#             owner_user.groups.add(drafters)
+#             GroupInfo.objects.create(
+#                 delete_members_on_group_deletion=False,
+#                 description=instance.description,
+#                 group=drafters,
+#                 max_n_members=-1,
+#                 owner_user=owner_user
+#             )
 
-        if len(Group.objects.filter(name=publish)) != 0:
-            publishers = Group.objects.get(name=publish)
-            owner_user.groups.add(publishers)
-        else:
-            Group.objects.create(name=publish)
-            publishers = Group.objects.get(name=publish)
-            owner_user.groups.add(publishers)
-            GroupInfo.objects.create(
-                delete_members_on_group_deletion=False,
-                description=instance.description,
-                group=publishers,
-                max_n_members=-1,
-                owner_user=owner_user
-            )
+#         if len(Group.objects.filter(name=publish)) != 0:
+#             publishers = Group.objects.get(name=publish)
+#             owner_user.groups.add(publishers)
+#         else:
+#             Group.objects.create(name=publish)
+#             publishers = Group.objects.get(name=publish)
+#             owner_user.groups.add(publishers)
+#             GroupInfo.objects.create(
+#                 delete_members_on_group_deletion=False,
+#                 description=instance.description,
+#                 group=publishers,
+#                 max_n_members=-1,
+#                 owner_user=owner_user
+#             )
 
-        try:
-            for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']:
-                Permission.objects.create(
-                    name='Can ' + perm + ' BCOs with prefix ' + instance.prefix,
-                    content_type=ContentType.objects.get(
-                        app_label='api',
-                        model='bco'
-                    ),
-                    codename=perm + '_' + instance.prefix
-                )
-                new_perm = Permission.objects.get(
-                    codename=perm + '_' + instance.prefix)
-                owner_user.user_permissions.add(new_perm)
-                owner_group.permissions.add(new_perm)
-                publishers.permissions.add(new_perm)
-                if perm == 'publish':
-                    pass
-                else:
-                    drafters.permissions.add(new_perm)    
+#         try:
+#             for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']:
+#                 Permission.objects.create(
+#                     name='Can ' + perm + ' BCOs with prefix ' + instance.prefix,
+#                     content_type=ContentType.objects.get(
+#                         app_label='api',
+#                         model='bco'
+#                     ),
+#                     codename=perm + '_' + instance.prefix
+#                 )
+#                 new_perm = Permission.objects.get(
+#                     codename=perm + '_' + instance.prefix)
+#                 owner_user.user_permissions.add(new_perm)
+#                 owner_group.permissions.add(new_perm)
+#                 publishers.permissions.add(new_perm)
+#                 if perm == 'publish':
+#                     pass
+#                 else:
+#                     drafters.permissions.add(new_perm)    
 
-        except PermErrors.IntegrityError:
-            # The permissions already exist.
-            pass
+#         except PermErrors.IntegrityError:
+#             # The permissions already exist.
+#             pass
 
 @receiver(post_save, sender=Prefix)
 def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
@@ -775,16 +810,46 @@ def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
     if created:
         prefix_table.objects.create(n_objects=1,prefix=instance.prefix)
 
-@receiver(post_delete, sender=Prefix)
-def delete_permissions_for_prefix(sender, instance=None, **kwargs):
+
+@receiver(post_save, sender=Prefix)
+def create_groups_for_prefix(sender, instance=None, created=False, **kwargs):
 
     """
-    Link prefix deletion to permissions deletion.
+    Link prefix creation to prefix drafter and publishers groups creation.
+    """
+
+    # Prefixes are always capitalized.
+    cptlzd = str(instance.prefix).upper()
+    
+    if created:
+
+        # Create the drafter and publisher groups, if they don't already exist.
+        if not Group.objects.filter(name=cptlzd + '_drafters').exists():
+
+            Group(
+                name=cptlzd + '_drafters'
+            ).save()
+
+        if not Group.objects.filter(name=cptlzd + '_publishers').exists():
+
+            Group(
+                name=cptlzd + '_publishers'
+            ).save()
+
+
+@receiver(post_delete, sender=Prefix)
+def delete_groups_permissions_for_prefix(sender, instance=None, **kwargs):
+
+    """
+    Link prefix deletion to groups and permissions deletion.
     
     No risk of raising an error when using
     a filter.
     """
 
+    Group.objects.filter(name=instance.prefix + '_drafters').delete()
+    Group.objects.filter(name=instance.prefix + '_publishers').delete()
+    
     Permission.objects.filter(codename='add_' + instance.prefix).delete()
     Permission.objects.filter(codename='change_' + instance.prefix).delete()
     Permission.objects.filter(codename='delete_' + instance.prefix).delete()

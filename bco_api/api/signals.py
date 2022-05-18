@@ -15,9 +15,7 @@ def populate_models(sender, **kwargs):
 
     # Imports have to be inside the function in order for Django
     # to use signals.py
-    from api.models import BCO
     from api.model.groups import GroupInfo
-    from api.scripts.utilities import DbUtils
 
     # For creating Users and Groups
     from django.contrib.auth.models import Group, User
@@ -60,19 +58,6 @@ def populate_models(sender, **kwargs):
     if User.objects.filter(username = 'anon').count() == 0:
         User.objects.create_user(
             username = 'anon'
-        )
-    
-    # Create a bco drafter and publisher if they don't exist.
-
-    # NO password is set here...
-    if User.objects.filter(username = 'bco_drafter').count() == 0:
-        User.objects.create_user(
-            username = 'bco_drafter'
-        )
-    
-    if User.objects.filter(username = 'bco_publisher').count() == 0:
-        User.objects.create_user(
-            username = 'bco_publisher'
         )
     
     # Create an administrator if they don't exist.
@@ -119,16 +104,6 @@ def populate_models(sender, **kwargs):
             max_n_members=-1,
             owner_user=User.objects.get(username='wheel')
         )
-    
-    # Associate wheel with all groups.
-    # Note that this does NOT add AnonymousUser Group
-    # to wheel's groups.  AnonymousUser is created
-    # downstream of signals.py.
-    # However, AnonymousUser is a benign user anyways...
-    group = Group.objects.all()
-
-    for g in group:
-        User.objects.get(username = 'wheel').groups.add(g)
 
 
 
@@ -138,28 +113,22 @@ def populate_models(sender, **kwargs):
 
 
 
-    # Create the prefix 'BCO' and make bco_drafter the owner user.
-    pfxu.create_prefix(crtdby='wheel', grp='bco_drafter', prfx='bco', usr='bco_drafter')
+    # Create the prefix 'BCO', which in turns creates the
+    # groups 'bco_drafters' and 'bco_publishers'.
+    
+    # Create the prefix 'BCO' and make wheel the owner group and owner user.
+    pfxu.create_prefix(crtdby='wheel', grp='wheel', prfx='bco', usr='wheel')
+    # pfxu.delete_prefix(prfx='bco')
 
-    # # Make bco_publisher the group owner of the prefix 'BCO'.
-    # if BCO.objects.filter(prefix = 'BCO').count() == 0:
-    #     # Django wants a primary key for the Group...
-    #     group = Group.objects.get(name = 'bco_publisher').name
+    # Associate wheel with all groups.
+    # Note that this does NOT add AnonymousUser Group
+    # to wheel's groups.  AnonymousUser is created
+    # downstream of signals.py.
+    # However, AnonymousUser is a benign user anyways...
+    group = Group.objects.all()
 
-    #     # Django wants a primary key for the User...
-    #     user = User.objects.get(username = 'bco_publisher').username
-
-    #     DbUtils.DbUtils().write_object(
-    #         p_app_label = 'api',
-    #         p_model_name = 'Prefix',
-    #         p_fields = ['created_by', 'owner_group', 'owner_user', 'prefix'],
-    #         p_data = {
-    #             'created_by': user,
-    #             'owner_group': group,
-    #             'owner_user': user,
-    #             'prefix': 'BCO'
-    #         }
-    #     )
+    for g in group:
+        User.objects.get(username = 'wheel').groups.add(g)
     
     # Give the group administrators the permissions.
     # Group.objects.get(

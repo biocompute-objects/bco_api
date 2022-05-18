@@ -428,6 +428,9 @@ def associate_user_group(sender, instance, created, **kwargs):
         # as the user.
         try:
             
+            # Nice method from Stack Overflow.
+            # Source: https://stackoverflow.com/questions/40639319/user-groups-addgroup-or-group-user-set-adduser-which-is-better-and-why-or/40639444#40639444
+            
             # Create the group with the same name as the sending user.
             Group.objects.create(name=instance)
 
@@ -436,11 +439,6 @@ def associate_user_group(sender, instance, created, **kwargs):
 
             # Add the user to this group.
             group.user_set.add(instance)
-
-            # Users 'anon', 'bco_drafter', and 'bco_publisher'
-            if instance.username not in ['anon', 'bco_drafter', 'bco_publisher']:
-                User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_drafter'))
-                User.objects.get(username=instance).groups.add(Group.objects.get(name='bco_publisher'))
         
         except IntegrityError:
 
