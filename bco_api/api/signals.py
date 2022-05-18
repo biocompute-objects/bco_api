@@ -26,6 +26,9 @@ def populate_models(sender, **kwargs):
     # For interacting with prefixes
     from api.scripts.utilities import PrefixUtils
 
+    # For freating Users and Groups
+    from api.scripts.utilities import UserUtils
+
     # The BCO groups need to be created FIRST because
     # groups.py listens for user creation and automatically
     # adds any new user to bco_drafter and bco_publishers.
@@ -45,6 +48,7 @@ def populate_models(sender, **kwargs):
     # Insantiate anything we'll need.
     pu = PermissionsUtils.PermissionsUtils()
     pfxu = PrefixUtils.PrefixUtils()
+    uu = UserUtils.UserUtils()
 
 
 
@@ -54,19 +58,17 @@ def populate_models(sender, **kwargs):
 
 
 
-    # Create the anonymous user if they don't exist.    
-    if User.objects.filter(username = 'anon').count() == 0:
-        User.objects.create_user(
-            username = 'anon'
-        )
+    # Create the anonymous and wheel users if they don't exist.
+    uu.create_user(
+        usrnm='anon'
+    )
+    uu.create_user(
+        psswrd='wheel',
+        usrnm='wheel', 
+        super_user=True
+    )
     
-    # Create an administrator if they don't exist.
-    if User.objects.filter(username = 'wheel').count() == 0:
-        User.objects.create_superuser(
-            username = 'wheel',
-            password = 'wheel'
-        )
-    
+
 
 
     # --- Group --- #

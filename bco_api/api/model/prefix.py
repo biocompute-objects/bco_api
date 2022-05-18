@@ -27,6 +27,18 @@ from api.model.groups import GroupInfo
 from api.scripts.utilities import DbUtils
 from api.scripts.utilities import UserUtils
 
+# Managing permissions
+from api.scripts.utilities import PermissionsUtils
+
+
+
+
+# Instantiate anything we'll need.
+uu = UserUtils.UserUtils()
+pu = PermissionsUtils.PermissionsUtils()
+
+
+
 
 # Generic meta data model
 # TODO: rename to prefix_meta
@@ -812,10 +824,11 @@ def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
 
 
 @receiver(post_save, sender=Prefix)
-def create_groups_for_prefix(sender, instance=None, created=False, **kwargs):
+def create_groups_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
 
     """
-    Link prefix creation to prefix drafter and publishers groups creation.
+    Link prefix creation to prefix drafter and publishers groups creation,
+    as well as prefix permissions creation.
     """
 
     # Prefixes are always capitalized.
@@ -823,36 +836,43 @@ def create_groups_for_prefix(sender, instance=None, created=False, **kwargs):
     
     if created:
 
-        # Create the drafter and publisher groups, if they don't already exist.
+        # Create the drafter and publisher groups, 
+        # as well as attach their permissions.
+        [uu.create_group(group_name=cptlzd + i) for i in ['_drafters', '_publishers']]
+        # [pu.]
+
         if not Group.objects.filter(name=cptlzd + '_drafters').exists():
 
-            Group(
+            # TODO: move to UserUtils
+            drafters = Group(
                 name=cptlzd + '_drafters'
-            ).save()
+            )
+
+            drafters.save()
+
+            # TODO: move to PermissionsUtils
+            [drafters.permissions.add(Permission.objects.get(codename=i)) for i in ['delete_' + cptlzd, 'draft_' + cptlzd]]
 
         if not Group.objects.filter(name=cptlzd + '_publishers').exists():
 
-            Group(
+            publishers = Group(
                 name=cptlzd + '_publishers'
-            ).save()
+            )
 
+            publishers.save()
+
+            [publishers.permissions.add(Permission.objects.get(codename=i)) for i in ['publish_' + cptlzd]]
+            
 
 @receiver(post_delete, sender=Prefix)
 def delete_groups_permissions_for_prefix(sender, instance=None, **kwargs):
 
     """
     Link prefix deletion to groups and permissions deletion.
-    
-    No risk of raising an error when using
-    a filter.
     """
-
-    Group.objects.filter(name=instance.prefix + '_drafters').delete()
-    Group.objects.filter(name=instance.prefix + '_publishers').delete()
     
-    Permission.objects.filter(codename='add_' + instance.prefix).delete()
-    Permission.objects.filter(codename='change_' + instance.prefix).delete()
-    Permission.objects.filter(codename='delete_' + instance.prefix).delete()
-    Permission.objects.filter(codename='draft_' + instance.prefix).delete()
-    Permission.objects.filter(codename='publish_' + instance.prefix).delete()
-    Permission.objects.filter(codename='view_' + instance.prefix).delete()
+    # Delete the groups.
+    [uu.delete_group(group_name=instance.prefix + i) for i in ['_drafters', '_publishers']]
+
+    # Delete the permissions.
+    [pu.delete_permission(codename=i + instance.prefix) for i in ['add_', 'change_', 'delete_', 'draft_', 'publish_', 'view_']]

@@ -18,31 +18,76 @@ from rest_framework.authtoken.models import Token
 from django.db.models import Q
 
 
+
+
 class UserUtils:
-    """
-    Methods for interacting with user information.
 
-    Attributes
-    ----------
 
-    Methods
-    -------
+
 
     """
-    def check_permission_exists(self, perm):
-        """Does the user exist?"""
-        return Permission.objects.get(codename='test')
+    Methods for interacting with Group and User information.
+
+    """
+
+
+
+
+    # --- Group --- #
+
+
+
 
     def check_group_exists(self, n):
-        """Does the user exist?"""
+
+        """
+        Does the group exist?
+        """
+
         return Group.objects.filter(name=n).exists()
+    
+    def create_group(self, group_name):
+
+        """
+        Create a group.  Note that group information is not provided for this function.
+        """
+        
+        if not Group.objects.filter(name=group_name).exists():            
+            Group(
+                name=group_name
+            ).save()
+    
+    def delete_group(self, group_name):
+
+        """
+        Delete a group.
+        """
+
+        # TODO: tweak to take multiple groups to delete.
+
+        if Group.objects.filter(name=group_name).exists():            
+            Group.objects.filter(name=group_name).delete()
+
+
+
+    
+    # --- User --- #
+
+    
+
 
     def check_user_exists(self, un):
-        """Does the user exist?"""
+
+        """
+        Does the user exist?
+        """
+
         return User.objects.filter(username=un).exists()
 
     def check_user_in_group(self, un, gn):
-        """Check if a user is in a group.
+
+        """
+        Check if a user is in a group.
 
         First check that the user exists.
         Then check that the groups exists.
@@ -85,11 +130,32 @@ class UserUtils:
 
             # Bad user.
             return False
+    
+    def create_user(self, usrnm, psswrd=None, super_user=False):
 
-    def check_user_owns_prefix(self, un, prfx):
-        """Check if a user owns a prefix."""
+        """
+        Create a User.
+        """
 
-        return Prefix.objects.filter(owner_user=un, prefix=prfx).exists()
+        if not User.objects.filter(username=usrnm).exists():            
+            if super_user is False:
+                User(
+                    username=usrnm
+                ).save()
+            else:
+                User.objects.create_superuser(
+                    username=usrnm,
+                    password=psswrd
+                )
+    
+    def delete_user(self, usrnm):
+
+        """
+        Delete a User.
+        """
+
+        if User.objects.filter(username=usrnm).exists():            
+            User.objects.filter(username=usrnm).delete()
 
     def get_user_groups_by_token(self, token):
         """Takes token to give groups.
@@ -190,87 +256,10 @@ class UserUtils:
                 'other_info'             : other_info
                 }
 
-
-    def prefixes_for_user(self, user_object):
-        """Prefix for a given user.
-        Simple function to return prefixes
-        that a user has ANY permission on.
-
-        Recall that having any permission on
-        a prefix automatically means viewing
-        permission.
-        """
-        
-        return list(set([i.split('_')[1] for i in user_object.get_all_permissions()]))
-
-
-    def prefix_perms_for_user(self, user_object, flatten=True, specific_permission=None):
-        """Prefix permissions for a given user."""
-
-        if specific_permission is None:
-            specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
-
-        prefixed = self.get_user_info(
-                user_object
-                )['other_info']['permissions']
-        permissions = []
-        for pre in prefixed['user']:
-            permissions.append(Permission.objects.get(name=pre).codename)
-
-        return permissions
-
-        # # To store flattened permissions
-        # flat_perms = []
-
-        # # We only need the permissions that are specific
-        # # to the bco model.
-
-        # bco_specific = {
-        #         'user'  : { },
-        #         'groups': { }
-        #         }
-
-        # if 'bco' in prefixed['user']:
-        #     if flatten:
-        #         flat_perms = prefixed['user']['bco']
-        #     else:
-        #         bco_specific['user']['bco'] = prefixed['user']['bco']
-        # else:
-        #     if not flatten:
-        #         bco_specific['user']['bco'] = { }
-
-        # import pdb; pdb.set_trace()
-        # for k, v in prefixed['groups']:
-        #     if 'bco' in prefixed['groups'][k]:
-        #         if flatten:
-        #             for perm in v['bco']:
-        #                 if perm not in flat_perms:
-        #                     flat_perms.append(perm)
-        #         else:
-        #             bco_specific['groups'][k] = {
-        #                     'bco': v['bco']
-        #                     }
-        #     else:
-        #         bco_specific['groups'][k] = { }
-
-        # # Get the permissions.
-        # # Source: https://stackoverflow.com/a/952952
-
-        # # Flatten the permissions so that we can
-        # # work with them more easily.
-
-        # # Return based on what we need.
-        # if flatten == True:
-        
-        #     # Only unique permissions are returned.
-        #     return flat_perms
-
-        # elif flatten == False:
-
-        #     return bco_specific
-
     def user_from_request(self, request):
-        """Returns a user object from a request.
+
+        """
+        Returns a user object from a request.
 
         Parameters
         ----------
