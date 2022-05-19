@@ -29,7 +29,7 @@ from api.scripts.utilities import UserUtils
 
 
 
-# Instantiate anything we'll need.
+# Instantiate anything we'll need .
 uu = UserUtils.UserUtils()
 
 
