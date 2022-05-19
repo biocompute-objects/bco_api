@@ -693,31 +693,6 @@ def post_api_prefixes_token_flat(request):
 
 
 
-@receiver(post_save, sender=Prefix)
-def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
-
-    """
-    Link prefix creation to permissions creation.
-    """
-
-    # Prefixes are always capitalized.
-    cptlzd = str(instance.prefix).upper()
-    
-    try:
-        for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']:
-            Permission.objects.create(
-                name='Can ' + perm + ' BCOs with prefix ' + cptlzd,
-                content_type=ContentType.objects.get(
-                    app_label='api',
-                    model='bco'
-                ),
-                codename=perm + '_' + cptlzd
-            )   
-
-    except PermErrors.IntegrityError:
-        # The permissions already exist.
-        pass
-
 # @receiver(post_save, sender=Prefix)
 # def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
 #     """
@@ -824,11 +799,10 @@ def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
 
 
 @receiver(post_save, sender=Prefix)
-def create_groups_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
+def create_groups_for_prefix(sender, instance=None, created=False, **kwargs):
 
     """
-    Link prefix creation to prefix drafter and publishers groups creation,
-    as well as prefix permissions creation.
+    Link prefix creation to prefix drafter and publishers groups creation.
     """
 
     # Prefixes are always capitalized.
@@ -839,30 +813,20 @@ def create_groups_permissions_for_prefix(sender, instance=None, created=False, *
         # Create the drafter and publisher groups, 
         # as well as attach their permissions.
         [uu.create_group(group_name=cptlzd + i) for i in ['_drafters', '_publishers']]
-        # [pu.]
 
-        if not Group.objects.filter(name=cptlzd + '_drafters').exists():
 
-            # TODO: move to UserUtils
-            drafters = Group(
-                name=cptlzd + '_drafters'
-            )
+@receiver(post_save, sender=Prefix)
+def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
 
-            drafters.save()
+    """
+    Link prefix creation to permissions creation.
+    """
 
-            # TODO: move to PermissionsUtils
-            [drafters.permissions.add(Permission.objects.get(codename=i)) for i in ['delete_' + cptlzd, 'draft_' + cptlzd]]
+    # Prefixes are always capitalized.
+    cptlzd = str(instance.prefix).upper()
 
-        if not Group.objects.filter(name=cptlzd + '_publishers').exists():
+    [pu.create_permission(prmssn={"n": 'Can ' + perm + ' BCOs with prefix ' + cptlzd, "ct": ContentType.objects.get(app_label='api', model='bco'), "cn": perm + '_' + cptlzd}) for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']]
 
-            publishers = Group(
-                name=cptlzd + '_publishers'
-            )
-
-            publishers.save()
-
-            [publishers.permissions.add(Permission.objects.get(codename=i)) for i in ['publish_' + cptlzd]]
-            
 
 @receiver(post_delete, sender=Prefix)
 def delete_groups_permissions_for_prefix(sender, instance=None, **kwargs):
@@ -870,6 +834,9 @@ def delete_groups_permissions_for_prefix(sender, instance=None, **kwargs):
     """
     Link prefix deletion to groups and permissions deletion.
     """
+    
+    # Prefixes are always capitalized.
+    cptlzd = str(instance.prefix).upper()
     
     # Delete the groups.
     [uu.delete_group(group_name=instance.prefix + i) for i in ['_drafters', '_publishers']]

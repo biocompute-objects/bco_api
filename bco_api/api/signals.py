@@ -46,8 +46,8 @@ def populate_models(sender, **kwargs):
     # sending User.
 
     # Insantiate anything we'll need.
-    pu = PermissionsUtils.PermissionsUtils()
     pfxu = PrefixUtils.PrefixUtils()
+    pu = PermissionsUtils.PermissionsUtils()
     uu = UserUtils.UserUtils()
 
 
@@ -76,6 +76,8 @@ def populate_models(sender, **kwargs):
 
 
 
+    # TODO: move to UserUtils
+    
     # Create the group administrators group directly.
     if Group.objects.filter(name = 'group_admins').count() == 0:
         
@@ -87,7 +89,6 @@ def populate_models(sender, **kwargs):
         #   the default owner_user of group_admins is wheel
 
         GroupInfo.objects.create(
-            delete_members_on_group_deletion=False,
             description='Group administrators',
             group=Group.objects.get(name='group_admins'),
             max_n_members=-1,
@@ -100,7 +101,6 @@ def populate_models(sender, **kwargs):
         Group.objects.create(name = 'prefix_admins')
 
         GroupInfo.objects.create(
-            delete_members_on_group_deletion=False,
             description='Prefix administrators',
             group=Group.objects.get(name='prefix_admins'),
             max_n_members=-1,
@@ -119,19 +119,41 @@ def populate_models(sender, **kwargs):
     # groups 'bco_drafters' and 'bco_publishers'.
     
     # Create the prefix 'BCO' and make wheel the owner group and owner user.
-    pfxu.create_prefix(crtdby='wheel', grp='wheel', prfx='bco', usr='wheel')
-    # pfxu.delete_prefix(prfx='bco')
+    pfxu.create_prefix(
+        crtdby='wheel', 
+        grp='wheel', 
+        prfx='bco', 
+        usr='wheel'
+    )
 
     # Associate wheel with all groups.
+
     # Note that this does NOT add AnonymousUser Group
     # to wheel's groups.  AnonymousUser is created
     # downstream of signals.py.
+
     # However, AnonymousUser is a benign user anyways...
     group = Group.objects.all()
 
     for g in group:
         User.objects.get(username = 'wheel').groups.add(g)
     
+
+
+
+    # --- Permissions --- #
+    
+
+
+
+    # Add the prefix permissions to the relevant groups.
+    pu.add_permissions_to_groups(
+        grps_prmssns={
+            'groups': ['BCO_drafters'],
+            'permissions': ['delete_BCO', 'draft_BCO']
+        }
+    )
+
     # Give the group administrators the permissions.
     # Group.objects.get(
     #     name = 'prefix_admins'

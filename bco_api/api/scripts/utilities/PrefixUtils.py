@@ -1,5 +1,5 @@
 # The main Classes required
-from django.contrib.auth.models import Group, Permission, User
+from django.contrib.auth.models import Group, User
 
 # The prefixes
 from api.model.prefix import Prefix
