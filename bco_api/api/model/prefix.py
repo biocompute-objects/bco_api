@@ -17,7 +17,6 @@ from django.db import models
 from django.contrib.auth.models import Group, Permission, User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-import django.db.utils as PermErrors
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from rest_framework import status
@@ -27,15 +26,11 @@ from api.model.groups import GroupInfo
 from api.scripts.utilities import DbUtils
 from api.scripts.utilities import UserUtils
 
-# Managing permissions
-from api.scripts.utilities import PermissionsUtils
-
 
 
 
 # Instantiate anything we'll need.
 uu = UserUtils.UserUtils()
-pu = PermissionsUtils.PermissionsUtils()
 
 
 
@@ -814,22 +809,8 @@ def create_groups_for_prefix(sender, instance=None, created=False, **kwargs):
         # as well as attach their permissions.
         [uu.create_group(group_name=cptlzd + i) for i in ['_drafters', '_publishers']]
 
-
-@receiver(post_save, sender=Prefix)
-def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
-
-    """
-    Link prefix creation to permissions creation.
-    """
-
-    # Prefixes are always capitalized.
-    cptlzd = str(instance.prefix).upper()
-
-    [pu.create_permission(prmssn={"n": 'Can ' + perm + ' BCOs with prefix ' + cptlzd, "ct": ContentType.objects.get(app_label='api', model='bco'), "cn": perm + '_' + cptlzd}) for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']]
-
-
 @receiver(post_delete, sender=Prefix)
-def delete_groups_permissions_for_prefix(sender, instance=None, **kwargs):
+def delete_groups_for_prefix(sender, instance=None, **kwargs):
 
     """
     Link prefix deletion to groups and permissions deletion.
@@ -840,6 +821,3 @@ def delete_groups_permissions_for_prefix(sender, instance=None, **kwargs):
     
     # Delete the groups.
     [uu.delete_group(group_name=instance.prefix + i) for i in ['_drafters', '_publishers']]
-
-    # Delete the permissions.
-    [pu.delete_permission(codename=i + instance.prefix) for i in ['add_', 'change_', 'delete_', 'draft_', 'publish_', 'view_']]
