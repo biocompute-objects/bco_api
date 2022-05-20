@@ -7,7 +7,7 @@ Source: https://docs.djangoproject.com/en/3.2/ref/applications/#django.apps.AppC
 
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
-from api.signals import populate_models
+from api.populate import populate_models
 
 class ApiConfig(AppConfig):
     """API Configuration
