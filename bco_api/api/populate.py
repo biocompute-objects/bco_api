@@ -154,6 +154,13 @@ def populate_models(sender, **kwargs):
         }
     )
 
+    pu.add_permissions_to_groups(
+        grps_prmssns={
+            'groups': ['BCO_publishers'],
+            'permissions': ['publish_BCO']
+        }
+    )
+
     # Give the group administrators the permissions.
     # Group.objects.get(
     #     name = 'prefix_admins'

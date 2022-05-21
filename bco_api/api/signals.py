@@ -1,4 +1,7 @@
-# # Source: https://stackoverflow.com/a/42744626/5029459
+# Source: https://stackoverflow.com/a/42744626/5029459
+
+# Custom permissions
+from django.contrib.contenttypes.models import ContentType
 
 # Permissions
 from api.scripts.utilities import PermissionsUtils
@@ -25,7 +28,7 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
     """
     Link prefix creation to permissions creation.
     """
-
+    
     # Prefixes are always capitalized.
     cptlzd = str(instance.prefix).upper()
 
