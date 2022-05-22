@@ -67,6 +67,17 @@ def populate_models(sender, **kwargs):
         usrnm='wheel', 
         super_user=True
     )
+
+    # Create a user to draft and a user to publish prefix BCO.
+    uu.create_user(
+        usrnm='BCO_drafter',
+        psswrd='BCO_drafter'
+    )
+
+    uu.create_user(
+        usrnm='BCO_publisher',
+        psswrd='BCO_publisher'
+    )
     
 
 
@@ -121,9 +132,9 @@ def populate_models(sender, **kwargs):
     # Create the prefix 'BCO' and make wheel the owner group and owner user.
     pfxu.create_prefix(
         crtdby='wheel', 
-        grp='wheel', 
+        grp='BCO_drafter', 
         prfx='bco', 
-        usr='wheel'
+        usr='BCO_drafter'
     )
 
     # Associate wheel with all groups.
@@ -159,6 +170,30 @@ def populate_models(sender, **kwargs):
             'groups': ['BCO_publishers'],
             'permissions': ['publish_BCO']
         }
+    )
+
+    print(pu.check_user_owns_prefix(
+        un='whee',
+        prfx='BCO'
+    ))
+
+    print(pu.check_group_owns_prefix(
+        gn='wheel',
+        prfx='BCO'
+    ))
+
+    print(pu.check_user_owns_prefix(
+        un='whee',
+        prfx='BCO'
+    ))
+
+    print(pu.check_group_owns_prefix(
+        gn='wheel',
+        prfx='BCO'
+    ))
+
+    pu.delete_permission(
+        prmssn='adddd_BCO'
     )
 
     # Give the group administrators the permissions.

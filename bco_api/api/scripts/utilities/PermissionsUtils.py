@@ -7,13 +7,17 @@ import django.db.utils as PermErrors
 # The prefixes
 from api.model.prefix import Prefix
 
+# Utilities to help with Prefixes
+from api.scripts.utilities import PrefixUtils
+
 # Utilities to help with Groups and Users
 from api.scripts.utilities import UserUtils
 
 
 
 
-# Instantiate anything we'll need.
+# Instantiations
+pfxu = PrefixUtils.PrefixUtils()
 uu = UserUtils.UserUtils()
 
 
@@ -26,10 +30,6 @@ class PermissionsUtils:
     Methods for dealing with Permissions.
 
     """
-
-    # Instantiations
-    # pfxu = PrefixUtils.PrefixUtils()
-    uu = UserUtils.UserUtils()
     
     
     
@@ -114,7 +114,7 @@ class PermissionsUtils:
         """Assign the given user as the owner of the given prefix."""
         
         # See if the prefix exists.
-        if self.pfxu.check_prefix_exists(prfx=str(prfx)) and self.uu.check_user_exists(un=str(usr)):
+        if pfxu.check_prefix_exists(prfx=str(prfx)) and uu.check_user_exists(un=str(usr)):
             
             # Update using save(), because update() has issues
             # with emitting listener signals,
@@ -128,6 +128,22 @@ class PermissionsUtils:
             prefixed.owner_user = User.objects.get(username=str(usr))
             prefixed.save()
         
+    def check_group_owns_prefix(self, gn, prfx):
+
+        """
+        Check if a Group owns a prefix.
+        """
+
+        return Prefix.objects.filter(owner_group=str(gn), prefix=prfx).exists()
+    
+    def check_user_owns_prefix(self, un, prfx):
+
+        """
+        Check if a User owns a prefix.
+        """
+
+        return Prefix.objects.filter(owner_user=str(un), prefix=prfx).exists()
+    
     def create_permission(self, prmssn):
 
         """
@@ -155,9 +171,7 @@ class PermissionsUtils:
         """
 
         # TODO: tweak to take multiple permissions to delete.
-        
-        if Permission.objects.filter(codename=prmssn).exists():
-            Permission.objects.filter(codename=prmssn).delete()
+        Permission.objects.filter(codename=prmssn).delete()
     
     def remove_permissions_from_groups(self, grps_prmssns):
 
@@ -213,91 +227,82 @@ class PermissionsUtils:
             if uu.check_user_exists(un=u):
                 [User.objects.get(name=u).permissions.remove(f) for f in found_permissions]
             
-        # def assign_prefix_group_permissions(self)
+    # def assign_prefix_group_permissions(self)
+
+    # def prefixes_for_user(self, user_object):
+    #     """Prefix for a given user.
+    #     Simple function to return prefixes
+    #     that a user has ANY permission on.
+
+    #     Recall that having any permission on
+    #     a prefix automatically means viewing
+    #     permission.
+    #     """
+        
+    #     return list(set([i.split('_')[1] for i in user_object.get_all_permissions()]))
 
 
-        # def check_user_owns_prefix(self, un, prfx):
+    # def prefix_perms_for_user(self, user_object, flatten=True, specific_permission=None):
+    #     """Prefix permissions for a given user."""
 
-        #     """
-        #     Check if a User owns a prefix.
-        #     """
+    #     if specific_permission is None:
+    #         specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
 
-        #     return Prefix.objects.filter(owner_user=un, prefix=prfx).exists()
+    #     prefixed = self.get_user_info(
+    #             user_object
+    #             )['other_info']['permissions']
+    #     permissions = []
+    #     for pre in prefixed['user']:
+    #         permissions.append(Permission.objects.get(name=pre).codename)
 
-        # def prefixes_for_user(self, user_object):
-        #     """Prefix for a given user.
-        #     Simple function to return prefixes
-        #     that a user has ANY permission on.
+    #     return permissions
 
-        #     Recall that having any permission on
-        #     a prefix automatically means viewing
-        #     permission.
-        #     """
-            
-        #     return list(set([i.split('_')[1] for i in user_object.get_all_permissions()]))
+    #     # # To store flattened permissions
+    #     # flat_perms = []
 
+    #     # # We only need the permissions that are specific
+    #     # # to the bco model.
 
-        # def prefix_perms_for_user(self, user_object, flatten=True, specific_permission=None):
-        #     """Prefix permissions for a given user."""
+    #     # bco_specific = {
+    #     #         'user'  : { },
+    #     #         'groups': { }
+    #     #         }
 
-        #     if specific_permission is None:
-        #         specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
+    #     # if 'bco' in prefixed['user']:
+    #     #     if flatten:
+    #     #         flat_perms = prefixed['user']['bco']
+    #     #     else:
+    #     #         bco_specific['user']['bco'] = prefixed['user']['bco']
+    #     # else:
+    #     #     if not flatten:
+    #     #         bco_specific['user']['bco'] = { }
 
-        #     prefixed = self.get_user_info(
-        #             user_object
-        #             )['other_info']['permissions']
-        #     permissions = []
-        #     for pre in prefixed['user']:
-        #         permissions.append(Permission.objects.get(name=pre).codename)
+    #     # import pdb; pdb.set_trace()
+    #     # for k, v in prefixed['groups']:
+    #     #     if 'bco' in prefixed['groups'][k]:
+    #     #         if flatten:
+    #     #             for perm in v['bco']:
+    #     #                 if perm not in flat_perms:
+    #     #                     flat_perms.append(perm)
+    #     #         else:
+    #     #             bco_specific['groups'][k] = {
+    #     #                     'bco': v['bco']
+    #     #                     }
+    #     #     else:
+    #     #         bco_specific['groups'][k] = { }
 
-        #     return permissions
+    #     # # Get the permissions.
+    #     # # Source: https://stackoverflow.com/a/952952
 
-        #     # # To store flattened permissions
-        #     # flat_perms = []
+    #     # # Flatten the permissions so that we can
+    #     # # work with them more easily.
 
-        #     # # We only need the permissions that are specific
-        #     # # to the bco model.
+    #     # # Return based on what we need.
+    #     # if flatten == True:
+        
+    #     #     # Only unique permissions are returned.
+    #     #     return flat_perms
 
-        #     # bco_specific = {
-        #     #         'user'  : { },
-        #     #         'groups': { }
-        #     #         }
+    #     # elif flatten == False:
 
-        #     # if 'bco' in prefixed['user']:
-        #     #     if flatten:
-        #     #         flat_perms = prefixed['user']['bco']
-        #     #     else:
-        #     #         bco_specific['user']['bco'] = prefixed['user']['bco']
-        #     # else:
-        #     #     if not flatten:
-        #     #         bco_specific['user']['bco'] = { }
-
-        #     # import pdb; pdb.set_trace()
-        #     # for k, v in prefixed['groups']:
-        #     #     if 'bco' in prefixed['groups'][k]:
-        #     #         if flatten:
-        #     #             for perm in v['bco']:
-        #     #                 if perm not in flat_perms:
-        #     #                     flat_perms.append(perm)
-        #     #         else:
-        #     #             bco_specific['groups'][k] = {
-        #     #                     'bco': v['bco']
-        #     #                     }
-        #     #     else:
-        #     #         bco_specific['groups'][k] = { }
-
-        #     # # Get the permissions.
-        #     # # Source: https://stackoverflow.com/a/952952
-
-        #     # # Flatten the permissions so that we can
-        #     # # work with them more easily.
-
-        #     # # Return based on what we need.
-        #     # if flatten == True:
-            
-        #     #     # Only unique permissions are returned.
-        #     #     return flat_perms
-
-        #     # elif flatten == False:
-
-        #     #     return bco_specific
+    #     #     return bco_specific

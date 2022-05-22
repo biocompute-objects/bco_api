@@ -25,5 +25,5 @@ class ApiConfig(AppConfig):
         """Make the signals."""
         import api.signals
 
-        """Initialize the database."""
+        """ (Optional) Initialize the database."""
         post_migrate.connect(populate_models, sender=self)
