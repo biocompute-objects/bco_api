@@ -1,4 +1,4 @@
-# # Source: https://stackoverflow.com/a/42744626/5029459
+# Source: https://stackoverflow.com/a/42744626/5029459
 
 
 
@@ -58,6 +58,13 @@ def populate_models(sender, **kwargs):
 
 
 
+    # Create the group administrators group directly.
+    # We have to do this first so that subsequent User
+    # creation commands can associate the User with
+    # group_admins.
+    if Group.objects.filter(name = 'group_admins').count() == 0:            
+        Group.objects.create(name = 'group_admins')
+    
     # Create the anonymous and wheel users if they don't exist.
     uu.create_user(
         usrnm='anon'
@@ -87,28 +94,22 @@ def populate_models(sender, **kwargs):
 
 
 
-    # TODO: move to UserUtils
-    
-    # Create the group administrators group directly.
-    if Group.objects.filter(name = 'group_admins').count() == 0:
+    # TODO: move to UserUtils?
         
-        Group.objects.create(name = 'group_admins')
-        
-        # The group information is as follows:
-        #   members of group_admins are not deleted when group_admins is deleted
-        #   there is no limit to the number of members that can be in group_admins
-        #   the default owner_user of group_admins is wheel
+    # The group information is as follows:
+    #   members of group_admins are not deleted when group_admins is deleted
+    #   there is no limit to the number of members that can be in group_admins
+    #   the default owner_user of group_admins is wheel
 
-        GroupInfo.objects.create(
-            description='Group administrators',
-            group=Group.objects.get(name='group_admins'),
-            max_n_members=-1,
-            owner_user=User.objects.get(username='wheel')
-        )
+    GroupInfo.objects.create(
+        description='Group administrators',
+        group=Group.objects.get(name='group_admins'),
+        max_n_members=-1,
+        owner_user=User.objects.get(username='wheel')
+    )
     
     # Create the prefix administrators group directly.
     if Group.objects.filter(name = 'prefix_admins').count() == 0:
-
         Group.objects.create(name = 'prefix_admins')
 
         GroupInfo.objects.create(
@@ -170,30 +171,6 @@ def populate_models(sender, **kwargs):
             'groups': ['BCO_publishers'],
             'permissions': ['publish_BCO']
         }
-    )
-
-    print(pu.check_user_owns_prefix(
-        un='whee',
-        prfx='BCO'
-    ))
-
-    print(pu.check_group_owns_prefix(
-        gn='wheel',
-        prfx='BCO'
-    ))
-
-    print(pu.check_user_owns_prefix(
-        un='whee',
-        prfx='BCO'
-    ))
-
-    print(pu.check_group_owns_prefix(
-        gn='wheel',
-        prfx='BCO'
-    ))
-
-    pu.delete_permission(
-        prmssn='adddd_BCO'
     )
 
     # Give the group administrators the permissions.

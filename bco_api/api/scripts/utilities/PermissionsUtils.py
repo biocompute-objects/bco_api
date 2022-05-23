@@ -1,3 +1,5 @@
+# See https://docs.djangoproject.com/en/4.0/topics/auth/default/#permissions-and-authorization
+
 # The main Classes required
 from django.contrib.auth.models import Group, Permission, User
 
@@ -86,7 +88,7 @@ class PermissionsUtils:
         # Now add.
         for u in users:
             if uu.check_user_exists(un=u):
-                [User.objects.get(name=u).permissions.add(f) for f in found_permissions]
+                [User.objects.get(username=u).user_permissions.add(f) for f in found_permissions]
     
     def assign_prefix_owner_group(self, prfx, grp):
 
