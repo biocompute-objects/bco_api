@@ -45,7 +45,8 @@ from .views import (
     ApiPublicDescribe,
     DraftObjectId,
     ObjectIdRootObjectId,
-    ObjectIdRootObjectIdVersion
+    ObjectIdRootObjectIdVersion,
+    ValidateBCO
 )
 # Load the server config file.
 server_config = configparser.ConfigParser()
@@ -173,6 +174,9 @@ elif PUBLISH_ONLY == 'False':
              ),
         path('api/objects/search/',
              ApiObjectsSearch.as_view()
+             ),
+        path('api/objects/validate/',
+             ValidateBCO.as_view()
              ),
         path('api/objects/token/',
              ApiObjectsToken.as_view()

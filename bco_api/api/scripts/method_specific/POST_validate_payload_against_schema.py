@@ -1,47 +1,58 @@
+#!/usr/bin/env python3
+"""Validate BioCompute Object
+
+"""
+
+import os
 import json
-from ..utilities import JsonUtils
+from rest_framework import status
+from rest_framework.response import Response
+import requests
+import jsonschema
+import jsonref
 
-def POST_validate_payload_against_schema(
-	bulk_request
-):
+def post_validate_bco(request):
+    """
+    Take the bulk request and determine which
+    kind of schema we're looking for.
 
-	# Take the bulk request and determine which
-	# kind of schema we're looking for.
+    Since bulk_request is an array, go over each
+    item in the array, stopping if we have a failure.
+    for validation_object in bulk_request:
+    First, get the object to be validated.
+    """
 
-	# Since bulk_request is an array, go over each
-	# item in the array, stopping if we have a failure.
-	for validation_object in bulk_request:
+    # schema = jsonref.load_uri(str('https://opensource.ieee.org/2791-object'\
+    #   + '/ieee-2791-schema/-/raw/master/2791object.json'))
 
-		# First, get the object to be validated.
-		to_be_validated = validation_object['payload']
+    base_uri = 'file://{}/'.format(os.path.dirname \
+        (os.path.abspath('api/validation_definitions/IEEE/2791object.json')))
+    print(base_uri)
+    ieee = 'api/validation_definitions/IEEE/2791object.json'
+    with open(ieee, 'r', encoding='utf-8') as file:
+        schema = jsonref.load(file, base_uri=base_uri, jsonschema=True)
 
-		# Is the schema on the server or was it provided?
-		if 'schema_server' in validation_object:
-			
-			# Load the schema, then pass it along for validation.
-			# Check to make sure schema file exists...
-			with open('api/validation_definitions/' + validation_object['schema_server'], 'r') as f:
-				schema_helper = json.load(f)
+    bco_list = request.data['POST_validate_bco']
+    results = {}
+    for bco in bco_list:
+        results[bco['object_id']] = {
+            'error_detail': [],
+            'number_of_errors': 0
+        }
+        validator = jsonschema.Draft7Validator(schema)
+        errors = validator.iter_errors(bco)
+        for error in errors:
+            results[bco['object_id']]['number_of_errors'] += 1
+            try:
+                error_string = {error.path[0]: error.message}
+            except IndexError:
+                error_string = {'top_level': error.message}
+            results[bco['object_id']]['error_detail'].append(error_string)
+            # print(error.__dict__.keys())
+            print(error.message)
+            print(error.relative_path)
+        if results[bco['object_id']]['number_of_errors'] == 0:
+           results[bco['object_id']]['error_detail'] = ['BCO Valid']
 
-			return(
-				{
-					'request_status': 'success', 
-					'contents': JsonUtils.JsonUtils().check_object_against_schema(
-						object_pass = to_be_validated, 
-						schema_pass = schema_helper
-					)
-				}
-			)
-
-		elif 'schema_own' in bulk_request:
-			
-			# Use the provided schema.
-			return(
-				{
-					'request_status': 'success', 
-					'contents': JsonUtils.JsonUtils().check_object_against_schema(
-						object_pass = to_be_validated, 
-						schema_pass = validation_object['schema_own']
-					)
-				}
-			)
+    returning = results
+    return Response(status = status.HTTP_200_OK, data = returning)
