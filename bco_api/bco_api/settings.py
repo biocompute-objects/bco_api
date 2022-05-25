@@ -28,6 +28,9 @@ server_config.read('./server.conf')
 # Is this a production server?
 PRODUCTION = server_config['PRODUCTION']['production']
 
+# Do we populate the database?
+POPULATE = server_config['POPULATE']['populate']
+
 # Set the anonymous user's key.
 ANON_KEY = server_config['KEYS']['anon']
 

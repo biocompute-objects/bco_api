@@ -23,6 +23,9 @@ from django.conf import settings
 from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
 
+# Object errors
+from django.core.exceptions import ObjectDoesNotExist
+
 # Permissions errors
 from django.db.utils import IntegrityError
 
@@ -341,8 +344,13 @@ def create_user_group(sender, instance, created, **kwargs):
             # Depending on the settings for group_admins, either make
             # every user a member of group_admins or not.
             if settings.GROUP_ADMINS == 'False':
-                group = Group.objects.get(name='group_admins')
-                group.user_set.add(instance)
+                
+                # try because database may not have been initially populated.
+                try:
+                    group = Group.objects.get(name='group_admins')
+                    group.user_set.add(instance)
+                except ObjectDoesNotExist:
+                    pass
         
         except IntegrityError:
 

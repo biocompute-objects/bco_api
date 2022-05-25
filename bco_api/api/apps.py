@@ -6,7 +6,12 @@ Source: https://docs.djangoproject.com/en/3.2/ref/applications/#django.apps.AppC
 """
 
 from django.apps import AppConfig
+
+# Listeners
 from django.db.models.signals import post_migrate
+
+# (Optional) Population
+from django.conf import settings
 from api.populate import populate_models
 
 
@@ -26,4 +31,5 @@ class ApiConfig(AppConfig):
         import api.signals
 
         """ (Optional) Initialize the database."""
-        post_migrate.connect(populate_models, sender=self)
+        if settings.POPULATE == 'True':
+            post_migrate.connect(populate_models, sender=self)
