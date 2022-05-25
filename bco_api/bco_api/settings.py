@@ -7,6 +7,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
+from http import server
 import os
 # For importing configuration files
 import configparser
@@ -32,6 +33,9 @@ ANON_KEY = server_config['KEYS']['anon']
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '$vz@#@^q(od&$rf&*6^z!m5nh6qw2*cq*j6fha#^h9(r7$xqy4'
+
+# Are group admins turned on?
+GROUP_ADMINS = server_config['GROUPS']['group_admins']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = PRODUCTION
