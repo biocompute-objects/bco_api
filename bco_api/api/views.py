@@ -1423,11 +1423,11 @@ class ObjectIdRootObjectIdVersion(APIView):
 
 class ValidateBCO(APIView):
     """
-    View Published BCO by ID and Version
+    Bulk Validate BCOs
 
     --------------------
 
-    Reads and returns a published BCO based on an object ID and a version.
+    Bulk operation to validate BCOs.
 
     ```JSON
     {
