@@ -6,7 +6,7 @@ URL access points for API
 
 # For importing configuration files
 import configparser
-from xml.etree.ElementTree import VERSION
+from django.conf import settings
 
 # For favicon and any other static files
 from django.urls import path, re_path
@@ -17,7 +17,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from .views import (
+from api.views import (
     ApiAccountsActivateUsernameTempIdentifier,
     ApiAccountsDescribe,
     ApiAccountsNew,
@@ -50,7 +50,8 @@ from .views import (
 )
 # Load the server config file.
 server_config = configparser.ConfigParser()
-server_config.read('./server.conf')
+server_config.read(settings.BASE_DIR+'/server.conf')
+
 PUBLISH_ONLY = server_config['PUBLISHONLY']['publishonly']
 VERSION = server_config['VERSION']['version']
 
