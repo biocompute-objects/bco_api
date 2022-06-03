@@ -19,7 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # --- SECURITY SETTINGS --- #
 # Load the server config file.
 server_config = configparser.ConfigParser()
-server_config.read('./server.conf')
+server_config.read(BASE_DIR+'/server.conf')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
