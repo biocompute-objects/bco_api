@@ -92,6 +92,8 @@ class ApiTestCase(TestCase):
                     }
                 ]
         }
+        # anon needs permissions first
+
         request = self.factory.post(path='/api/objects/drafts/create/', data=bco_request, format='json', HTTP_AUTHORIZATION='Token {}'.format(token))
         force_authenticate(request, user=self.user)
 

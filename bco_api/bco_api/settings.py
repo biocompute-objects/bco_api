@@ -220,6 +220,7 @@ STATIC_ROOT = '/var/www/bcoeditor/bco_api/bco_api/static/'
 # Note that we will get TWO loads of settings.py if we start without runserver --noreload
 # There is only set of definitions for requests, but for validations, we may have sub-folders.
 # First, the request definitions.
+
 REQUEST_TEMPLATES = SettingsUtils.SettingsUtils().load_schema_local(search_parameters={
     'request_definitions/': '.schema'
 }, mode = 'requests')

@@ -123,7 +123,7 @@ class GroupApiTestCase(TestCase):
 
             Deletes a group.
         """
-
+        print("Delete group test.")
         view = ApiGroupsDelete.as_view()
 
         # Create the group to be deleted
