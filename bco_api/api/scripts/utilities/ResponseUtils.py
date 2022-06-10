@@ -6,10 +6,7 @@ class ResponseUtils:
     # These are methods to help with sending back a (formatted) response.
 
     # Clean up the response string.
-    def beautify_error_set(
-        self, 
-        errors
-    ):
+    def beautify_error_set(self, errors):
 
         # Arguments
         # ---------
@@ -26,14 +23,14 @@ class ResponseUtils:
         error_string = []
 
         # Go through each error set.
-        for item_index in range(
-            0, len(
-                errors
-            )
-        ):
+        for item_index in range(0, len(errors)):
 
             # Create the error header for ID.
-            string_helper = 'Errors for item ID: ' + str(item_index) + '\n-------------------------\n'
+            string_helper = (
+                "Errors for item ID: "
+                + str(item_index)
+                + "\n-------------------------\n"
+            )
 
             # Define a list of all errors which will be collapsed.
             all_errors = []
@@ -43,20 +40,14 @@ class ResponseUtils:
 
                 # Append this error.
                 all_errors.append(
-                    error_subset['error'] + ': ' + error_subset['error_message']
+                    error_subset["error"] + ": " + error_subset["error_message"]
                 )
 
             # Collapse the errors into new lines.
-            string_helper = string_helper + '\n'.join(
-                all_errors
-            )
+            string_helper = string_helper + "\n".join(all_errors)
 
             # Append to the error string.
-            error_string.append(
-                string_helper
-            )
+            error_string.append(string_helper)
 
         # Collapse all errors for all items and return.
-        return '\n'.join(
-            error_string
-        )
+        return "\n".join(error_string)

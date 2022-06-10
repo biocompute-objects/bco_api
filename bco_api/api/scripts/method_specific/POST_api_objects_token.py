@@ -19,10 +19,7 @@ def POST_api_objects_token(rqst):
     flag as True so that we can get published
     objects.
     """
-    rqst.data['POST_api_objects_drafts_token'] = rqst.data.pop('POST_api_objects_token')
+    rqst.data["POST_api_objects_drafts_token"] = rqst.data.pop("POST_api_objects_token")
 
     # Get the user's objects.
-    return POST_api_objects_drafts_token(
-            rqst=rqst,
-            internal=True
-            )
+    return POST_api_objects_drafts_token(rqst=rqst, internal=True)

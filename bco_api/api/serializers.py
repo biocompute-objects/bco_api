@@ -1,11 +1,7 @@
 from rest_framework import serializers
 
 
-
-
 # ----- Request Serializers ----- #
-
-
 
 
 # Serializers must be abstracted in order to use abstracted models.
@@ -17,17 +13,12 @@ from rest_framework import serializers
 
 # Source (4th response): https://stackoverflow.com/questions/30831731/create-a-generic-serializer-with-a-dynamic-model-in-meta
 
-def getGenericSerializer(
-    incoming_model, 
-    incoming_fields
-):
 
-    class GenericObjectSerializer(
-        serializers.ModelSerializer
-    ):
-    
-    # Arguments
-    # incoming_table: the table to write to.
+def getGenericSerializer(incoming_model, incoming_fields):
+    class GenericObjectSerializer(serializers.ModelSerializer):
+
+        # Arguments
+        # incoming_table: the table to write to.
 
         class Meta:
             model = incoming_model

@@ -39,7 +39,7 @@ def POST_api_objects_drafts_permissions(incoming):
     px_perms = uu.prefix_perms_for_user(flatten=True, user_object=user)
 
     # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_drafts_permissions']
+    bulk_request = incoming.data["POST_api_objects_drafts_permissions"]
 
     # Construct an array to return the objects.
     returning = []
@@ -50,24 +50,27 @@ def POST_api_objects_drafts_permissions(incoming):
     for creation_object in bulk_request:
 
         # Get the prefix for this object.
-        standardized = creation_object['object_id'].split('/')[-1].split('_')[0].upper()
+        standardized = creation_object["object_id"].split("/")[-1].split("_")[0].upper()
 
         # Does the requestor have view permissions for
         # the *prefix*?
-        if 'view_' + standardized in px_perms:
-            print('bulk_request', list(BCO.objects.filter(object_id=creation_object['object_id'])))
+        if "view_" + standardized in px_perms:
+            print(
+                "bulk_request",
+                list(BCO.objects.filter(object_id=creation_object["object_id"])),
+            )
             # The requestor has change view for
             # the prefix, but do they have object-level
             # view permissions?
 
             # This can be checked by seeing if the requestor
             # is the object owner OR they are a user with
-            # object-level view permissions OR if they are in a 
+            # object-level view permissions OR if they are in a
             # group that has object-level view permissions.
 
             # To check these options, we need the actual object.
-            if BCO.objects.filter(object_id=creation_object['object_id']).exists():
-                objected = BCO.objects.get(object_id=creation_object['object_id'])
+            if BCO.objects.filter(object_id=creation_object["object_id"]).exists():
+                objected = BCO.objects.get(object_id=creation_object["object_id"])
 
                 # We don't care where the view permission comes from,
                 # be it a User permission or a Group permission.
@@ -77,30 +80,29 @@ def POST_api_objects_drafts_permissions(incoming):
                 # basic view permissions for this user and object.
                 all_permissions = get_perms(user, objected)
 
-                if user.username == objected.owner_user.username or 'view_' + standardized in all_permissions:
+                if (
+                    user.username == objected.owner_user.username
+                    or "view_" + standardized in all_permissions
+                ):
 
                     # Kick back the permissions,
                     # *** but only for this requestor (user) ***.
 
                     # Create a dictionary to return the permissions.
-                    perms = {
-                            'username'   : { },
-                            'group_names': { }
-                            }
+                    perms = {"username": {}, "group_names": {}}
 
                     # We want to return the permissions in fine detail
                     # by user permissions and group permissions.
                     up = get_user_perms(user, objected)
 
-                    perms['username'][user.username] = list(up)
+                    perms["username"][user.username] = list(up)
 
                     # Get user's groups.
                     user_groups = list(
-                            Group.objects.filter(user=user.pk).values_list(
-                                    'name',
-                                    flat=True
-                                    )
-                            )
+                        Group.objects.filter(user=user.pk).values_list(
+                            "name", flat=True
+                        )
+                    )
 
                     gp = get_groups_with_perms(objected, attach_perms=True)
 
@@ -108,25 +110,41 @@ def POST_api_objects_drafts_permissions(incoming):
                     # the user's groups.
                     for g, p in gp.items():
                         if g.name in user_groups:
-                            perms['group_names'][g.name] = p
+                            perms["group_names"][g.name] = p
 
                     # print(perms)
 
                     # Update the request status.
-                    returning.append(db.messages(parameters={'object_id': creation_object['object_id'], 'object_perms': perms})['200_OK_object_permissions'])
+                    returning.append(
+                        db.messages(
+                            parameters={
+                                "object_id": creation_object["object_id"],
+                                "object_perms": perms,
+                            }
+                        )["200_OK_object_permissions"]
+                    )
                 else:
                     # Insufficient permissions.
-                    returning.append(db.messages(parameters={})['403_insufficient_permissions'])
+                    returning.append(
+                        db.messages(parameters={})["403_insufficient_permissions"]
+                    )
                     any_failed = True
             else:
                 # Couldn't find the object.
-                returning.append(db.messages(parameters={
-                        'object_id': creation_object['object_id']})['404_object_id'])
+                returning.append(
+                    db.messages(parameters={"object_id": creation_object["object_id"]})[
+                        "404_object_id"
+                    ]
+                )
                 any_failed = True
 
         else:
             # Update the request status.
-            returning.append(db.messages(parameters={'prefix': standardized})['401_prefix_unauthorized'])
+            returning.append(
+                db.messages(parameters={"prefix": standardized})[
+                    "401_prefix_unauthorized"
+                ]
+            )
             any_failed = True
 
     # As this view is for a bulk operation, status 200

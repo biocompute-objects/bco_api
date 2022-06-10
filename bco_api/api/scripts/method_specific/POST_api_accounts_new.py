@@ -30,6 +30,7 @@ import uuid
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
+
 def POST_api_accounts_new(request):
     # An e-mail is provided, and if the e-mail already exists
     # as an account, then return 403.
@@ -40,10 +41,18 @@ def POST_api_accounts_new(request):
 
     # Does the account associated with this e-mail already
     # exist in either a temporary or a permanent user profile?
-    if db.check_user_exists( p_app_label='api', p_model_name='new_users', p_email=bulk_request['email']) is None:
-        if User.objects.filter(email=bulk_request['email']).exists():
+    if (
+        db.check_user_exists(
+            p_app_label="api", p_model_name="new_users", p_email=bulk_request["email"]
+        )
+        is None
+    ):
+        if User.objects.filter(email=bulk_request["email"]).exists():
             # Account has already been activated.
-            return Response(status=status.HTTP_409_CONFLICT, data={"message": "Account has already been activated."})
+            return Response(
+                status=status.HTTP_409_CONFLICT,
+                data={"message": "Account has already been activated."},
+            )
 
         # The email has not already been asked for and
         # it has not been activated.
@@ -56,65 +65,75 @@ def POST_api_accounts_new(request):
         # Create a temporary identifier.
         temp_identifier = uuid.uuid4().hex
 
-        if 'token' in bulk_request and 'hostname' in bulk_request:
+        if "token" in bulk_request and "hostname" in bulk_request:
             p_data = {
-                'email': bulk_request['email'],
-                'temp_identifier': temp_identifier,
-                'hostname': bulk_request['hostname'],
-                'token': bulk_request['token']
+                "email": bulk_request["email"],
+                "temp_identifier": temp_identifier,
+                "hostname": bulk_request["hostname"],
+                "token": bulk_request["token"],
             }
 
         else:
             p_data = {
-                'email': bulk_request['email'],
-                'temp_identifier': temp_identifier
+                "email": bulk_request["email"],
+                "temp_identifier": temp_identifier,
             }
 
         objects_written = db.write_object(
-            p_app_label='api',
-            p_model_name='new_users',
-            p_fields=['email', 'temp_identifier', 'hostname', 'token'],
-            p_data=p_data
+            p_app_label="api",
+            p_model_name="new_users",
+            p_fields=["email", "temp_identifier", "hostname", "token"],
+            p_data=p_data,
         )
 
         if objects_written < 1:
             # There is a problem with the write.
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data="Not able to save the new account.")
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data="Not able to save the new account.",
+            )
 
         # Send an e-mail to let the requestor know that they
         # need to follow the activation link within 10 minutes.
 
         # Source: https://realpython.com/python-send-email/#sending-fancy-emails
 
-        activation_link = ''
-        template = ''
+        activation_link = ""
+        template = ""
 
-        activation_link = settings.PUBLIC_HOSTNAME + '/api/accounts/activate/' + urllib.parse.quote(bulk_request['email']) + '/' + temp_identifier
+        activation_link = (
+            settings.PUBLIC_HOSTNAME
+            + "/api/accounts/activate/"
+            + urllib.parse.quote(bulk_request["email"])
+            + "/"
+            + temp_identifier
+        )
 
         template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(
-            activation_link, activation_link)
+            activation_link, activation_link
+        )
 
         try:
             send_mail(
-                subject='Registration for BioCompute Portal',
-                message='Testing.',
+                subject="Registration for BioCompute Portal",
+                message="Testing.",
                 html_message=template,
-                from_email='mail_sender@portal.aws.biochemistry.gwu.edu',
-                recipient_list=[
-                    bulk_request['email']
-                ],
+                from_email="mail_sender@portal.aws.biochemistry.gwu.edu",
+                recipient_list=[bulk_request["email"]],
                 fail_silently=False,
             )
 
         except Exception as e:
-            print('activation_link', activation_link)
+            print("activation_link", activation_link)
             # print('ERROR: ', e)
             # TODO: Should handle when the send_mail function fails?
-            #return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": "Not able to send authentication email: {}".format(e)})
+            # return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": "Not able to send authentication email: {}".format(e)})
         return Response(status=status.HTTP_201_CREATED)
 
     else:
 
         # Account has already been asked for.
-        return Response(status=status.HTTP_409_CONFLICT, data={"message": "Account has already been requested."})
-
+        return Response(
+            status=status.HTTP_409_CONFLICT,
+            data={"message": "Account has already been requested."},
+        )
