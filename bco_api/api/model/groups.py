@@ -36,8 +36,9 @@ class GroupInfo(models.Model):
         """String for representing the GroupInfo model (in Admin site etc.)."""
         return f"{self.group}"
 
+
 def post_api_groups_info(request):
-    """Retrieve Group information by user
+    """Retrieve Group information by group name
     
     """
 
@@ -47,6 +48,23 @@ def post_api_groups_info(request):
 
     for index, value in enumerate(bulk_request['names']):
         group = Group.objects.get(name=value)
+        group_info_object = GroupInfo.objects.get(group=value)
+        group_permissions = group.permissions.all()
+        group_members = group.user_set.all()
+        group_info.append(
+                {
+                        'name'       : group.name,
+                        'permissions': group_permissions,
+                        'members'    : group_members
+                        }
+                )
+    # print(group_info)
+    group_list = list(Group.objects.all())  # .values_list('name', flat=True))
+    username = user.username
+    user_groups = { }
+
+    # print(usr_utils.get_user_groups_by_username(un=username))
+    return Response(status=status.HTTP_200_OK)
 
         try:
             admin = GroupInfo.objects.get(group=value).owner_user == user
@@ -124,62 +142,64 @@ def post_api_groups_create(request):
 
             Group.objects.create(name=creation_object['name'])
             group_admin.groups.add(
-                Group.objects.get(name=creation_object['name'])
-            )
+                    Group.objects.get(name=creation_object['name'])
+                    )
 
             if 'expiration' not in creation_object or \
-                creation_object['expiration'] == '':
+                    creation_object['expiration'] == '':
                 GroupInfo.objects.create(
-                    delete_members_on_group_deletion=bool(
-                        creation_object['delete_members_on_group_deletion']
-                    ),
-                    description=creation_object['description'],
-                    group=Group.objects.get(name=creation_object['name']),
-                    max_n_members=creation_object['max_n_members'],
-                    owner_user=group_admin
-                )
+                        delete_members_on_group_deletion=bool(
+                                creation_object['delete_members_on_group_deletion']
+                                ),
+                        description=creation_object['description'],
+                        group=Group.objects.get(name=creation_object['name']),
+                        max_n_members=creation_object['max_n_members'],
+                        owner_user=group_admin
+                        )
             else:
                 GroupInfo.objects.create(
-                    delete_members_on_group_deletion=bool(
-                        creation_object['delete_members_on_group_deletion']
-                    ),
-                    description=creation_object['description'],
-                    expiration=creation_object['expiration'],
-                    group=Group.objects.get(
-                        name=creation_object['name']
-                    ),
-                    max_n_members=creation_object['max_n_members'],
-                    owner_user=group_admin
-                )
+                        delete_members_on_group_deletion=bool(
+                                creation_object['delete_members_on_group_deletion']
+                                ),
+                        description=creation_object['description'],
+                        expiration=creation_object['expiration'],
+                        group=Group.objects.get(
+                                name=creation_object['name']
+                                ),
+                        max_n_members=creation_object['max_n_members'],
+                        owner_user=group_admin
+                        )
 
-            users_added =[]
+            users_added = []
             users_excluded = []
 
             for usrnm in creation_object['usernames']:
                 if usr_utils.check_user_exists(un=usrnm):
                     User.objects.get(username=usrnm).groups.add(
-                        Group.objects.get(name=creation_object['name'])
-                    )
+                            Group.objects.get(name=creation_object['name'])
+                            )
                     users_added.append(usrnm)
                 else:
                     users_excluded.append(usrnm)
 
-            if len(users_excluded) > 0 :
-                return_data.append(db_utils.messages(parameters={
-                    'group': standardized,
-                    'users_excluded': users_excluded
-                })['201_group_users_excluded'])
+            if len(users_excluded) > 0:
+                returning.append(db_utils.messages(parameters={
+                        'group'         : standardized,
+                        'users_excluded': users_excluded
+                        })['201_group_users_excluded'])
 
             else:
-                return_data.append(db_utils.messages(
-                    parameters={'group': standardized})['201_group_create']
-                )
+                returning.append(db_utils.messages(
+                        parameters={
+                                'group': standardized })['201_group_create']
+                                 )
 
         else:
             # Update the request status.
-            return_data.append(db_utils.messages(
-                parameters={'group': standardized})['409_group_conflict']
-            )
+            returning.append(db_utils.messages(
+                    parameters={
+                            'group': standardized })['409_group_conflict']
+                             )
             any_failed = True
 
     if any_failed:
@@ -189,7 +209,7 @@ def post_api_groups_create(request):
 
 
 def post_api_groups_delete(request):
-    """Instantiate any necessary imports."""
+    """API Endpoint to delete one or more groups."""
 
     bulk_request = request.data['POST_api_groups_delete']['names']
 
@@ -212,7 +232,6 @@ def post_api_groups_delete(request):
     for deletion_object in bulk_request:
         # Standardize the group name.
         standardized = deletion_object.lower()
-        deleted_count = 0
         if standardized in groups:
             # Get the group and its information.
             grouped = Group.objects.get(name=standardized)
@@ -226,30 +245,48 @@ def post_api_groups_delete(request):
                     # Delete all members of the group.
                     User.objects.filter(groups__name=grouped.name).delete()
                 # Delete the group itself.
-                deleted_count, deleted_info = grouped.delete()
-                if deleted_count < 3:
-                    # Too few deleted, error with this delete
+                try:
+                    deleted_count, deleted_info = grouped.delete()
+                except (models.RestrictedError, models.ProtectedError) as e:
+                    print("The group attempting to be deleted is either Restricted or Protected: {}".format(e))
                     returning.append(db_utils.messages(parameters={
-                        'group': grouped.name})['404_missing_bulk_parameters'])
+                            'group': grouped.name })['400_bad_request'])
                     any_failed = True
-                    continue
+                except BaseException as e:
+                    print("In attempting to delete the group, a generic error occurred.  This may be a database error.  Aborting.  {}".format(e))
+                    returning.append(db_utils.messages(parameters={
+                            'group': grouped.name })['400_bad_request'])
+                    any_failed = True
+                else:
+                    # Everything looks OK, no exceptions
+                    returning.append(db_utils.messages(parameters={
+                            'group': grouped.name })['200_OK_group_delete'])
 
-                elif deleted_count > 3:
-                    print(deleted_count, 'deleted_count')
-                    # We don't expect there to be duplicates, so while this was successful it should throw a warning
-                    returning.append(db_utils.messages(parameters={
-                        'group': grouped.name})['418_too_many_deleted'])
-                    any_failed = True
-                    continue
+                # TODO: (John) Not sure this needs to be checked like this - if something is deleted somewhere else, do we really care?
+                #       Same with if there was somehow duplicates, do we really need to alert the user?
+                #       Removing for now, we can add back in if it is serving some useful purpose I'm missing.
+                # if deleted_count < 3:
+                #     # Too few deleted, error with this delete
+                #     returning.append(db_utils.messages(parameters={
+                #             'group': grouped.name })['404_missing_bulk_parameters'])
+                #     any_failed = True
+                #     continue
+                #
+                # elif deleted_count > 3:
+                #     print(deleted_count, 'deleted_count')
+                #     # We don't expect there to be duplicates, so while this was successful it should throw a warning
+                #     returning.append(db_utils.messages(parameters={
+                #             'group': grouped.name })['418_too_many_deleted'])
+                #     any_failed = True
+                #     continue
                 # Everything looks OK
-                return_data.append(db_utils.messages(parameters={'group': grouped.name})['200_OK_group_delete'])
             else:
                 # Requestor is not the admin.
-                return_data.append(db_utils.messages(parameters={})['403_insufficient_permissions'])
+                returning.append(db_utils.messages(parameters={ })['403_insufficient_permissions'])
                 any_failed = True
         else:
             # Update the request status.
-            return_data.append(db_utils.messages(parameters={})['400_bad_request'])
+            returning.append(db_utils.messages(parameters={ })['400_bad_request'])
             any_failed = True
 
     if any_failed:
@@ -309,8 +346,8 @@ def post_api_groups_modify(request):
                         # Make sure the provided owner group exists.
                         if usr_utils.check_group_exists(n=action_set['owner_group']):
                             group_information.owner_group = Group.objects.get(
-                                name=action_set['owner_group']
-                            )
+                                    name=action_set['owner_group']
+                                    )
                             group_information.save()
                         else:
                             # TODO: This seems to be some type of error state
@@ -320,8 +357,8 @@ def post_api_groups_modify(request):
                         # Make sure the provided owner user exists.
                         if usr_utils.check_user_exists(un=action_set['owner_user']):
                             group_information.owner_user = User.objects.get(
-                                username=action_set['owner_user']
-                            )
+                                    username=action_set['owner_user']
+                                    )
                             group_information.save()
                         else:
                             # TODO: This seems to be some type of error state
@@ -344,12 +381,12 @@ def post_api_groups_modify(request):
                     if 'disinherit_from' in action_set:
                         # Get all the groups first, then get the user list.
                         rm_group_users = list(
-                            User.objects.filter(
-                                groups__in=Group.objects.filter(
-                                    name__in=action_set['disinherit_from']
+                                User.objects.filter(
+                                        groups__in=Group.objects.filter(
+                                                name__in=action_set['disinherit_from']
+                                                )
+                                        ).values_list('username', flat=True)
                                 )
-                            ).values_list('username', flat=True)
-                        )
 
                         all_users = all_users - set(rm_group_users)
 
@@ -365,22 +402,23 @@ def post_api_groups_modify(request):
                     if 'inherit_from' in action_set:
                         # Get all the groups first, then get the user list.
                         a_group_users = list(
-                            User.objects.filter(
-                                groups__in=Group.objects.filter(
-                                    name__in=action_set['inherit_from']
+                                User.objects.filter(
+                                        groups__in=Group.objects.filter(
+                                                name__in=action_set['inherit_from']
+                                                )
+                                        ).values_list('username', flat=True)
                                 )
-                            ).values_list('username', flat=True)
-                        )
                         all_users.update(a_group_users)
                     else:
                         pass
-                return_data.append(db_utils.messages(parameters={'group': grouped.name})['200_OK_group_modify'])
+                returning.append(db_utils.messages(parameters={
+                        'group': grouped.name })['200_OK_group_modify'])
             else:
                 # Requestor is not the admin.
-                return_data.append(db_utils.messages(parameters={})['403_insufficient_permissions'])
+                returning.append(db_utils.messages(parameters={ })['403_insufficient_permissions'])
         else:
             # Update the request status.
-            return_data.append(db_utils.messages(parameters={})['400_bad_request'])
+            returning.append(db_utils.messages(parameters={ })['400_bad_request'])
 
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
