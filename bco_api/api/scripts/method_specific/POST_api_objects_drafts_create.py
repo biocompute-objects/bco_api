@@ -253,6 +253,6 @@ def post_api_objects_drafts_create(request):
             any_failed = True
 
     if any_failed:
-        return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
 
     return Response(status=status.HTTP_200_OK, data=returning)

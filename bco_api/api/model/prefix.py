@@ -13,6 +13,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 
+from api.model.groups import GroupInfo
 from api.scripts.utilities import DbUtils
 from api.scripts.utilities import UserUtils
 
@@ -634,39 +635,60 @@ def post_api_prefixes_token_flat(request):
 @receiver(post_save, sender=Prefix)
 def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
     """Link prefix creation to permissions creation.
-        Check to see whether or not the permissions
-        have already been created for this prefix.
-        Create the macro-level, draft, and publish permissions.
-        Give FULL permissions to the prefix user owner
-        and their group.
+    Check to see whether or not the permissions
+    have already been created for this prefix.
+    Create the macro-level, draft, and publish permissions.
+    Give FULL permissions to the prefix user owner
+    and their group.
 
-        No try/except necessary here as the user's existence
-        has already been verified upstream.
+    No try/except necessary here as the user's existence
+    has already been verified upstream.
 
-        Source: https://stackoverflow.com/a/20361273
+    Source: https://stackoverflow.com/a/20361273
     """
 
+    # GroupInfo.objects.create(
+    #         delete_members_on_group_deletion=False,
+    #         description='Group administrators',
+    #         group=Group.objects.get(name='group_admins'),
+    #         max_n_members=-1,
+    #         owner_user=User.objects.get(username='wheel')
+    #     )
     if created:
-        user = User.objects.get(username=instance.owner_user)
-        user_group = Group.objects.get(name=instance.owner_user)
-        draft = instance.prefix.lower() + '_drafters'
-        publish = instance.prefix.lower() + '_publishers'
+        owner_user = User.objects.get(username=instance.owner_user)
+        owner_group = Group.objects.get(name=instance.owner_group_id)
+        draft = instance.prefix.lower() + '_drafter'
+        publish = instance.prefix.lower() + '_publisher'
         
         if len(Group.objects.filter(name=draft)) != 0:
             drafters = Group.objects.get(name=draft)
-            user.groups.add(drafters)
+            owner_user.groups.add(drafters)
         else:
             Group.objects.create(name=draft)
             drafters = Group.objects.get(name=draft)
-            user.groups.add(drafters)
+            owner_user.groups.add(drafters)
+            GroupInfo.objects.create(
+                delete_members_on_group_deletion=False,
+                description=instance.description,
+                group=drafters,
+                max_n_members=-1,
+                owner_user=owner_user
+            )
 
         if len(Group.objects.filter(name=publish)) != 0:
             publishers = Group.objects.get(name=publish)
-            user.groups.add(publishers)
+            owner_user.groups.add(publishers)
         else:
             Group.objects.create(name=publish)
             publishers = Group.objects.get(name=publish)
-            user.groups.add(publishers)
+            owner_user.groups.add(publishers)
+            GroupInfo.objects.create(
+                delete_members_on_group_deletion=False,
+                description=instance.description,
+                group=publishers,
+                max_n_members=-1,
+                owner_user=owner_user
+            )
 
         try:
             for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']:
@@ -680,18 +702,33 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
                 )
                 new_perm = Permission.objects.get(
                     codename=perm + '_' + instance.prefix)
-                user.user_permissions.add(new_perm)
-                user_group.permissions.add(new_perm)
+                owner_user.user_permissions.add(new_perm)
+                owner_group.permissions.add(new_perm)
                 publishers.permissions.add(new_perm)
                 if perm == 'publish':
                     pass
                 else:
-                    drafters.permissions.add(new_perm)
-            
+                    drafters.permissions.add(new_perm)    
+
         except PermErrors.IntegrityError:
             # The permissions already exist.
             pass
 
+@receiver(post_save, sender=Prefix)
+def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
+    """Create prefix counter
+
+    Creates a prefix counter for each prefix if it does not exist on save.
+
+    Parameters
+    ----------
+        sender: django.db.models.base.ModelBase
+        instance: api.model.prefix.Prefix
+        created: bool
+    """
+
+    if created:
+        prefix_table.objects.create(n_objects=1,prefix=instance.prefix)
 
 @receiver(post_delete, sender=Prefix)
 def delete_permissions_for_prefix(sender, instance=None, **kwargs):

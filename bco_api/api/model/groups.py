@@ -41,9 +41,11 @@ def post_api_groups_info(request):
     """Retrieve Group information by group name
     
     """
+
     user = usr_utils.user_from_request(request=request)
     bulk_request = request.data['POST_api_groups_info']
     group_info = []
+
     for index, value in enumerate(bulk_request['names']):
         group = Group.objects.get(name=value)
         group_info_object = GroupInfo.objects.get(group=value)
@@ -64,8 +66,32 @@ def post_api_groups_info(request):
     # print(usr_utils.get_user_groups_by_username(un=username))
     return Response(status=status.HTTP_200_OK)
 
+        try:
+            admin = GroupInfo.objects.get(group=value).owner_user == user
+            description = GroupInfo.objects.get(group=value).description
+        except GroupInfo.DoesNotExist:
+            admin=False
+            description = 'N/A'
+
+        group_permissions = list(
+            group.permissions.all().values_list('codename', flat=True)
+        )
+        group_members = list(
+            group.user_set.all().values_list('username', flat=True)
+        )
+        group_info.append({
+            'name': group.name,
+            'permissions': group_permissions,
+            'members': group_members,
+            'admin': admin,
+            'description': description
+        })
+
+    #  print(usr_utils.get_user_groups_by_username(un=username))
     # user.get_all_permissions()
     # user.get_group_permissions()
+    print(group_info)
+    return Response(status=status.HTTP_200_OK, data=group_info)
 
 
 def post_api_groups_create(request):
@@ -96,7 +122,7 @@ def post_api_groups_create(request):
     bulk_request = request.data['POST_api_groups_create']
     group_admin = usr_utils.user_from_request(request=request)
     groups = list(Group.objects.all().values_list('name', flat=True))
-    returning = []
+    return_data = []
     any_failed = False
 
     for creation_object in bulk_request:
@@ -177,9 +203,9 @@ def post_api_groups_create(request):
             any_failed = True
 
     if any_failed:
-        return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=return_data)
 
-    return Response(status=status.HTTP_200_OK, data=returning)
+    return Response(status=status.HTTP_200_OK, data=return_data)
 
 
 def post_api_groups_delete(request):
@@ -198,7 +224,7 @@ def post_api_groups_delete(request):
 
     # Construct an array to return information about processing
     # the request.
-    returning = []
+    return_data = []
     any_failed = False
 
     # Since bulk_request is an array, go over each
@@ -264,43 +290,22 @@ def post_api_groups_delete(request):
             any_failed = True
 
     if any_failed:
-        return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=return_data)
 
-    return Response(status=status.HTTP_200_OK, data=returning)
+    return Response(status=status.HTTP_200_OK, data=return_data)
 
 
 def post_api_groups_modify(request):
     """Instantiate any necessary imports."""
 
-    # Define the bulk request.
     bulk_request = request.data['POST_api_groups_modify']
-
-    # Establish who has made the request.
     requestor_info = usr_utils.user_from_request(request=request)
-
-    # Get all group names.
-
-    # This is a better solution than querying for
-    # each individual group name.
     groups = list(Group.objects.all().values_list('name', flat=True))
-
-    # Construct an array to return information about processing
-    # the request.
-    returning = []
-
-    # Since bulk_request is an array, go over each
-    # item in the array.
+    return_data = []
     for modification_object in bulk_request:
-
-        # Standardize the group name.
         standardized = modification_object['name'].lower()
-
         if standardized in groups:
-
-            # Get the group and its information.
             grouped = Group.objects.get(name=standardized)
-
-            # Check that the requestor is the group admin.
             if requestor_info.is_superuser == True or grouped in requestor_info.groups.all():
                 # TODO: We shouldn't use a try/except as an if statement; I think there is actually
                 #       a get_or_create() function:
@@ -309,20 +314,17 @@ def post_api_groups_modify(request):
                 try:
                     group_information = GroupInfo.objects.get(group=grouped)
                 except:
-                    group_information = GroupInfo.objects.create(group=grouped, owner_user=requestor_info)
-                # Process the request.
-                # We only care about the actions at this point.
+                    group_information = GroupInfo.objects.create(
+                        group=grouped, owner_user=requestor_info
+                    )
                 if 'actions' in modification_object:
-                    # Set the working object to the actions.
                     action_set = modification_object['actions']
 
                     # Invalid inputs don't throw 400, 401, or 403 for the
                     # request.  That is, provided parameters that don't
                     # exist (for example, an owner_user that does not exist)
                     # simply get skipped over.
-
                     # First do the "easy" tasks - name and description.
-
                     # Change name of group if set in actions
                     if 'rename' in action_set:
                         # Simply re-name to whatever we've been provided,
@@ -421,7 +423,7 @@ def post_api_groups_modify(request):
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
-    return Response(status=status.HTTP_200_OK, data=returning)
+    return Response(status=status.HTTP_200_OK, data=return_data)
 
 
 @receiver(post_save, sender=User)

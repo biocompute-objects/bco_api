@@ -27,6 +27,7 @@ from api.scripts.method_specific.GET_activate_account import GET_activate_accoun
 from api.scripts.method_specific.GET_draft_object_by_id import get_draft_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id import GET_published_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id_with_version import GET_published_object_by_id_with_version
+from api.scripts.method_specific.POST_validate_payload_against_schema import post_validate_bco
 
 # Request-specific methods
 from api.model.groups import (
@@ -57,13 +58,6 @@ from api.scripts.method_specific.POST_api_objects_publish import POST_api_object
 from api.scripts.method_specific.POST_api_objects_published import POST_api_objects_published
 from api.scripts.method_specific.POST_api_objects_search import post_api_objects_search
 from api.scripts.method_specific.POST_api_objects_token import POST_api_objects_token
-
-# from api.scripts.method_specific.POST_api_prefixes_create import POST_api_prefixes_create
-# from api.scripts.method_specific.POST_api_prefixes_delete import POST_api_prefixes_delete
-# from api.scripts.method_specific.POST_api_prefixes_modify import POST_api_prefixes_modify
-# from api.scripts.method_specific.POST_api_prefixes_permissions_set import POST_api_prefixes_permissions_set
-# from api.scripts.method_specific.POST_api_prefixes_token import POST_api_prefixes_token
-# from api.scripts.method_specific.POST_api_prefixes_token_flat import POST_api_prefixes_token_flat
 
 # For helper functions
 from api.scripts.utilities import UserUtils
@@ -1426,3 +1420,48 @@ class ObjectIdRootObjectIdVersion(APIView):
             }, tags=["BCO Management"])
     def get(self, request, object_id_root, object_id_version):
         return GET_published_object_by_id_with_version(object_id_root, object_id_version)
+
+class ValidateBCO(APIView):
+    """
+    Bulk Validate BCOs
+
+    --------------------
+
+    Bulk operation to validate BCOs.
+
+    ```JSON
+    {
+        "POST_validate_bco": [
+            {...},
+            {...}
+        ]
+    }
+
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title='Validate BCO',
+        description='Bulk request for validating a BCO',
+        required=['BCO'],
+        properties={
+            'POST_validate_bco': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                description='A BCO to validate',
+                items=openapi.Items(type=openapi.TYPE_OBJECT)
+            )
+        }
+    )
+
+    @swagger_auto_schema(request_body=request_body, responses={
+            201: "Account has been authorized.",
+            208: "Account has already been authorized.",
+            403: "Requestor's credentials were rejected.",
+            424: "Account has not been registered."
+            }, tags=["BCO Management"])
+
+    def post(self, request) -> Response:
+        return check_post_and_process(request, post_validate_bco)
