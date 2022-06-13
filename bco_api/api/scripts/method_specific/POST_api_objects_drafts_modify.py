@@ -18,8 +18,9 @@ from rest_framework.response import Response
 
 # Source: https://codeloop.org/django-rest-framework-course-for-beginners/
 
+
 def post_api_objects_drafts_modify(request):
-    """ Modify Draft
+    """Modify Draft
 
     Take the bulk request and modify a draft object from it.
 
@@ -39,12 +40,10 @@ def post_api_objects_drafts_modify(request):
     """
 
     db_utils = DbUtils.DbUtils()
-    user = UserUtils.UserUtils().user_from_request(request = request)
-    bulk_request = request.data['POST_api_objects_drafts_modify']
+    user = UserUtils.UserUtils().user_from_request(request=request)
+    bulk_request = request.data["POST_api_objects_drafts_modify"]
     px_perms = UserUtils.UserUtils().prefix_perms_for_user(
-        flatten = True,
-        user_object = user,
-        specific_permission = ['add']
+        flatten=True, user_object=user, specific_permission=["add"]
     )
 
     # Construct an array to return the objects.
@@ -52,14 +51,14 @@ def post_api_objects_drafts_modify(request):
     any_failed = False
     for draft_object in bulk_request:
         # Get the prefix for this draft.
-        prefix = draft_object['object_id'].split('/')[-2].split('_')[0].upper()
+        prefix = draft_object["object_id"].split("/")[-2].split("_")[0].upper()
 
         # Does the requestor have change permissions for
         # the *prefix*?
 
         # TODO: add permission setting view...
-        #if 'change_' + prefix in px_perms:
-        if 'add_' + prefix in px_perms:
+        # if 'change_' + prefix in px_perms:
+        if "add_" + prefix in px_perms:
 
             # The requestor has change permissions for
             # the prefix, but do they have object-level
@@ -70,17 +69,21 @@ def post_api_objects_drafts_modify(request):
             # object-level change permissions OR if they are in a
             # group that has object-level change permissions.
             # To check these options, we need the actual object.
-            if BCO.objects.filter(object_id = draft_object['contents']['object_id']).exists():
+            if BCO.objects.filter(
+                object_id=draft_object["contents"]["object_id"]
+            ).exists():
                 objected = BCO.objects.get(
-                    object_id = draft_object['contents']['object_id']
+                    object_id=draft_object["contents"]["object_id"]
                 )
 
                 # We don't care where the view permission comes from,
                 # be it a User permission or a Group permission.
                 all_permissions = get_perms(user, objected)
                 # TODO: add permission setting view...
-                if user.username == objected.owner_user.username or \
-                    'add_' + prefix in px_perms:
+                if (
+                    user.username == objected.owner_user.username
+                    or "add_" + prefix in px_perms
+                ):
 
                     # # User does *NOT* have to be in the owner group!
                     # # to assign the object's group owner.
@@ -90,12 +93,12 @@ def post_api_objects_drafts_modify(request):
                     #
                     # Update the object.
                     # *** COMPLETELY OVERWRITES CONTENTS!!! ***
-                    objected.contents = draft_object['contents']
+                    objected.contents = draft_object["contents"]
 
-                    if 'state' in draft_object:
-                        if draft_object['state'] == 'DELETE':
-                            objected.state = 'DELETE'
-        
+                    if "state" in draft_object:
+                        if draft_object["state"] == "DELETE":
+                            objected.state = "DELETE"
+
                     # Set the update time.
                     objected.last_update = timezone.now()
 
@@ -104,31 +107,37 @@ def post_api_objects_drafts_modify(request):
 
                     # Update the request status.
                     returning.append(
-                        db_utils.messages(parameters = {
-                            'object_id': draft_object['object_id']}
-                            )['200_update'])
+                        db_utils.messages(
+                            parameters={"object_id": draft_object["object_id"]}
+                        )["200_update"]
+                    )
                 else:
                     # Insufficient permissions.
-                    returning.append(db_utils.messages(parameters = {}
-                        )['403_insufficient_permissions'])
+                    returning.append(
+                        db_utils.messages(parameters={})["403_insufficient_permissions"]
+                    )
                     any_failed = True
 
             else:
                 returning.append(
-                    db_utils.messages(parameters = {'object_id': draft_object['object_id']}
-                    )['404_object_id'])
+                    db_utils.messages(
+                        parameters={"object_id": draft_object["object_id"]}
+                    )["404_object_id"]
+                )
                 any_failed = True
         else:
             returning.append(
-                db_utils.messages(parameters = {'prefix': prefix}
-                )['401_prefix_unauthorized'])
+                db_utils.messages(parameters={"prefix": prefix})[
+                    "401_prefix_unauthorized"
+                ]
+            )
             any_failed = True
     if any_failed and len(returning) == 1:
-        if returning[0]['status_code'] == '403':
+        if returning[0]["status_code"] == "403":
             return Response(status=status.HTTP_403_FORBIDDEN, data=returning)
         else:
             return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
     if any_failed and len(returning) > 1:
         return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
     else:
-        return Response(status = status.HTTP_200_OK, data = returning)
+        return Response(status=status.HTTP_200_OK, data=returning)

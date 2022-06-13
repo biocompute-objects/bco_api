@@ -8,27 +8,26 @@ import json
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import Group, Permission, User
+
 # from django.urls import reverse
 from api.model.prefix import Prefix, prefix_table
 from datetime import timedelta
 
 
 class PrefixTestCase(TestCase):
-    """Test for Prefix
-
-    """
+    """Test for Prefix"""
 
     def setUp(self):
-        self.username = 'wheel'
-        self.name = 'bco_drafter'
-        self.description = 'test prefix'
-        self.prefix = 'TEST'
-        self.expiration = timezone.now() + timedelta(seconds=600)  # make valid for 10 minutes
+        self.username = "wheel"
+        self.name = "bco_drafter"
+        self.description = "test prefix"
+        self.prefix = "TEST"
+        self.expiration = timezone.now() + timedelta(
+            seconds=600
+        )  # make valid for 10 minutes
 
     def create_prefix(self):
-        """Create Test Prefix
-
-        """
+        """Create Test Prefix"""
 
         return Prefix.objects.create(
             prefix=self.prefix,
@@ -37,13 +36,13 @@ class PrefixTestCase(TestCase):
             owner_user=User.objects.get(username=self.username),
             description=self.description,
             created=timezone.now(),
-            expires=self.expiration
+            expires=self.expiration,
         )
 
     def test_prefix_creation(self):
         """Test prefix creation
 
-            Creates prefix,
+        Creates prefix,
         """
 
         prefix = self.create_prefix()
@@ -62,28 +61,21 @@ class PrefixTestCase(TestCase):
 
 
 class PrefixTableTestCase(TestCase):
-    """Test for Prefix Table
-
-    """
+    """Test for Prefix Table"""
 
     def setUp(self):
         self.n_objects = 4
-        self.prefix = 'TEST'
+        self.prefix = "TEST"
 
     def create_prefix_table(self):
-        """Create Test Prefix Table
+        """Create Test Prefix Table"""
 
-        """
-
-        return prefix_table.objects.create(
-            prefix=self.prefix,
-            n_objects=self.n_objects
-        )
+        return prefix_table.objects.create(prefix=self.prefix, n_objects=self.n_objects)
 
     def test_prefix_creation(self):
         """Test prefix creation
 
-            Creates prefix,
+        Creates prefix,
         """
 
         ptable = self.create_prefix_table()

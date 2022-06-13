@@ -8,13 +8,13 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('api', '0004_rename_group_info_groupinfo'),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("api", "0004_rename_group_info_groupinfo"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='prefixes',
-            new_name='Prefix',
+            old_name="prefixes",
+            new_name="Prefix",
         ),
     ]

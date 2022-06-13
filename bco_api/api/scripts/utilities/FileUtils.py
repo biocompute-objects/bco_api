@@ -9,15 +9,9 @@ import os
 
 # --- MAIN --- #
 
+
 class FileUtils:
-
-
-
-    def pathalizer(
-        self, 
-        directory, 
-        pattern
-    ):
+    def pathalizer(self, directory, pattern):
 
         # Description
         # -----------
@@ -43,25 +37,14 @@ class FileUtils:
         # -------
 
         # A directory + pattern string.
-        
+
         # Kick back the string.
         return os.path.join(
-            os.path.dirname(
-                    os.path.dirname(
-                        os.path.abspath(__file__)
-                    )
-                ), 
-                directory + pattern
-            )
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            directory + pattern,
+        )
 
-
-
-    def create_files(
-        self, 
-        payload, 
-        output_directory, 
-        file_extension
-    ):
+    def create_files(self, payload, output_directory, file_extension):
 
         # Description
 
@@ -94,19 +77,12 @@ class FileUtils:
         # Construct the output path for each file and write.
         for original_filename, contents in payload.items():
             with open(
-                self.pathalizer(output_directory, original_filename + file_extension), mode = 'w'
-                ) as f:
-                f.write(
-                    contents
-                )
+                self.pathalizer(output_directory, original_filename + file_extension),
+                mode="w",
+            ) as f:
+                f.write(contents)
 
-
-
-    def find_files(
-        self, 
-        input_directory, 
-        regex
-    ):
+    def find_files(self, input_directory, regex):
 
         # Description
 
@@ -135,20 +111,10 @@ class FileUtils:
         # Source:  https://stackoverflow.com/questions/39293968/python-how-do-i-search-directories-and-find-files-that-match-regex
         # Source:  https://stackoverflow.com/questions/30218802/get-parent-of-current-directory-from-python-script
 
-        return glob.glob(
-            self.pathalizer(
-                input_directory, 
-                regex
-            )
-        )
-
+        return glob.glob(self.pathalizer(input_directory, regex))
 
     # Find the entire tree of a folder based on an extension.
-    def get_folder_tree_by_extension(
-        self, 
-        search_folder, 
-        search_extension
-    ):
+    def get_folder_tree_by_extension(self, search_folder, search_extension):
 
         # search_folder: where we're looking.
         # search_extension: the extension we're looking for.
@@ -157,46 +123,26 @@ class FileUtils:
 
         # Set the root directory.
         root_directory = os.path.join(
-            os.path.dirname(
-                os.path.dirname(
-                    os.path.abspath(__file__)
-                )
-            ), 
-            search_folder
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), search_folder
         )
 
         # Create a dictionary to return.
-        returning = {
-            'root_directory': root_directory, 
-            'paths': []
-        }
+        returning = {"root_directory": root_directory, "paths": []}
 
-        for root, dirs, files in os.walk(
-            root_directory
-        ):
+        for root, dirs, files in os.walk(root_directory):
             for name in files:
-                returning['paths'].append(
-                    os.path.join(root, name)
-                )
+                returning["paths"].append(os.path.join(root, name))
             for name in dirs:
-                returning['paths'].append(
-                    os.path.join(root, name)
-                )
+                returning["paths"].append(os.path.join(root, name))
 
-        returning['paths'] = [
-            x for x in returning['paths'] if x.find(
-                search_extension
-            ) != -1
+        returning["paths"] = [
+            x for x in returning["paths"] if x.find(search_extension) != -1
         ]
 
         return returning
 
-
     # Find the entire tree of a folder, regardless of extension.
-    def get_folder_tree(
-        self, 
-        search_folder
-    ):
+    def get_folder_tree(self, search_folder):
 
         # search_folder: where we're looking.
 
@@ -204,40 +150,18 @@ class FileUtils:
 
         # Set the root directory.
         root_directory = os.path.join(
-            os.path.dirname(
-                os.path.dirname(
-                    os.path.abspath(__file__)
-                )
-            ), 
-            search_folder
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), search_folder
         )
 
         # Create a dictionary to return.
-        returning = {
-            'root_directory': root_directory, 
-            'paths': []
-        }
+        returning = {"root_directory": root_directory, "paths": []}
 
-        for root, dirs, files in os.walk(
-            root_directory
-        ):
+        for root, dirs, files in os.walk(root_directory):
             for name in files:
-                returning['paths'].append(
-                    os.path.join(
-                        root, 
-                        name
-                    )
-                )
+                returning["paths"].append(os.path.join(root, name))
             for name in dirs:
-                returning['paths'].append(
-                    os.path.join(
-                        root, 
-                        name
-                    )
-                )
+                returning["paths"].append(os.path.join(root, name))
 
-        returning['paths'] = [
-            x for x in returning['paths'] if 1
-        ]
+        returning["paths"] = [x for x in returning["paths"] if 1]
 
         return returning

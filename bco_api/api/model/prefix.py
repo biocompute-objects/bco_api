@@ -35,6 +35,7 @@ class prefix_table(models.Model):
         """String for representing the BCO model (in Admin site etc.)."""
         return self.prefix
 
+
 class Prefix(models.Model):
     """Link Prefix to groups and users.
 
@@ -44,25 +45,26 @@ class Prefix(models.Model):
     What is the certifying key?
     """
 
-    certifying_server = models.TextField(blank = True, null = True)
-    certifying_key = models.TextField(blank = True, null = True)
-    created = models.DateTimeField(default = timezone.now, blank = True, null = True)
+    certifying_server = models.TextField(blank=True, null=True)
+    certifying_key = models.TextField(blank=True, null=True)
+    created = models.DateTimeField(default=timezone.now, blank=True, null=True)
     created_by = models.ForeignKey(
         User,
-        on_delete = models.CASCADE,
-        related_name = 'created_by',
-        to_field = 'username',
-        default='wheel'
+        on_delete=models.CASCADE,
+        related_name="created_by",
+        to_field="username",
+        default="wheel",
     )
-    description = models.TextField(blank = True, null = True)
-    expires = models.DateTimeField(blank = True, null = True)
-    owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
-    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
+    description = models.TextField(blank=True, null=True)
+    expires = models.DateTimeField(blank=True, null=True)
+    owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field="name")
+    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field="username")
     prefix = models.CharField(max_length=5)
 
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
         return f"{self.prefix}"
+
 
 def post_api_prefixes_create(request):
     """Create a prefix
@@ -92,11 +94,10 @@ def post_api_prefixes_create(request):
     user_utils = UserUtils.UserUtils()
 
     # Define the bulk request.
-    bulk_request = request.data['POST_api_prefixes_create']
+    bulk_request = request.data["POST_api_prefixes_create"]
 
     # Get all existing prefixes.
-    available_prefixes = list(
-        Prefix.objects.all().values_list('prefix', flat = True))
+    available_prefixes = list(Prefix.objects.all().values_list("prefix", flat=True))
 
     # Construct an array to return information about processing
     # the request.
@@ -107,11 +108,11 @@ def post_api_prefixes_create(request):
 
     for creation_object in bulk_request:
         # Go over each prefix proposed.
-        for prfx in creation_object['prefixes']:
+        for prfx in creation_object["prefixes"]:
             # Create a list to hold information about errors.
             errors = {}
             # Standardize the prefix name.
-            standardized = prfx['prefix'].upper()
+            standardized = prfx["prefix"].upper()
             # TODO: abstract this error check to schema checker?
             # Check for each error.
             # Create a flag for if one of these checks fails.
@@ -121,72 +122,76 @@ def post_api_prefixes_create(request):
                 error_check = True
                 # Bad request because the prefix doesn't follow
                 # the naming rules.
-                errors['400_bad_request_malformed_prefix'] = db_utils.messages(
-                    parameters = {'prefix': standardized.upper()}
-                    )['400_bad_request_malformed_prefix']
+                errors["400_bad_request_malformed_prefix"] = db_utils.messages(
+                    parameters={"prefix": standardized.upper()}
+                )["400_bad_request_malformed_prefix"]
 
             # Has the prefix already been created?
             if standardized in available_prefixes:
                 error_check = True
                 # Update the request status.
-                errors['409_prefix_conflict'] = db_utils.messages(
-                        parameters = {
-                            'prefix': standardized.upper()
-                        }
-                    )['409_prefix_conflict']
+                errors["409_prefix_conflict"] = db_utils.messages(
+                    parameters={"prefix": standardized.upper()}
+                )["409_prefix_conflict"]
 
             # Does the user exist?
-            if user_utils.check_user_exists(un = creation_object['owner_user']) is False:
-                
+            if user_utils.check_user_exists(un=creation_object["owner_user"]) is False:
+
                 error_check = True
-                
+
                 # Bad request.
-                errors['404_user_not_found'] = db_utils.messages(
-                    parameters = {'username': creation_object['owner_user']}
-                    )['404_user_not_found']
-            
+                errors["404_user_not_found"] = db_utils.messages(
+                    parameters={"username": creation_object["owner_user"]}
+                )["404_user_not_found"]
+
             # Does the group exist?
-            if user_utils.check_group_exists(n = creation_object['owner_group']) is False:
+            if user_utils.check_group_exists(n=creation_object["owner_group"]) is False:
                 error_check = True
                 # Bad request.
-                errors['404_group_not_found'] = db_utils.messages(
-                    parameters = {'group': creation_object['owner_group']}
-                    )['404_group_not_found']
+                errors["404_group_not_found"] = db_utils.messages(
+                    parameters={"group": creation_object["owner_group"]}
+                )["404_group_not_found"]
 
             # Was the expiration date validly formatted and, if so,
             # is it after right now?
-            if 'expiration_date' in prfx:
-                if db_utils.check_expiration(dt_string = prfx['expiration_date']) is not None:
+            if "expiration_date" in prfx:
+                if (
+                    db_utils.check_expiration(dt_string=prfx["expiration_date"])
+                    is not None
+                ):
                     error_check = True
                     # Bad request.
-                    errors['400_invalid_expiration_date'] = db_utils.messages(
-                        parameters = {
-                            'expiration_date': prfx['expiration_date']}
-                    )['400_invalid_expiration_date']
+                    errors["400_invalid_expiration_date"] = db_utils.messages(
+                        parameters={"expiration_date": prfx["expiration_date"]}
+                    )["400_invalid_expiration_date"]
             # Did any check fail?
             if error_check is False:
-                # The prefix has not been created, so create it.                
+                # The prefix has not been created, so create it.
                 DbUtils.DbUtils().write_object(
-                    p_app_label = 'api',
-                    p_model_name = 'Prefix',
-                    p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
-                    p_data = {
-                        'created_by': user_utils.user_from_request(
-                            request = request
+                    p_app_label="api",
+                    p_model_name="Prefix",
+                    p_fields=[
+                        "created_by",
+                        "description",
+                        "owner_group",
+                        "owner_user",
+                        "prefix",
+                    ],
+                    p_data={
+                        "created_by": user_utils.user_from_request(
+                            request=request
                         ).username,
-                        'description': prfx['description'],
-                        'owner_group': creation_object['owner_group'],
-                        'owner_user': creation_object['owner_user'],
-                        'prefix': standardized
-                    }
+                        "description": prfx["description"],
+                        "owner_group": creation_object["owner_group"],
+                        "owner_user": creation_object["owner_user"],
+                        "prefix": standardized,
+                    },
                 )
 
                 # Created the prefix.
-                errors['201_prefix_create'] = db_utils.messages(
-                        parameters = {
-                            'prefix': standardized
-                        }
-                    )['201_prefix_create']
+                errors["201_prefix_create"] = db_utils.messages(
+                    parameters={"prefix": standardized}
+                )["201_prefix_create"]
 
             # Append the possible "errors".
             returning.append(errors)
@@ -194,7 +199,8 @@ def post_api_prefixes_create(request):
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
-    return Response(status = status.HTTP_200_OK, data = returning)
+    return Response(status=status.HTTP_200_OK, data=returning)
+
 
 def post_api_prefixes_delete(request):
     """Deletes a prefix
@@ -219,11 +225,10 @@ def post_api_prefixes_delete(request):
 
     db_utils = DbUtils.DbUtils()
 
-    bulk_request = request.data['POST_api_prefixes_delete']
+    bulk_request = request.data["POST_api_prefixes_delete"]
 
     # Get all existing prefixes.
-    available_prefixes = list(
-            Prefix.objects.all().values_list('prefix', flat=True))
+    available_prefixes = list(Prefix.objects.all().values_list("prefix", flat=True))
 
     returning = []
 
@@ -240,9 +245,10 @@ def post_api_prefixes_delete(request):
 
         if standardized not in available_prefixes:
             error_check = True
-                # Update the request status.
-            errors['404_missing_prefix'] = db_utils.messages(parameters={
-                'prefix': standardized})['404_missing_prefix']
+            # Update the request status.
+            errors["404_missing_prefix"] = db_utils.messages(
+                parameters={"prefix": standardized}
+            )["404_missing_prefix"]
 
         if error_check is False:
             # The prefix exists, so delete it.
@@ -253,8 +259,9 @@ def post_api_prefixes_delete(request):
             prefixed = Prefix.objects.get(prefix=standardized)
             prefixed.delete()
             # Deleted the prefix.
-            errors['200_OK_prefix_delete'] = db_utils.messages(parameters={
-                'prefix': standardized})['200_OK_prefix_delete']
+            errors["200_OK_prefix_delete"] = db_utils.messages(
+                parameters={"prefix": standardized}
+            )["200_OK_prefix_delete"]
 
         # Append the possible "errors".
         returning.append(errors)
@@ -263,6 +270,7 @@ def post_api_prefixes_delete(request):
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
     return Response(status=status.HTTP_200_OK, data=returning)
+
 
 def post_api_prefixes_modify(request):
     """Modify a Prefix
@@ -285,9 +293,8 @@ def post_api_prefixes_modify(request):
     db_utils = DbUtils.DbUtils()
     user_utils = UserUtils.UserUtils()
 
-    bulk_request = request.data['POST_api_prefixes_modify']
-    available_prefixes = list(
-        Prefix.objects.all().values_list('prefix', flat = True))
+    bulk_request = request.data["POST_api_prefixes_modify"]
+    available_prefixes = list(Prefix.objects.all().values_list("prefix", flat=True))
 
     # Construct an array to return information about processing
     # the request.
@@ -296,15 +303,15 @@ def post_api_prefixes_modify(request):
     # Since bulk_request is an array, go over each
     # item in the array.
     for creation_object in bulk_request:
-        
+
         # Go over each prefix proposed.
-        for prfx in creation_object['prefixes']:
-        
+        for prfx in creation_object["prefixes"]:
+
             # Create a list to hold information about errors.
             errors = {}
-            
+
             # Standardize the prefix name.
-            standardized = prfx['prefix'].upper()
+            standardized = prfx["prefix"].upper()
 
             # Create a flag for if one of these checks fails.
             error_check = False
@@ -312,269 +319,259 @@ def post_api_prefixes_modify(request):
             if standardized not in available_prefixes:
 
                 error_check = True
-                
+
                 # Update the request status.
                 # Bad request.
-                errors['404_missing_prefix'] = db_utils.messages(
-                        parameters = {
-                            'prefix': standardized
-                        }
-                    )['404_missing_prefix']
-            
+                errors["404_missing_prefix"] = db_utils.messages(
+                    parameters={"prefix": standardized}
+                )["404_missing_prefix"]
+
             # Does the user exist?
-            if user_utils.check_user_exists(un = creation_object['owner_user']) is False:
-                
+            if user_utils.check_user_exists(un=creation_object["owner_user"]) is False:
+
                 error_check = True
-                
+
                 # Bad request.
-                errors['404_user_not_found'] = db_utils.messages(
-                        parameters = {
-                            'username': creation_object['owner_user']
-                        }
-                    )['404_user_not_found']
-            
+                errors["404_user_not_found"] = db_utils.messages(
+                    parameters={"username": creation_object["owner_user"]}
+                )["404_user_not_found"]
+
             # Does the group exist?
-            if user_utils.check_group_exists(n = creation_object['owner_group']) is False:
-                
+            if user_utils.check_group_exists(n=creation_object["owner_group"]) is False:
+
                 error_check = True
-                
+
                 # Bad request.
-                errors['404_group_not_found'] = db_utils.messages(
-                        parameters = {
-                            'group': creation_object['owner_group']
-                        }
-                    )['404_group_not_found']
-            
+                errors["404_group_not_found"] = db_utils.messages(
+                    parameters={"group": creation_object["owner_group"]}
+                )["404_group_not_found"]
+
             # Was the expiration date validly formatted and, if so,
             # is it after right now?
-            if 'expiration_date' in prfx:
-                if db_utils.check_expiration(dt_string = prfx['expiration_date']) is not None:
-                    
+            if "expiration_date" in prfx:
+                if (
+                    db_utils.check_expiration(dt_string=prfx["expiration_date"])
+                    is not None
+                ):
+
                     error_check = True
 
                     # Bad request.
-                    errors['400_invalid_expiration_date'] = db_utils.messages(
-                        parameters = {
-                            'expiration_date': prfx['expiration_date']
-                        }
-                    )['400_invalid_expiration_date']
-            
+                    errors["400_invalid_expiration_date"] = db_utils.messages(
+                        parameters={"expiration_date": prfx["expiration_date"]}
+                    )["400_invalid_expiration_date"]
+
             # Did any check fail?
             if error_check is False:
-                
-                # The prefix has not been created, so create it.			
+
+                # The prefix has not been created, so create it.
                 DbUtils.DbUtils().write_object(
-                    p_app_label = 'api',
-                    p_model_name = 'Prefix',
-                    p_fields = ['created_by', 'description', 'owner_group', 'owner_user', 'prefix'],
-                    p_data = {
-                        'created_by': user_utils.user_from_request(
-                            request = request
+                    p_app_label="api",
+                    p_model_name="Prefix",
+                    p_fields=[
+                        "created_by",
+                        "description",
+                        "owner_group",
+                        "owner_user",
+                        "prefix",
+                    ],
+                    p_data={
+                        "created_by": user_utils.user_from_request(
+                            request=request
                         ).username,
-                        'description': prfx['description'],
-                        'owner_group': creation_object['owner_group'],
-                        'owner_user': creation_object['owner_user'],
-                        'prefix': standardized
-                    }
+                        "description": prfx["description"],
+                        "owner_group": creation_object["owner_group"],
+                        "owner_user": creation_object["owner_user"],
+                        "prefix": standardized,
+                    },
                 )
 
                 # Created the prefix.
-                errors['201_prefix_modify'] = db_utils.messages(
-                        parameters = {
-                            'prefix': standardized
-                        }
-                    )['201_prefix_modify']
-            
+                errors["201_prefix_modify"] = db_utils.messages(
+                    parameters={"prefix": standardized}
+                )["201_prefix_modify"]
+
             # Append the possible "errors".
             returning.append(errors)
-    
+
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
-    return(Response(status = status.HTTP_200_OK, data = returning))
+    return Response(status=status.HTTP_200_OK, data=returning)
 
-def post_api_prefixes_permissions_set(
-	request
-):
 
-	# Set the permissions for prefixes.
+def post_api_prefixes_permissions_set(request):
 
-	# Instantiate any necessary imports.
-	db = DbUtils.DbUtils()
-	uu = UserUtils.UserUtils()
-	
-	# First, get which user we're dealing with.
-	user = uu.user_from_request(
-		rq = request
-	)
+    # Set the permissions for prefixes.
 
-	# Define the bulk request.
-	bulk_request = request.data['POST_api_prefixes_permissions_set']
+    # Instantiate any necessary imports.
+    db = DbUtils.DbUtils()
+    uu = UserUtils.UserUtils()
 
-	# Get all existing prefixes.
-	available_prefixes = list(
-		Prefix.objects.all().values_list(
-				'prefix', 
-				flat = True
-		)
-	)
+    # First, get which user we're dealing with.
+    user = uu.user_from_request(rq=request)
 
-	# Construct an array to return information about processing
-	# the request.
-	returning = []
+    # Define the bulk request.
+    bulk_request = request.data["POST_api_prefixes_permissions_set"]
 
-	# Since bulk_request is an array, go over each
-	# item in the array.
-	for creation_object in bulk_request:
-		
-		# Go over each prefix proposed.
-		for prfx in creation_object['prefixes']:
-		
-			# Create a list to hold information about errors.
-			errors = {}
-			
-			# Standardize the prefix name.
-			standardized = prfx.upper()
+    # Get all existing prefixes.
+    available_prefixes = list(Prefix.objects.all().values_list("prefix", flat=True))
 
-			# Create a flag for if one of these checks fails.
-			error_check = False
+    # Construct an array to return information about processing
+    # the request.
+    returning = []
 
-			# Has the prefix already been created?
-			if standardized not in available_prefixes:
-				
-				error_check = True
+    # Since bulk_request is an array, go over each
+    # item in the array.
+    for creation_object in bulk_request:
 
-				# Update the request status.
-				errors['404_missing_prefix'] = db.messages(
-						parameters = {
-							'prefix': standardized
-						}
-					)['404_missing_prefix']
-			
-			# The prefix exists, but is the requestor the owner?
-			if uu.check_user_owns_prefix(un = user.username, prfx = standardized) is False and user.username != 'wheel':
+        # Go over each prefix proposed.
+        for prfx in creation_object["prefixes"]:
 
-				error_check = True
+            # Create a list to hold information about errors.
+            errors = {}
 
-				# Bad request, the user isn't the owner or wheel.
-				errors['403_requestor_is_not_prefix_owner'] = db.messages(
-						parameters = {
-							'prefix': standardized
-						}
-					)['403_requestor_is_not_prefix_owner']
-			
-			# The "expensive" work of assigning permissions is held off
-			# if any of the above checks fails.
-			
-			# Did any check fail?
-			if error_check is False:
-			
-				# Split out the permissions assignees into users and groups.
-				assignees = {
-					'group': [],
-					'username': []
-				}
+            # Standardize the prefix name.
+            standardized = prfx.upper()
 
-				if 'username' in creation_object:
-					assignees['username'] = creation_object['username']
-				
-				if 'group' in creation_object:
-					assignees['group'] = creation_object['group']
-				
-				# Go through each one.
-				for un in assignees['username']:
-					
-					# Create a list to hold information about sub-errors.
-					sub_errors = {}
+            # Create a flag for if one of these checks fails.
+            error_check = False
 
-					# Create a flag for if one of these sub-checks fails.
-					sub_error_check = False
-					
-					# Get the user whose permissions are being assigned.
-					if uu.check_user_exists(un = un) is False:
+            # Has the prefix already been created?
+            if standardized not in available_prefixes:
 
-						sub_error_check = True
-						
-						# Bad request, the user doesn't exist.
-						sub_errors['404_user_not_found'] = db.messages(
-								parameters = {
-									'username': un
-								}
-							)['404_user_not_found']
-					
-					# Was the user found?
-					if sub_error_check is False:
-					
-						assignee = User.objects.get(username = un)
+                error_check = True
 
-						# Permissions are defined directly as they are
-						# in the POST request.
+                # Update the request status.
+                errors["404_missing_prefix"] = db.messages(
+                    parameters={"prefix": standardized}
+                )["404_missing_prefix"]
 
-						# Assumes permissions are well-formed...
+            # The prefix exists, but is the requestor the owner?
+            if (
+                uu.check_user_owns_prefix(un=user.username, prfx=standardized) is False
+                and user.username != "wheel"
+            ):
 
-						# Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
-						assignee.user_permissions.set([Permission.objects.get(codename = i + '_' + prfx) for i in creation_object['permissions']])
+                error_check = True
 
-						# Permissions assigned.
-						sub_errors['200_OK_prefix_permissions_update'] = db.messages(
-								parameters = {
-									'prefix': standardized
-								}
-							)['200_OK_prefix_permissions_update']
-					
-					# Add the sub-"errors".
-					errors['username'] = sub_errors
-				
-				for g in assignees['group']:
-					
-					# Create a list to hold information about sub-errors.
-					sub_errors = {}
+                # Bad request, the user isn't the owner or wheel.
+                errors["403_requestor_is_not_prefix_owner"] = db.messages(
+                    parameters={"prefix": standardized}
+                )["403_requestor_is_not_prefix_owner"]
 
-					# Create a flag for if one of these sub-checks fails.
-					sub_error_check = False
+            # The "expensive" work of assigning permissions is held off
+            # if any of the above checks fails.
 
-					# Get the group whose permissions are being assigned.
-					if uu.check_group_exists(n = g) is False:
+            # Did any check fail?
+            if error_check is False:
 
-						sub_error_check = True
-						
-						# Bad request, the group doesn't exist.
-						sub_errors['404_group_not_found'] = db.messages(
-								parameters = {
-									'group': g
-								}
-							)['404_group_not_found']
-					
-					# Was the group found?
-					if sub_error_check is False:
-					
-						assignee = Group.objects.get(name = g)
+                # Split out the permissions assignees into users and groups.
+                assignees = {"group": [], "username": []}
 
-						# Permissions are defined directly as they are
-						# in the POST request.
+                if "username" in creation_object:
+                    assignees["username"] = creation_object["username"]
 
-						# Assumes permissions are well-formed...
+                if "group" in creation_object:
+                    assignees["group"] = creation_object["group"]
 
-						# Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
-						assignee.permissions.set([Permission.objects.get(codename = i + '_' + prfx) for i in creation_object['permissions']])
+                # Go through each one.
+                for un in assignees["username"]:
 
-						# Permissions assigned.
-						sub_errors['200_OK_prefix_permissions_update'] = db.messages(
-								parameters = {
-									'prefix': standardized
-								}
-							)['200_OK_prefix_permissions_update']
-				
-					# Add the sub-"errors".
-					errors['group'] = sub_errors
-			
-			# Append the possible "errors".
-			returning.append(errors)
-				
-	# As this view is for a bulk operation, status 200
-	# means that the request was successfully processed,
-	# but NOT necessarily each item in the request.
-	return(Response(status = status.HTTP_200_OK, data = returning))
+                    # Create a list to hold information about sub-errors.
+                    sub_errors = {}
+
+                    # Create a flag for if one of these sub-checks fails.
+                    sub_error_check = False
+
+                    # Get the user whose permissions are being assigned.
+                    if uu.check_user_exists(un=un) is False:
+
+                        sub_error_check = True
+
+                        # Bad request, the user doesn't exist.
+                        sub_errors["404_user_not_found"] = db.messages(
+                            parameters={"username": un}
+                        )["404_user_not_found"]
+
+                    # Was the user found?
+                    if sub_error_check is False:
+
+                        assignee = User.objects.get(username=un)
+
+                        # Permissions are defined directly as they are
+                        # in the POST request.
+
+                        # Assumes permissions are well-formed...
+
+                        # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
+                        assignee.user_permissions.set(
+                            [
+                                Permission.objects.get(codename=i + "_" + prfx)
+                                for i in creation_object["permissions"]
+                            ]
+                        )
+
+                        # Permissions assigned.
+                        sub_errors["200_OK_prefix_permissions_update"] = db.messages(
+                            parameters={"prefix": standardized}
+                        )["200_OK_prefix_permissions_update"]
+
+                    # Add the sub-"errors".
+                    errors["username"] = sub_errors
+
+                for g in assignees["group"]:
+
+                    # Create a list to hold information about sub-errors.
+                    sub_errors = {}
+
+                    # Create a flag for if one of these sub-checks fails.
+                    sub_error_check = False
+
+                    # Get the group whose permissions are being assigned.
+                    if uu.check_group_exists(n=g) is False:
+
+                        sub_error_check = True
+
+                        # Bad request, the group doesn't exist.
+                        sub_errors["404_group_not_found"] = db.messages(
+                            parameters={"group": g}
+                        )["404_group_not_found"]
+
+                    # Was the group found?
+                    if sub_error_check is False:
+
+                        assignee = Group.objects.get(name=g)
+
+                        # Permissions are defined directly as they are
+                        # in the POST request.
+
+                        # Assumes permissions are well-formed...
+
+                        # Source: https://docs.djangoproject.com/en/3.2/topics/auth/default/#permissions-and-authorization
+                        assignee.permissions.set(
+                            [
+                                Permission.objects.get(codename=i + "_" + prfx)
+                                for i in creation_object["permissions"]
+                            ]
+                        )
+
+                        # Permissions assigned.
+                        sub_errors["200_OK_prefix_permissions_update"] = db.messages(
+                            parameters={"prefix": standardized}
+                        )["200_OK_prefix_permissions_update"]
+
+                    # Add the sub-"errors".
+                    errors["group"] = sub_errors
+
+            # Append the possible "errors".
+            returning.append(errors)
+
+    # As this view is for a bulk operation, status 200
+    # means that the request was successfully processed,
+    # but NOT necessarily each item in the request.
+    return Response(status=status.HTTP_200_OK, data=returning)
+
 
 def post_api_prefixes_token(request):
     """Get Prefixes for a Token
@@ -599,9 +596,11 @@ def post_api_prefixes_token(request):
     """
 
     prefixes = UserUtils.UserUtils().prefix_perms_for_user(
-        user_object = UserUtils.UserUtils().user_from_request(
-            request = request).username, flatten = False)
-    return Response(status = status.HTTP_200_OK, data = prefixes)
+        user_object=UserUtils.UserUtils().user_from_request(request=request).username,
+        flatten=False,
+    )
+    return Response(status=status.HTTP_200_OK, data=prefixes)
+
 
 def post_api_prefixes_token_flat(request):
     """Get Prefixes for a Token
@@ -625,10 +624,11 @@ def post_api_prefixes_token_flat(request):
     """
 
     prefixes = UserUtils.UserUtils().prefix_perms_for_user(
-        user_object = UserUtils.UserUtils().user_from_request(
-            request = request).username,flatten = True)
+        user_object=UserUtils.UserUtils().user_from_request(request=request).username,
+        flatten=True,
+    )
 
-    return Response(status = status.HTTP_200_OK, data = prefixes)
+    return Response(status=status.HTTP_200_OK, data=prefixes)
 
 
 # --- Prefix --- #
@@ -657,9 +657,9 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
     if created:
         owner_user = User.objects.get(username=instance.owner_user)
         owner_group = Group.objects.get(name=instance.owner_group_id)
-        draft = instance.prefix.lower() + '_drafter'
-        publish = instance.prefix.lower() + '_publisher'
-        
+        draft = instance.prefix.lower() + "_drafter"
+        publish = instance.prefix.lower() + "_publisher"
+
         if len(Group.objects.filter(name=draft)) != 0:
             drafters = Group.objects.get(name=draft)
             owner_user.groups.add(drafters)
@@ -672,7 +672,7 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
                 description=instance.description,
                 group=drafters,
                 max_n_members=-1,
-                owner_user=owner_user
+                owner_user=owner_user,
             )
 
         if len(Group.objects.filter(name=publish)) != 0:
@@ -687,32 +687,29 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
                 description=instance.description,
                 group=publishers,
                 max_n_members=-1,
-                owner_user=owner_user
+                owner_user=owner_user,
             )
 
         try:
-            for perm in ['add', 'change', 'delete', 'view', 'draft', 'publish']:
+            for perm in ["add", "change", "delete", "view", "draft", "publish"]:
                 Permission.objects.create(
-                    name='Can ' + perm + ' BCOs with prefix ' + instance.prefix,
-                    content_type=ContentType.objects.get(
-                        app_label='api',
-                        model='bco'
-                    ),
-                    codename=perm + '_' + instance.prefix
+                    name="Can " + perm + " BCOs with prefix " + instance.prefix,
+                    content_type=ContentType.objects.get(app_label="api", model="bco"),
+                    codename=perm + "_" + instance.prefix,
                 )
-                new_perm = Permission.objects.get(
-                    codename=perm + '_' + instance.prefix)
+                new_perm = Permission.objects.get(codename=perm + "_" + instance.prefix)
                 owner_user.user_permissions.add(new_perm)
                 owner_group.permissions.add(new_perm)
                 publishers.permissions.add(new_perm)
-                if perm == 'publish':
+                if perm == "publish":
                     pass
                 else:
-                    drafters.permissions.add(new_perm)    
+                    drafters.permissions.add(new_perm)
 
         except PermErrors.IntegrityError:
             # The permissions already exist.
             pass
+
 
 @receiver(post_save, sender=Prefix)
 def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
@@ -728,7 +725,8 @@ def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
     """
 
     if created:
-        prefix_table.objects.create(n_objects=1,prefix=instance.prefix)
+        prefix_table.objects.create(n_objects=1, prefix=instance.prefix)
+
 
 @receiver(post_delete, sender=Prefix)
 def delete_permissions_for_prefix(sender, instance=None, **kwargs):
@@ -737,9 +735,9 @@ def delete_permissions_for_prefix(sender, instance=None, **kwargs):
     a filter.
     """
 
-    Permission.objects.filter(codename='add_' + instance.prefix).delete()
-    Permission.objects.filter(codename='change_' + instance.prefix).delete()
-    Permission.objects.filter(codename='delete_' + instance.prefix).delete()
-    Permission.objects.filter(codename='view_' + instance.prefix).delete()
-    Permission.objects.filter(codename='draft_' + instance.prefix).delete()
-    Permission.objects.filter(codename='publish_' + instance.prefix).delete()
+    Permission.objects.filter(codename="add_" + instance.prefix).delete()
+    Permission.objects.filter(codename="change_" + instance.prefix).delete()
+    Permission.objects.filter(codename="delete_" + instance.prefix).delete()
+    Permission.objects.filter(codename="view_" + instance.prefix).delete()
+    Permission.objects.filter(codename="draft_" + instance.prefix).delete()
+    Permission.objects.filter(codename="publish_" + instance.prefix).delete()

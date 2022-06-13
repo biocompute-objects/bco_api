@@ -33,7 +33,7 @@ def coerce(version: str) -> Tuple[Version, Optional[str]]:
 
     * Tries to detect a "basic" version string (``major.minor.patch``).
     * If not enough components can be found, missing components are
-        set to zero to obtain a valid semver version. 
+        set to zero to obtain a valid semver version.
 
     :param str version: the version string to convert
     :return: a tuple with a :class:`Version` instance (or ``None``
@@ -75,14 +75,10 @@ def GET_published_object_by_id(oi_root):
     #       since I'm not sure why it was ever added (maybe there is a reason?)
     # oi_root = oi_root.split("_")[0] +  '{:06d}'.format(int(oi_root.split("_")[1]))
     all_versions = list(
-            BCO.objects.filter(
-                    object_id__regex=rf'(.*?)/{oi_root}/',
-                    state='PUBLISHED'
-                    ).values_list(
-                    'object_id',
-                    flat=True
-                    )
-            )
+        BCO.objects.filter(
+            object_id__regex=rf"(.*?)/{oi_root}/", state="PUBLISHED"
+        ).values_list("object_id", flat=True)
+    )
 
     # Get the latest version for this object if we have any.
     if len(all_versions) > 0:
@@ -92,27 +88,24 @@ def GET_published_object_by_id(oi_root):
         # not a version was also passed.
 
         # First find the latest version of the object.
-        latest_version = [i.split('/')[-1:][0] for i in all_versions]
+        latest_version = [i.split("/")[-1:][0] for i in all_versions]
         l_version, _ = coerce(max(latest_version, key=coerce))
 
         # Kick back the latest version.
         return Response(
-                data=BCO.objects.filter(
-                        object_id__regex=rf'{oi_root}/{l_version.major}.{l_version.minor}?.?{l_version.patch}',
-                        state='PUBLISHED'
-                        ).values_list(
-                        'contents',
-                        flat=True
-                        ),
-                status=status.HTTP_200_OK
-                )
+            data=BCO.objects.filter(
+                object_id__regex=rf"{oi_root}/{l_version.major}.{l_version.minor}?.?{l_version.patch}",
+                state="PUBLISHED",
+            ).values_list("contents", flat=True),
+            status=status.HTTP_200_OK,
+        )
 
     else:
 
         # If all_versions has 0 length, then the
         # the root ID does not exist at all.
-        print('No objects were found for the root ID provided.')
+        print("No objects were found for the root ID provided.")
         return Response(
-                data='No objects were found for the root ID provided.',
-                status=status.HTTP_400_BAD_REQUEST
-                )
+            data="No objects were found for the root ID provided.",
+            status=status.HTTP_400_BAD_REQUEST,
+        )

@@ -1,13 +1,13 @@
 # Source: https://stackoverflow.com/a/42744626/5029459
 
+
 def populate_models(sender, **kwargs):
-    """Initial DB setup
-    """ 
+    """Initial DB setup"""
 
     from api.models import BCO
     from api.model.groups import GroupInfo
     from api.scripts.utilities import DbUtils
-    
+
     # The BCO groups need to be created FIRST because
     # models.py listens for user creation and automatically
     # adds any new user to bco_drafter and bco_publishers.
@@ -20,9 +20,6 @@ def populate_models(sender, **kwargs):
 
     # Custom publishing permissions which use the model name.
     # Source: https://stackoverflow.com/a/9940053/5029459
-    
-
-
 
     # Create a bco drafter and publisher if they don't exist.
 
@@ -30,107 +27,90 @@ def populate_models(sender, **kwargs):
     # in models.py
 
     # NO password is set here...
-    if User.objects.filter(username = 'bco_drafter').count() == 0:
-        User.objects.create_user(
-            username = 'bco_drafter'
-        )
-    
-    if User.objects.filter(username = 'bco_publisher').count() == 0:
-        User.objects.create_user(
-            username = 'bco_publisher'
-        )
-    
+    if User.objects.filter(username="bco_drafter").count() == 0:
+        User.objects.create_user(username="bco_drafter")
+
+    if User.objects.filter(username="bco_publisher").count() == 0:
+        User.objects.create_user(username="bco_publisher")
+
     # BCO is the anon (public) prefix.
-    
+
     # Note that user creation is listened for in
     # models.py by associate_user_group.
-    
-    # Create the anonymous user if they don't exist.    
-    if User.objects.filter(username = 'anon').count() == 0:
-        User.objects.create_user(
-            username = 'anon'
-        )
-    
+
+    # Create the anonymous user if they don't exist.
+    if User.objects.filter(username="anon").count() == 0:
+        User.objects.create_user(username="anon")
+
     # Create an administrator if they don't exist.
-    if User.objects.filter(username = 'wheel').count() == 0:
-        User.objects.create_superuser(
-            username = 'wheel',
-            password = 'wheel'
-        )
+    if User.objects.filter(username="wheel").count() == 0:
+        User.objects.create_superuser(username="wheel", password="wheel")
 
     # Make bco_publisher the group owner of the prefix 'BCO'.
-    if BCO.objects.filter(prefix = 'BCO').count() == 0:
+    if BCO.objects.filter(prefix="BCO").count() == 0:
         # Django wants a primary key for the Group...
-        group = Group.objects.get(name = 'bco_publisher').name
+        group = Group.objects.get(name="bco_publisher").name
 
         # Django wants a primary key for the User...
-        user = User.objects.get(username = 'bco_publisher').username
+        user = User.objects.get(username="bco_publisher").username
 
         DbUtils.DbUtils().write_object(
-            p_app_label = 'api',
-            p_model_name = 'Prefix',
-            p_fields = ['created_by', 'owner_group', 'owner_user', 'prefix'],
-            p_data = {
-                'created_by': user,
-                'owner_group': group,
-                'owner_user': user,
-                'prefix': 'BCO'
-            }
+            p_app_label="api",
+            p_model_name="Prefix",
+            p_fields=["created_by", "owner_group", "owner_user", "prefix"],
+            p_data={
+                "created_by": user,
+                "owner_group": group,
+                "owner_user": user,
+                "prefix": "BCO",
+            },
         )
 
     # Create the default (non-anon, non-wheel) groups if they don't exist.
     # Group administrators
-    if Group.objects.filter(name = 'group_admins').count() == 0:
-        Group.objects.create(name = 'group_admins')
+    if Group.objects.filter(name="group_admins").count() == 0:
+        Group.objects.create(name="group_admins")
         GroupInfo.objects.create(
             delete_members_on_group_deletion=False,
-            description='Group administrators',
-            group=Group.objects.get(name='group_admins'),
+            description="Group administrators",
+            group=Group.objects.get(name="group_admins"),
             max_n_members=-1,
-            owner_user=User.objects.get(username='wheel')
+            owner_user=User.objects.get(username="wheel"),
         )
     # Create the permissions for group administrators.
-    for perm in ['add', 'change', 'delete', 'view']:
-        
+    for perm in ["add", "change", "delete", "view"]:
+
         # Permissions already come with the system,
         # so just associated them.
 
         # Give the group administrators the permissions.
-        Group.objects.get(
-            name = 'group_admins'
-        ).permissions.add(
-            Permission.objects.get(
-                codename = perm + '_group'
-            )
+        Group.objects.get(name="group_admins").permissions.add(
+            Permission.objects.get(codename=perm + "_group")
         )
-    
+
     # Prefix administrators
-    if Group.objects.filter(name = 'prefix_admins').count() == 0:
-        Group.objects.create(name = 'prefix_admins')
+    if Group.objects.filter(name="prefix_admins").count() == 0:
+        Group.objects.create(name="prefix_admins")
         GroupInfo.objects.create(
             delete_members_on_group_deletion=False,
-            description='Prefix administrators',
-            group=Group.objects.get(name='prefix_admins'),
+            description="Prefix administrators",
+            group=Group.objects.get(name="prefix_admins"),
             max_n_members=-1,
-            owner_user=User.objects.get(username='wheel')
+            owner_user=User.objects.get(username="wheel"),
         )
-    
+
     # Create the permissions for prefix administrators.
-    for perm in ['add', 'change', 'delete', 'view']:
+    for perm in ["add", "change", "delete", "view"]:
 
         # Permissions already come with the system,
         # so just associated them.
 
         # Give the group administrators the permissions.
-        Group.objects.get(
-            name = 'prefix_admins'
-            ).permissions.add(
-            Permission.objects.get(
-                codename = perm + '_prefix'
-            )
+        Group.objects.get(name="prefix_admins").permissions.add(
+            Permission.objects.get(codename=perm + "_prefix")
         )
 
     # Associate wheel with all groups.
     group = Group.objects.all()
     for g in group:
-        User.objects.get(username = 'wheel').groups.add(g)
+        User.objects.get(username="wheel").groups.add(g)
