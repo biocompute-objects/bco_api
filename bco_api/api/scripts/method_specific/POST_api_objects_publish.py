@@ -6,6 +6,7 @@ Take the bulk request and publish objects directly.
 """
 
 from ...models import BCO
+
 # For getting objects out of the database.
 from ..utilities import DbUtils
 
@@ -22,6 +23,7 @@ from guardian.shortcuts import get_perms
 from rest_framework import status
 from rest_framework.response import Response
 
+
 def POST_api_objects_publish(incoming):
     """
     Take the bulk request and publish objects directly.
@@ -35,18 +37,13 @@ def POST_api_objects_publish(incoming):
     # so the user is guaranteed to exist.
 
     # Get the User object.
-    user = uu.user_from_request(
-        rq = incoming
-    )
+    user = uu.user_from_request(rq=incoming)
 
     # Get the user's prefix permissions.
-    px_perms = uu.prefix_perms_for_user(
-        flatten = True,
-        user_object = user
-    )
+    px_perms = uu.prefix_perms_for_user(flatten=True, user_object=user)
 
     # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_publish']
+    bulk_request = incoming.data["POST_api_objects_publish"]
 
     # Construct an array to return the objects.
     returning = []
@@ -60,21 +57,21 @@ def POST_api_objects_publish(incoming):
         # Get the prefix *that we are publishing under*
         # (this prefix is not necessarily the same one
         # as the draft was created under).
-        standardized = publish_object['prefix']
+        standardized = publish_object["prefix"]
 
         # Does the requestor have publish permissions for
         # the *prefix*?
-        if 'publish_' + standardized in px_perms:
-        
+        if "publish_" + standardized in px_perms:
+
             # The requestor has publish permissions for
             # the prefix.  If no object ID is provided,
             # proceed straight to the publish attempt.
-                
+
             # Attempt to publish, but first, verify
             # that the object is IEEE-compliant.
             # schema_check = ju.check_object_against_schema(
             #     object_pass = objected,
-            #     schema_pass = 
+            #     schema_pass =
             # )
             # TODO: fix the schema check...
             schema_check = None
@@ -87,7 +84,7 @@ def POST_api_objects_publish(incoming):
 
                 # Go straight to the publish attempt if there is no
                 # object_id key given with the request.
-                if 'object_id' not in publish_object:
+                if "object_id" not in publish_object:
 
                     # Object is compliant, so kick it off to
                     # be published.
@@ -96,13 +93,12 @@ def POST_api_objects_publish(incoming):
                     # owner user are "the same".  That is, the
                     # owner group is the one derived from the owner user.
                     published = db.publish(
-                        og = Group.objects.get(name = user.username).name,
-                        ou = user.username,
-                        prfx = standardized,
-                        publishable = publish_object["contents"],
-                        publishable_id = 'new'
+                        og=Group.objects.get(name=user.username).name,
+                        ou=user.username,
+                        prfx=standardized,
+                        publishable=publish_object["contents"],
+                        publishable_id="new",
                     )
-
 
                     # Did the publishing go well?
                     if isinstance(published, dict):
@@ -110,32 +106,32 @@ def POST_api_objects_publish(incoming):
                         # Update the request status.
                         returning.append(
                             db.messages(
-                                parameters = {
-                                    'published_id': published['published_id']
-                                }
-                            )['200_OK_object_publish']
+                                parameters={"published_id": published["published_id"]}
+                            )["200_OK_object_publish"]
                         )
 
                 else:
 
                     # When an object ID is provided, the requestor must
                     # have publish permissions for the published object.
-                    objected = BCO.objects.get(
-                        object_id = publish_object['object_id']
-                    )
+                    objected = BCO.objects.get(object_id=publish_object["object_id"])
 
                     # We don't care where the publish permission comes from,
                     # be it a User permission or a Group permission.
-                    all_permissions = get_perms(user,objected)
+                    all_permissions = get_perms(user, objected)
                     # Published object owner automatically has publish
                     # permissions, but we need to check for the publish
                     # permission otherwise.
-                    if user.username == objected.owner_user.username or 'publish_new_version_' + publish_object['object_id'] in all_permissions:
+                    if (
+                        user.username == objected.owner_user.username
+                        or "publish_new_version_" + publish_object["object_id"]
+                        in all_permissions
+                    ):
 
                         # We need to check that the provided object ID
                         # complies with the versioning rules.
                         versioned = db.check_version_rules(
-                            published_id = publish_object['object_id']
+                            published_id=publish_object["object_id"]
                         )
 
                         # If we get a dictionary back, that means we have
@@ -149,11 +145,11 @@ def POST_api_objects_publish(incoming):
                             # owner user are "the same".  That is, the
                             # owner group is the one derived from the owner user.
                             published = db.publish(
-                                og = Group.objects.get(name = user.username).name,
-                                ou = user.username,
-                                prfx = standardized,
-                                publishable = publish_object['contents'],
-                                publishable_id = versioned
+                                og=Group.objects.get(name=user.username).name,
+                                ou=user.username,
+                                prfx=standardized,
+                                publishable=publish_object["contents"],
+                                publishable_id=versioned,
                             )
 
                             # Did the publishing go well?
@@ -161,46 +157,42 @@ def POST_api_objects_publish(incoming):
 
                                 # Update the request status.
                                 returning.append(
-                                    db.messages(
-                                        parameters = {
-                                            'published_id': versioned
-                                        }
-                                    )['200_OK_object_publish']
+                                    db.messages(parameters={"published_id": versioned})[
+                                        "200_OK_object_publish"
+                                    ]
                                 )
                         else:
                             # Either the object wasn't found
                             # or an invalid version number was provided.
-                            if versioned == 'bad_version_number':
+                            if versioned == "bad_version_number":
                                 returning.append(
-                                    db.messages(
-                                        parameters = {}
-                                    )['400_bad_version_number']
+                                    db.messages(parameters={})["400_bad_version_number"]
                                 )
-                            elif versioned == 'non_root_id':
+                            elif versioned == "non_root_id":
                                 returning.append(
-                                    db.messages(
-                                        parameters = {}
-                                    )['400_non_root_id']
+                                    db.messages(parameters={})["400_non_root_id"]
                                 )
-                    
+
                     else:
 
                         # Insufficient permissions.
-                        returning.append(db.messages(parameters = {}
-                            )['403_insufficient_permissions']
+                        returning.append(
+                            db.messages(parameters={})["403_insufficient_permissions"]
                         )
 
             else:
                 # Object provided is not schema-compliant.
-                returning.append(db.messages(
-                    parameters = {'errors': schema_check}
-                    )['400_non_publishable_object']
+                returning.append(
+                    db.messages(parameters={"errors": schema_check})[
+                        "400_non_publishable_object"
+                    ]
                 )
         else:
             # Update the request status.
-            returning.append(db.messages(
-                parameters = {'prefix': standardized}
-                )['401_prefix_unauthorized']
+            returning.append(
+                db.messages(parameters={"prefix": standardized})[
+                    "401_prefix_unauthorized"
+                ]
             )
 
     # As this view is for a bulk operation, status 200
@@ -208,4 +200,4 @@ def POST_api_objects_publish(incoming):
     # but NOT necessarily each item in the request.
     # For example, a table may not have been found for the first
     # requested draft.
-    return Response(status = status.HTTP_200_OK,data = returning)
+    return Response(status=status.HTTP_200_OK, data=returning)

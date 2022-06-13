@@ -10,43 +10,51 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('api', '0001_initial'),
+        ("api", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='prefixes',
-            name='certifying_key',
+            model_name="prefixes",
+            name="certifying_key",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='prefixes',
-            name='certifying_server',
+            model_name="prefixes",
+            name="certifying_server",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='prefixes',
-            name='created',
-            field=models.DateTimeField(blank=True, default=django.utils.timezone.now, null=True),
+            model_name="prefixes",
+            name="created",
+            field=models.DateTimeField(
+                blank=True, default=django.utils.timezone.now, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='prefixes',
-            name='created_by',
-            field=models.ForeignKey(default='wheel', on_delete=django.db.models.deletion.CASCADE, related_name='created_by', to=settings.AUTH_USER_MODEL, to_field='username'),
+            model_name="prefixes",
+            name="created_by",
+            field=models.ForeignKey(
+                default="wheel",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="created_by",
+                to=settings.AUTH_USER_MODEL,
+                to_field="username",
+            ),
         ),
         migrations.AddField(
-            model_name='prefixes',
-            name='description',
+            model_name="prefixes",
+            name="description",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='prefixes',
-            name='expires',
+            model_name="prefixes",
+            name="expires",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='group_info',
-            name='description',
+            model_name="group_info",
+            name="description",
             field=models.TextField(blank=True),
         ),
     ]

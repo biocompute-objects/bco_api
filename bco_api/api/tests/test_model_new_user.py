@@ -8,6 +8,7 @@ import json
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import Group, Permission, User
+
 # from django.urls import reverse
 from api.models import new_users
 
@@ -22,21 +23,20 @@ class NewUserTestCase(TestCase):
         self.hostname = "UserDB"
 
     def create_user(self):
-        """Create Test User
-        """
+        """Create Test User"""
 
         return new_users.objects.create(
             email="test@gwu.edu",
             temp_identifier="OOO",
             token="SampleToken",
-            hostname="UserDB"
+            hostname="UserDB",
         )
 
     def test_user_creation(self):
         """Test user creation
 
-            Creates new user, asserts that it is an instance of new_user, and asserts the email,
-            token, and hostname match.
+        Creates new user, asserts that it is an instance of new_user, and asserts the email,
+        token, and hostname match.
         """
 
         user = self.create_user()
