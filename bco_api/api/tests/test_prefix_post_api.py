@@ -103,7 +103,7 @@ class ApiTestCase(TestCase):
         force_authenticate(request, user=self.user)
 
         response = ApiObjectsDraftsCreate.as_view()(request)
-        print("RESPONSE: {}".format(response))
+        # print("RESPONSE: {}".format(response))
         # # if self.client.force_login(user=user):
         # self.client.force_login(user=self.user)
         # self.client.login(username=self.sample_bco["owner_user"], password="12345", token=token)

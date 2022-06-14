@@ -409,7 +409,7 @@ def post_api_prefixes_permissions_set(request):
     uu = UserUtils.UserUtils()
 
     # First, get which user we're dealing with.
-    user = uu.user_from_request(rq=request)
+    user = uu.user_from_request(request=request)
 
     # Define the bulk request.
     bulk_request = request.data["POST_api_prefixes_permissions_set"]

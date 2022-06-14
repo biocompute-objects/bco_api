@@ -1,5 +1,7 @@
-# Prefix
-# from api.model.prefix import Prefix
+#!/usr/bin/env python3
+"""User Utilities
+Functions for operations with Users
+"""
 
 # For returning server information.
 from django.conf import settings
@@ -13,10 +15,6 @@ from django.contrib.auth.models import Permission
 
 # For getting the user's token.
 from rest_framework.authtoken.models import Token
-
-# Conditional logic
-from django.db.models import Q
-
 
 class UserUtils:
     """
@@ -34,15 +32,15 @@ class UserUtils:
         """Does the user exist?"""
         return Permission.objects.get(codename="test")
 
-    def check_group_exists(self, n):
+    def check_group_exists(self, name):
         """Does the user exist?"""
-        return Group.objects.filter(name=n).exists()
+        return Group.objects.filter(name=name).exists()
 
-    def check_user_exists(self, un):
+    def check_user_exists(self, user_name):
         """Does the user exist?"""
-        return User.objects.filter(username=un).exists()
+        return User.objects.filter(username=user_name).exists()
 
-    def check_user_in_group(self, un, gn):
+    def check_user_in_group(self, user_name, group_name):
         """Check if a user is in a group.
 
         First check that the user exists.
@@ -57,16 +55,16 @@ class UserUtils:
         try:
 
             # Django wants a primary key for the User...
-            user = User.objects.get(username=un).username
+            user = User.objects.get(username=user_name).username
 
             try:
 
                 # Django wants a primary key for the Group...
-                group = Group.objects.get(name=gn).name
+                group = Group.objects.get(name=group_name).name
 
                 # Finally, check that the user is in the group.
-                if gn in list(
-                    User.objects.get(username=un).groups.values_list("name", flat=True)
+                if group_name in list(
+                    User.objects.get(username=user_name).groups.values_list("name", flat=True)
                 ):
 
                     # Kick back the user and group info.
@@ -86,10 +84,10 @@ class UserUtils:
             # Bad user.
             return False
 
-    def check_user_owns_prefix(self, un, prfx):
+    def check_user_owns_prefix(self, user_name, prfx):
         """Check if a user owns a prefix."""
 
-        return Prefix.objects.filter(owner_user=un, prefix=prfx).exists()
+        return Prefix.objects.filter(owner_user=user_name, prefix=prfx).exists()
 
     def get_user_groups_by_token(self, token):
         """Takes token to give groups.
@@ -104,12 +102,12 @@ class UserUtils:
         # group created when the account was created should show up).
         return Group.objects.filter(user=username)
 
-    def get_user_groups_by_username(self, un):
+    def get_user_groups_by_username(self, user_name):
         """Takes usernames to give groups.
         Get the groups for this username (at a minimum the user
         group created when the account was created should show up).
         """
-        return Group.objects.filter(user=User.objects.get(username=un))
+        return Group.objects.filter(user=User.objects.get(username=user_name))
 
     # Get all user information.
     def get_user_info(self, username):

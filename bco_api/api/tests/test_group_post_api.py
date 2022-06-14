@@ -5,17 +5,14 @@
 """
 
 import json
+from datetime import timedelta
+from django.contrib.auth.models import Group, Permission, User
 from django.test import TestCase, Client
 from django.utils import timezone
-from django.contrib.auth.models import Group, Permission, User
-from rest_framework.authtoken.models import Token
-
-# from django.urls import reverse
-from api.models import BCO
-from datetime import timedelta
 from rest_framework.test import force_authenticate, APIRequestFactory
 from api.views import ApiGroupsInfo, ApiGroupsCreate, ApiGroupsDelete
 from api.tests.test_model_groups import GroupsTestCase
+from rest_framework.authtoken.models import Token
 
 
 class GroupApiTestCase(TestCase):
