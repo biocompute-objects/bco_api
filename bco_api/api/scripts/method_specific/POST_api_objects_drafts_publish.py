@@ -95,7 +95,6 @@ def post_api_objects_drafts_publish(request):
             is_owner = user.username == objected.owner_user.username
             owner_group = Group.objects.get(name=user.username)
             # can_publish = 'publish_' + publish_object['draft_id'] in all_permissions
-            import pdb; pdb.set_trace()
             if prefix_auth is True:
                 # if is_owner is True or can_publish is True:
                 if delete_draft is True:
