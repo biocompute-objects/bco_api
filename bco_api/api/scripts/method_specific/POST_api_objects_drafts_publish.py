@@ -95,69 +95,67 @@ def post_api_objects_drafts_publish(request):
             is_owner = user.username == objected.owner_user.username
             owner_group = Group.objects.get(name=user.username)
             # can_publish = 'publish_' + publish_object['draft_id'] in all_permissions
-            if 'publish_' + prefix  in all_permissions or 'publish_' + publish_object['draft_id'] in all_permissions:
-                can_publish = True
             import pdb; pdb.set_trace()
             if prefix_auth is True:
-                if is_owner is True or can_publish is True:
-                    if delete_draft is True:
-                        objected.last_update = timezone.now()
-                        objected.state = 'PUBLISHED'
-                        objected.owner_group = owner_group
-                        objected.object_id = versioned['published_id']
-                        objected.contents['object_id'] = versioned['published_id']
-                        objected.save()
+                # if is_owner is True or can_publish is True:
+                if delete_draft is True:
+                    objected.last_update = timezone.now()
+                    objected.state = 'PUBLISHED'
+                    objected.owner_group = owner_group
+                    objected.object_id = versioned['published_id']
+                    objected.contents['object_id'] = versioned['published_id']
+                    objected.save()
 
-                        # Update the request status.
-                        returning.append(db_utils.messages(
-                            parameters=versioned)['200_OK_object_publish_draft_deleted']
-                        )
-
-                    else:
-                        new_object = {}
-                        new_object['contents'] = objected.contents
-                        new_object['object_id'] = object_id
-                        new_object['contents']['object_id'] = object_id
-                        new_object['owner_group'] = owner_group
-                        new_object['owner_user'] = objected.owner_user
-                        new_object['prefix'] = objected.prefix
-                        new_object['last_update'] = timezone.now()
-                        new_object['schema'] = 'IEEE'
-                        new_object['state'] = 'PUBLISHED'
-
-                        # Write to the database.
-                        objects_written = db_utils.write_object(
-                            p_app_label = 'api',
-                            p_model_name = 'BCO',
-                            p_fields = [
-                                'contents',
-                                'last_update',
-                                'object_id',
-                                'owner_group',
-                                'owner_user',
-                                'prefix',
-                                'schema',
-                                'state'],
-                            p_data = new_object
-                        )
-                        prefix_counter.n_objects = prefix_counter.n_objects + 1
-                        prefix_counter.save()
-                        if objects_written < 1:
-                            # Issue with writing out to DB
-                            returning.append(db_utils.messages(parameters={ })['400_bad_request'])
-                            any_failed = True
-                        else:
-                            # Update the request status.
-                            returning.append(db_utils.messages(
-                                parameters=versioned)['200_OK_object_publish_draft_not_deleted']
-                            )
+                    # Update the request status.
+                    returning.append(db_utils.messages(
+                        parameters=versioned)['200_OK_object_publish_draft_deleted']
+                    )
 
                 else:
-                    # Insufficient permissions.
-                    returning.append(db_utils.messages(
-                        parameters={ })['403_insufficient_permissions']
+                    new_object = {}
+                    new_object['contents'] = objected.contents
+                    new_object['object_id'] = object_id
+                    new_object['contents']['object_id'] = object_id
+                    new_object['owner_group'] = owner_group
+                    new_object['owner_user'] = objected.owner_user
+                    new_object['prefix'] = objected.prefix
+                    new_object['last_update'] = timezone.now()
+                    new_object['schema'] = 'IEEE'
+                    new_object['state'] = 'PUBLISHED'
+
+                    # Write to the database.
+                    objects_written = db_utils.write_object(
+                        p_app_label = 'api',
+                        p_model_name = 'BCO',
+                        p_fields = [
+                            'contents',
+                            'last_update',
+                            'object_id',
+                            'owner_group',
+                            'owner_user',
+                            'prefix',
+                            'schema',
+                            'state'],
+                        p_data = new_object
                     )
-                    any_failed = True
+                    prefix_counter.n_objects = prefix_counter.n_objects + 1
+                    prefix_counter.save()
+                    if objects_written < 1:
+                        # Issue with writing out to DB
+                        returning.append(db_utils.messages(parameters={ })['400_bad_request'])
+                        any_failed = True
+                    else:
+                        # Update the request status.
+                        returning.append(db_utils.messages(
+                            parameters=versioned)['200_OK_object_publish_draft_not_deleted']
+                        )
+
+                # else:
+                #     # Insufficient permissions.
+                #     returning.append(db_utils.messages(
+                #         parameters={ })['403_insufficient_permissions']
+                #     )
+                #     any_failed = True
 
             else:
             # Update the request status.
