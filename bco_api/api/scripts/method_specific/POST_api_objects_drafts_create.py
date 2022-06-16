@@ -77,7 +77,7 @@ def post_api_objects_drafts_create(request):
                     + "{:06d}".format(prefix_counter.n_objects)
                     + "/DRAFT"
                 )
-
+                # import pdb; pdb.set_trace()
                 creation_object["contents"]["object_id"] = creation_object["object_id"]
                 bco_id = creation_object["object_id"]
                 owner_group = Group.objects.get(name=creation_object["owner_group"])
