@@ -40,7 +40,7 @@ class ApiTestCase(TestCase):
         self.sample_bco = {
             "object_id_root": 'BCO_000001',
             "object_id_version": '/1.5',
-            "owner_user": 'anon',
+            "owner_user": 'wheel',
             "owner_group": 'bco_drafter',
             "prefix": 'BCO',
             "schema": 'IEEE',

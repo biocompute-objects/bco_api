@@ -40,8 +40,8 @@ def post_api_objects_drafts_create(request):
     )
 
     # Define the bulk request.
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     bulk_request = request.data['POST_api_objects_draft_create']
 
     # Get the object naming information.
@@ -68,11 +68,21 @@ def post_api_objects_drafts_create(request):
                     'root_uri',
                     object_naming_info['root_uri']
                 )
+                # import pdb
+                # pdb.set_trace()
                 constructed_name = constructed_name.replace('prefix', standardized)
                 prefix_location = constructed_name.index(standardized)
                 prefix_length = len(standardized)
                 constructed_name = constructed_name[0:prefix_location + prefix_length]
-                prefix_counter = prefix_table.objects.get(prefix=standardized)
+                try:
+                    prefix_counter = prefix_table.objects.get(prefix=standardized)
+                except prefix_table.DoesNotExist:
+                    # The prefix does not exist.
+                    return Response(
+                        status=status.HTTP_400_BAD_REQUEST,
+                        data='The request could not be processed with the' \
+                             ' parameters provided.  The prefix does not exist.'
+                    )
                 creation_object['object_id'] = constructed_name + '_' + \
                                                '{:06d}'.format(prefix_counter.n_objects) + '/DRAFT'
 
@@ -140,8 +150,8 @@ def post_api_objects_drafts_create(request):
 
     for creation_object in bulk_request:
         # Standardize the prefix.
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         standardized = creation_object['prefix'].upper()
 
         # Require the macro-level and draft-specific permissions.
