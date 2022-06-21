@@ -166,7 +166,7 @@ def post_api_objects_drafts_publish(request):
                 # Update the request status.
                 returning.append(
                     db_utils.messages(parameters={"prefix": prefix})[
-                        "401_prefix_unauthorized"
+                        "401_prefix_publish_unauthorized"
                     ]
                 )
                 any_failed = True

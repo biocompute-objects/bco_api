@@ -672,7 +672,14 @@ class DbUtils:
             "401_prefix_unauthorized": {
                 "request_status": "FAILURE",
                 "status_code": "401",
-                "message": "The token provided does not have draft permissions for prefix '"
+                "message": "The token provided does not have draft permissions for this prefix '"
+                + parameters["prefix"]
+                + "'.",
+            },
+            "401_prefix_publish_unauthorized": {
+                "request_status": "FAILURE",
+                "status_code": "401",
+                "message": "The token provided does not have publish permissions for this prefix '"
                 + parameters["prefix"]
                 + "'.",
             },
