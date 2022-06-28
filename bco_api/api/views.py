@@ -3,30 +3,15 @@
 
 Django views for BCODB API
 """
-# Based on the "Class Based API View" example at
-# https://codeloop.org/django-rest-framework-course-for-beginners/
-
-# For instructions on calling class methods from other classes, see
-# https://stackoverflow.com/questions/3856413/call-class-method-from-another-class
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-
-# By-view permissions
 from rest_framework.permissions import IsAuthenticated
-
-# Message page
-# Source: https://www.django-rest-framework.org/topics/html-and-forms/#rendering-html
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
-
-# Views
 from rest_framework.views import APIView
-
-from .permissions import RequestorInPrefixAdminsGroup
-
-# FIX
+from api.permissions import RequestorInPrefixAdminsGroup
 from api.scripts.method_specific.GET_activate_account import GET_activate_account
 from api.scripts.method_specific.GET_draft_object_by_id import get_draft_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id import (
@@ -51,7 +36,6 @@ from api.model.prefix import (
     post_api_prefixes_delete,
     post_api_prefixes_modify,
     post_api_prefixes_permissions_set,
-    post_api_prefixes_token,
     post_api_prefixes_token_flat,
 )
 
@@ -195,8 +179,8 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
         tags=["Account Management"],
     )
     def get(self, request, username: str, temp_identifier: str):
-        # Check the request to make sure it is valid - not sure what this is really doing though
-        # Placeholder
+        """Check the request to make sure it is valid - not sure what this is really doing though
+        Placeholder"""
         check_get(request)
         checked = None
         if checked is None:
@@ -1115,32 +1099,6 @@ class ApiObjectsPublished(APIView):
     Get all BCOs available for a specific token, including published ones.
     """
 
-    # auth = []
-    # auth.append(
-    #         openapi.Parameter('Token', openapi.IN_HEADER, description="Authorization Token", type=openapi.TYPE_STRING))
-
-    # request_body = openapi.Schema(
-    #     type=openapi.TYPE_OBJECT,
-    #     title="Get BCO Schema",
-    #     description="Parameters that are supported when fetching a BCOs.",
-    #     required=['POST_api_objects_token'],
-    #     properties={
-    #         'POST_api_objects_token': openapi.Schema(
-    #             type=openapi.TYPE_OBJECT,
-    #             required=['fields'],
-    #             properties={
-    #                 'fields': openapi.Schema(
-    #                     type=openapi.TYPE_ARRAY,
-    #                     items=openapi.Schema(
-    #                         type=openapi.TYPE_STRING,
-    #                         description="Field to return",
-    #                         enum=['contents', 'last_update', 'object_class', 'object_id', 'owner_group', 'owner_user',
-    #                               'prefix', 'schema', 'state']
-    #                     ),
-    #                     description="Fields to return.")
-    #             })})
-
-    # Anyone can view a published object
     authentication_classes = []
     permission_classes = []
     auth = []
