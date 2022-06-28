@@ -4,6 +4,7 @@
 """
 
 from itertools import chain
+
 from api.models import BCO
 from api.model.prefix import Prefix
 from api.scripts.utilities import UserUtils
@@ -46,28 +47,34 @@ def post_api_objects_search(request):
         search_value = ""
     user_utils = UserUtils.UserUtils()
     user_info = request._user
+    user_prefixes = user_utils.prefixes_for_user(user_object=user_info)
+
+    prefix_perms = user_utils.prefix_perms_for_user(
+        flatten=True, user_object=user_info, specific_permission=["add"]
+    )
 
     if search_type == "bco_id":
-        if user_info.username == "anon":
-            bco_list = BCO.objects.filter(
+        publish_list = BCO.objects.filter(
                 object_id__icontains=search_value, state="PUBLISHED"
             )
-            result_list = chain(bco_list.values(*return_values))
+        if user_info.username == "anon":
+            result_list = chain(publish_list.values(*return_values))
         else:
             user_objects = get_objects_for_user(
                 user=user_info, perms=[], klass=BCO, any_perm=True
             )
-            bco_list = BCO.objects.filter(object_id__icontains=search_value).exclude(
+            draft_list = BCO.objects.filter(
+                object_id__icontains=search_value,
+                prefix__in=user_prefixes,
+                state="DRAFT"
+            ).exclude(
                 state="DELETE"
             )
-            for i in bco_list:
-                if i not in user_objects:
-                    bco_list.exclude(pk=i.id)
+            bco_list = draft_list.union(publish_list)
             result_list = chain(bco_list.values(*return_values))
 
     if search_type == "prefix":
         search_value = search_value.upper()
-        user_prefixes = user_utils.prefixes_for_user(user_object=user_info)
         try:
             prefix = Prefix.objects.get(prefix=search_value).prefix
 
@@ -77,7 +84,7 @@ def post_api_objects_search(request):
                 data={
                     "request_status": "FAILURE",
                     "status_code": "404",
-                    "message": "The prefix was not found on the server.",
+                    "message": "That prefix was not found on this server.",
                 },
             )
 
@@ -94,7 +101,7 @@ def post_api_objects_search(request):
                     "request_status": "FAILURE",
                     "status_code": "403",
                     "message": "The token provided does not have sufficient"
-                    " permissions for the requested object.",
+                    " permissions for the requested prefix.",
                 },
             )
 
@@ -110,5 +117,6 @@ def post_api_objects_search(request):
                 .exclude(state="DELETE")
                 .values(*return_values)
             )
+        # print(len(list(result_list)))
 
     return Response(status=status.HTTP_200_OK, data=result_list)
