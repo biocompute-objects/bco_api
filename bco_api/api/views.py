@@ -977,17 +977,38 @@ class ApiObjectsPublish(APIView):
     Take the bulk request and publish objects directly.
     """
 
-    # TODO: Need to get the schema that is being sent here from FE
+    POST_api_objects_publish_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=["prefix", "owner_group", "schema", "contents"],
+        properties={
+            "prefix": openapi.Schema(
+                type=openapi.TYPE_STRING, description="BCO Prefix to use"
+            ),
+            "owner_group": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Group which owns the BCO."
+            ),
+            "object_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="BCO Object ID."
+            ),
+            "schema": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Which schema the BCO satisfies."
+            ),
+            "contents": openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                description="Contents of the BCO.",
+            ),
+        },
+    )
+
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="BCO Publication Schema",
-        description="Publish description.",
+        description="Parameters that are supported when trying to create a published BCO.",
         properties={
-            "x": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Description of X"
-            ),
-            "y": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Description of Y"
+            "POST_api_objects_publish": openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=POST_api_objects_publish_schema,
+                description="BCO Drafts to create.",
             ),
         },
     )

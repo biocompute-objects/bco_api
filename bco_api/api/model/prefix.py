@@ -135,7 +135,10 @@ def post_api_prefixes_create(request):
                 )["409_prefix_conflict"]
 
             # Does the user exist?
-            if user_utils.check_user_exists(un=creation_object["owner_user"]) is False:
+            if (
+                user_utils.check_user_exists(user_name=creation_object["owner_user"])
+                is False
+            ):
 
                 error_check = True
 
@@ -145,7 +148,10 @@ def post_api_prefixes_create(request):
                 )["404_user_not_found"]
 
             # Does the group exist?
-            if user_utils.check_group_exists(n=creation_object["owner_group"]) is False:
+            if (
+                user_utils.check_group_exists(name=creation_object["owner_group"])
+                is False
+            ):
                 error_check = True
                 # Bad request.
                 errors["404_group_not_found"] = db_utils.messages(
