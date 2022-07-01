@@ -16,7 +16,6 @@ from django.contrib.auth.models import Permission
 # For getting the user's token.
 from rest_framework.authtoken.models import Token
 
-
 class UserUtils:
     """
     Methods for interacting with user information.
@@ -65,9 +64,7 @@ class UserUtils:
 
                 # Finally, check that the user is in the group.
                 if group_name in list(
-                    User.objects.get(username=user_name).groups.values_list(
-                        "name", flat=True
-                    )
+                    User.objects.get(username=user_name).groups.values_list("name", flat=True)
                 ):
 
                     # Kick back the user and group info.

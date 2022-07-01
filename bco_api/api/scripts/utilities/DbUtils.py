@@ -466,7 +466,6 @@ class DbUtils:
             "expiration_date",
             "group",
             "object_id",
-            "constructed_obj_id",
             "object_perms",
             "prefix",
             "published_id",
@@ -755,15 +754,6 @@ class DbUtils:
                 + parameters["object_id"]
                 + " has already been created on this server.",
             },
-            "409_object_id_conflict": {
-                "request_status": "FAILURE",
-                "status_code": "409",
-                "message": "The provided object_id "
-                + parameters["object_id"]
-                + " does not match the constructed object_id "
-                + parameters["constructed_obj_id"]
-                + ".",
-            },
             "418_too_many_deleted": {
                 "request_status": "FAILURE",
                 "status_code": "418",
@@ -825,7 +815,7 @@ class DbUtils:
                 "root_uri", object_naming_info["root_uri"]
             )
 
-            constructed_name = constructed_name.replace("prefix", prefix)
+            constructed_name = constructed_name.replace("prefix", prfx)
 
             # Get rid of the rest of the regex for the name.
             prefix_location = constructed_name.index(prefix)
