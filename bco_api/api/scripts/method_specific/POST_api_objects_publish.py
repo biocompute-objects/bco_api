@@ -36,9 +36,8 @@ def POST_api_objects_publish(incoming):
         prefix = publish_object["prefix"].upper()
         if Prefix.objects.filter(prefix=prefix).exists():
             prefix_counter = prefix_table.objects.get(prefix=prefix)
-            # import pdb; pdb.set_trace()
+
             if "publish_" + prefix in px_perms:
-                print(prefix)
                 if "object_id" in publish_object:
                     accession = publish_object["object_id"].split("/")[-2]
                     object_num = int(
@@ -52,7 +51,6 @@ def POST_api_objects_publish(incoming):
                         + publish_object["contents"]["provenance_domain"]["version"]
                     )
                     if BCO.objects.filter(object_id__contains=accession).exists():
-                        print("conflict")
                         returning.append(
                             db_utils().messages(parameters={"object_id": accession})[
                                 "409_object_conflict"
@@ -61,7 +59,6 @@ def POST_api_objects_publish(incoming):
                         any_failed = True
                         continue
                     if publish_object["object_id"] != constructed_obj_id:
-                        print("conflict")
                         returning.append(
                             db_utils().messages(
                                 parameters={
@@ -150,9 +147,6 @@ def POST_api_objects_publish(incoming):
                             parameters={"object_id": constructed_obj_id}
                         )["201_create"]
                     )
-                    import pdb
-
-                    pdb.set_trace()
             else:
                 returning.append(
                     db_utils().messages(parameters={"prefix": prefix})[
