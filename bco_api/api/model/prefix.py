@@ -343,7 +343,7 @@ def post_api_prefixes_modify(request):
                 )["404_user_not_found"]
 
             # Does the group exist?
-            if user_utils.check_group_exists(n=creation_object["owner_group"]) is False:
+            if user_utils.check_group_exists(name=creation_object["owner_group"]) is False:
 
                 error_check = True
 
@@ -535,7 +535,7 @@ def post_api_prefixes_permissions_set(request):
                     sub_error_check = False
 
                     # Get the group whose permissions are being assigned.
-                    if uu.check_group_exists(n=g) is False:
+                    if uu.check_group_exists(name=g) is False:
 
                         sub_error_check = True
 
