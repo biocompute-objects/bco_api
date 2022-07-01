@@ -36,6 +36,7 @@ def POST_api_objects_publish(incoming):
         prefix = publish_object["prefix"].upper()
         if Prefix.objects.filter(prefix=prefix).exists():
             prefix_counter = prefix_table.objects.get(prefix=prefix)
+
             if "publish_" + prefix in px_perms:
                 if "object_id" in publish_object:
                     accession = publish_object["object_id"].split("/")[-2]
