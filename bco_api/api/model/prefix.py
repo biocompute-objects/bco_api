@@ -135,7 +135,10 @@ def post_api_prefixes_create(request):
                 )["409_prefix_conflict"]
 
             # Does the user exist?
-            if user_utils.check_user_exists(un=creation_object["owner_user"]) is False:
+            if (
+                user_utils.check_user_exists(user_name=creation_object["owner_user"])
+                is False
+            ):
 
                 error_check = True
 
@@ -145,7 +148,10 @@ def post_api_prefixes_create(request):
                 )["404_user_not_found"]
 
             # Does the group exist?
-            if user_utils.check_group_exists(n=creation_object["owner_group"]) is False:
+            if (
+                user_utils.check_group_exists(name=creation_object["owner_group"])
+                is False
+            ):
                 error_check = True
                 # Bad request.
                 errors["404_group_not_found"] = db_utils.messages(
@@ -327,7 +333,7 @@ def post_api_prefixes_modify(request):
                 )["404_missing_prefix"]
 
             # Does the user exist?
-            if user_utils.check_user_exists(un=creation_object["owner_user"]) is False:
+            if user_utils.check_user_exists(user_name=creation_object["owner_user"]) is False:
 
                 error_check = True
 
@@ -337,7 +343,7 @@ def post_api_prefixes_modify(request):
                 )["404_user_not_found"]
 
             # Does the group exist?
-            if user_utils.check_group_exists(n=creation_object["owner_group"]) is False:
+            if user_utils.check_group_exists(name=creation_object["owner_group"]) is False:
 
                 error_check = True
 
@@ -449,7 +455,7 @@ def post_api_prefixes_permissions_set(request):
 
             # The prefix exists, but is the requestor the owner?
             if (
-                uu.check_user_owns_prefix(un=user.username, prfx=standardized) is False
+                uu.check_user_owns_prefix(user_name=user.username, prfx=standardized) is False
                 and user.username != "wheel"
             ):
 
@@ -476,7 +482,7 @@ def post_api_prefixes_permissions_set(request):
                     assignees["group"] = creation_object["group"]
 
                 # Go through each one.
-                for un in assignees["username"]:
+                for user_name in assignees["username"]:
 
                     # Create a list to hold information about sub-errors.
                     sub_errors = {}
@@ -485,19 +491,19 @@ def post_api_prefixes_permissions_set(request):
                     sub_error_check = False
 
                     # Get the user whose permissions are being assigned.
-                    if uu.check_user_exists(un=un) is False:
+                    if uu.check_user_exists(user_name=user_name) is False:
 
                         sub_error_check = True
 
                         # Bad request, the user doesn't exist.
                         sub_errors["404_user_not_found"] = db.messages(
-                            parameters={"username": un}
+                            parameters={"username": user_name}
                         )["404_user_not_found"]
 
                     # Was the user found?
                     if sub_error_check is False:
 
-                        assignee = User.objects.get(username=un)
+                        assignee = User.objects.get(username=user_name)
 
                         # Permissions are defined directly as they are
                         # in the POST request.
@@ -529,7 +535,7 @@ def post_api_prefixes_permissions_set(request):
                     sub_error_check = False
 
                     # Get the group whose permissions are being assigned.
-                    if uu.check_group_exists(n=g) is False:
+                    if uu.check_group_exists(name=g) is False:
 
                         sub_error_check = True
 
