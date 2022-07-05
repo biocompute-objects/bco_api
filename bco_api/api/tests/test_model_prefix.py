@@ -72,7 +72,7 @@ class PrefixTableTestCase(TestCase):
 
         return prefix_table.objects.create(prefix=self.prefix, n_objects=self.n_objects)
 
-    def test_prefix_creation(self):
+    def test_prefix_table_creation(self):
         """Test prefix creation
 
         Creates prefix,

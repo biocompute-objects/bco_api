@@ -4,11 +4,10 @@
 
 """
 
-import json
+from datetime import timedelta
 from django.test import TestCase
 from django.contrib.auth.models import Group, User
 from django.utils import timezone
-from datetime import timedelta
 
 # from django.urls import reverse
 from api.model.groups import GroupInfo
@@ -56,6 +55,7 @@ class GroupsTestCase(TestCase):
 
         # GroupInfo assertions
         self.assertTrue(isinstance(new_group_info, GroupInfo))
+        self.assertEqual(new_group_info.__str__(), new_group_info.group.name)
         self.assertEqual(
             new_group_info.delete_members_on_group_deletion,
             self.delete_members_on_group_deletion,

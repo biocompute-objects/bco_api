@@ -50,7 +50,6 @@ def post_api_objects_drafts_create(request):
     # item in the array.
 
     for creation_object in bulk_request:
-        # Standardize the prefix.
         prefix = creation_object["prefix"].upper()
         # Require the macro-level and draft-specific permissions.
         if (
