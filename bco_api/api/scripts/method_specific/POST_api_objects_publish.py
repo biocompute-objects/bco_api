@@ -9,22 +9,18 @@ from api.models import BCO
 from api.model.prefix import prefix_table, Prefix
 from api.scripts.utilities.DbUtils import DbUtils as db_utils
 from api.scripts.utilities.UserUtils import UserUtils as user_utils
-from api.scripts.method_specific.POST_validate_payload_against_schema import (
-    validate,
-    get_schema,
-)
+from api.scripts.utilities.JsonUtils import parse_bco
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.utils import timezone
-from guardian.shortcuts import get_perms
 from rest_framework import status
 from rest_framework.response import Response
 
 
-def POST_api_objects_publish(incoming):
+def post_api_objects_publish(incoming):
     """
     Take the bulk request and publish objects directly.
     """
+
     root_uri = settings.OBJECT_NAMING["root_uri"]
     user = user_utils().user_from_request(request=incoming)
     px_perms = user_utils().prefix_perms_for_user(flatten=True, user_object=user)
@@ -33,6 +29,17 @@ def POST_api_objects_publish(incoming):
     any_failed = False
     results = {}
     for publish_object in bulk_request:
+        results = parse_bco(publish_object["contents"], results)
+        object_key = publish_object["contents"]["object_id"]
+        if results[object_key]["number_of_errors"] > 0:
+            returning.append(
+                db_utils().messages(parameters={"errors": results})[
+                    "400_non_publishable_object"
+                ]
+            )
+            any_failed = True
+            continue
+
         prefix = publish_object["prefix"].upper()
         if Prefix.objects.filter(prefix=prefix).exists():
             prefix_counter = prefix_table.objects.get(prefix=prefix)
@@ -99,13 +106,10 @@ def POST_api_objects_publish(incoming):
                         prefix_counter.n_objects = object_num + 1
                         prefix_counter.save()
                     returning.append(
-                        returning.append(
-                            db_utils().messages(
-                                parameters={"object_id": constructed_obj_id}
-                            )["201_create"]
-                        )
+                        db_utils().messages(
+                            parameters={"object_id": constructed_obj_id}
+                        )["201_create"]
                     )
-
                 else:
                     object_num = format(prefix_counter.n_objects, "06d")
                     version = publish_object["contents"]["provenance_domain"]["version"]
@@ -147,6 +151,7 @@ def POST_api_objects_publish(incoming):
                             parameters={"object_id": constructed_obj_id}
                         )["201_create"]
                     )
+
             else:
                 returning.append(
                     db_utils().messages(parameters={"prefix": prefix})[

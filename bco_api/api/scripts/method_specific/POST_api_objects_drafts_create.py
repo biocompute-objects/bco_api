@@ -41,7 +41,7 @@ def post_api_objects_drafts_create(request):
 
     # Get the object naming information.
     object_naming_info = settings.OBJECT_NAMING
-    root_uri = settings.OBJECT_NAMING['root_uri']
+    root_uri = settings.OBJECT_NAMING["root_uri"]
     # Construct an array to return the objects.
     returning = []
     any_failed = False
@@ -52,24 +52,23 @@ def post_api_objects_drafts_create(request):
     for creation_object in bulk_request:
         prefix = creation_object["prefix"].upper()
         # Require the macro-level and draft-specific permissions.
-        if (
-            "add_" + prefix in prefix_perms
-            and "draft_" + prefix in prefix_perms
-        ):
+        if "add_" + prefix in prefix_perms and "draft_" + prefix in prefix_perms:
             prefix_counter = prefix_table.objects.get(prefix=prefix)
             if "object_id" in creation_object:
-                if BCO.objects.filter(object_id=creation_object['object_id']).exists():
+                if BCO.objects.filter(object_id=creation_object["object_id"]).exists():
                     returning.append(
-                        db_utils.messages(parameters={"object_id": creation_object['object_id']})[
-                            "409_object_conflict"
-                        ]
+                        db_utils.messages(
+                            parameters={"object_id": creation_object["object_id"]}
+                        )["409_object_conflict"]
                     )
                     any_failed = True
                     continue
-                constructed_obj_id = creation_object['object_id']
+                constructed_obj_id = creation_object["object_id"]
             else:
                 object_num = format(prefix_counter.n_objects, "06d")
-                constructed_obj_id = (root_uri+'/'+prefix+'_'+object_num+'/DRAFT')
+                constructed_obj_id = (
+                    root_uri + "/" + prefix + "_" + object_num + "/DRAFT"
+                )
                 creation_object["object_id"] = constructed_obj_id
 
             if Group.objects.filter(
@@ -85,7 +84,7 @@ def post_api_objects_drafts_create(request):
                 # prefix_location = constructed_name.index(prefix)
                 # prefix_length = len(prefix)
                 # constructed_name = constructed_name[0 : prefix_location + prefix_length]
-                # 
+                #
                 # creation_object["object_id"] = (
                 #     constructed_name
                 #     + "_"
