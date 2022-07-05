@@ -55,8 +55,8 @@ def post_api_objects_search(request):
 
     if search_type == "bco_id":
         publish_list = BCO.objects.filter(
-                object_id__icontains=search_value, state="PUBLISHED"
-            )
+            object_id__icontains=search_value, state="PUBLISHED"
+        )
         if user_info.username == "anon":
             result_list = chain(publish_list.values(*return_values))
         else:
@@ -66,10 +66,8 @@ def post_api_objects_search(request):
             draft_list = BCO.objects.filter(
                 object_id__icontains=search_value,
                 prefix__in=user_prefixes,
-                state="DRAFT"
-            ).exclude(
-                state="DELETE"
-            )
+                state="DRAFT",
+            ).exclude(state="DELETE")
             bco_list = draft_list.union(publish_list)
             result_list = chain(bco_list.values(*return_values))
 

@@ -119,7 +119,7 @@ class ApiTestCase(TestCase):
         #             }
         #         ]
         # })
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 200)
 
         # print("Bad response ({}) when trying to test /api/objects/drafts/create/".format(response.status_code))
         # return False
