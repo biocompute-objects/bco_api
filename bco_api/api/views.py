@@ -65,7 +65,7 @@ from api.scripts.method_specific.POST_api_objects_drafts_token import (
     POST_api_objects_drafts_token,
 )
 from api.scripts.method_specific.POST_api_objects_publish import (
-    POST_api_objects_publish,
+    post_api_objects_publish,
 )
 from api.scripts.method_specific.POST_api_objects_published import (
     POST_api_objects_published,
@@ -1007,7 +1007,7 @@ class ApiObjectsPublish(APIView):
         tags=["BCO Management"],
     )
     def post(self, request) -> Response:
-        return check_post_and_process(request, POST_api_objects_publish)
+        return check_post_and_process(request, post_api_objects_publish)
 
 
 class ApiObjectsSearch(APIView):

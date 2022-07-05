@@ -333,7 +333,10 @@ def post_api_prefixes_modify(request):
                 )["404_missing_prefix"]
 
             # Does the user exist?
-            if user_utils.check_user_exists(user_name=creation_object["owner_user"]) is False:
+            if (
+                user_utils.check_user_exists(user_name=creation_object["owner_user"])
+                is False
+            ):
 
                 error_check = True
 
@@ -343,7 +346,10 @@ def post_api_prefixes_modify(request):
                 )["404_user_not_found"]
 
             # Does the group exist?
-            if user_utils.check_group_exists(name=creation_object["owner_group"]) is False:
+            if (
+                user_utils.check_group_exists(name=creation_object["owner_group"])
+                is False
+            ):
 
                 error_check = True
 
@@ -455,7 +461,8 @@ def post_api_prefixes_permissions_set(request):
 
             # The prefix exists, but is the requestor the owner?
             if (
-                uu.check_user_owns_prefix(user_name=user.username, prfx=standardized) is False
+                uu.check_user_owns_prefix(user_name=user.username, prfx=standardized)
+                is False
                 and user.username != "wheel"
             ):
 
