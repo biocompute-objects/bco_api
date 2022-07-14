@@ -3,17 +3,9 @@
 Functions for operations with Users
 """
 
-# For returning server information.
 from django.conf import settings
-
-# For pulling the user ID directly (see below for
-# the note on the documentation error in django-rest-framework).
 from django.contrib.auth.models import Group, User
-
-# Permissions
 from django.contrib.auth.models import Permission
-
-# For getting the user's token.
 from rest_framework.authtoken.models import Token
 
 
@@ -30,8 +22,8 @@ class UserUtils:
     """
 
     def check_permission_exists(self, perm):
-        """Does the user exist?"""
-        return Permission.objects.get(codename="test")
+        """Does the permission exist?"""
+        return Permission.objects.filter(codename=perm).exists()
 
     def check_group_exists(self, name):
         """Does the user exist?"""
@@ -54,37 +46,20 @@ class UserUtils:
         """
 
         try:
-
-            # Django wants a primary key for the User...
             user = User.objects.get(username=user_name).username
-
             try:
-
-                # Django wants a primary key for the Group...
                 group = Group.objects.get(name=group_name).name
-
-                # Finally, check that the user is in the group.
                 if group_name in list(
                     User.objects.get(username=user_name).groups.values_list(
                         "name", flat=True
                     )
                 ):
-
-                    # Kick back the user and group info.
                     return {"user": user, "group": group}
-
                 else:
-
                     return False
-
             except Group.DoesNotExist:
-
-                # Bad group.
                 return False
-
         except User.DoesNotExist:
-
-            # Bad user.
             return False
 
     def check_user_owns_prefix(self, user_name, prfx):

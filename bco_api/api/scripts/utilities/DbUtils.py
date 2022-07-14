@@ -1,43 +1,23 @@
-# Utilities
-# from api.model.prefix import prefix_table
+#!/usr/bin/env python3
+"""DB Utilities
+Functions for operations with DB
+"""
 
-# Checking versioning rules
-from api.models import BCO
-
-# For writing objects to the database.
-from api.serializers import getGenericSerializer
-
-# (OPTIONAL) For sending user information to userdb.
+import random
+import re
+import uuid
 import json
-import requests
-from api.scripts.utilities import UserUtils
-
-# For checking datetimes
 import datetime
-
-# For getting the model.
+import requests
+from api.models import BCO
+from api.serializers import getGenericSerializer
+from api.scripts.utilities import UserUtils
 from django.apps import apps
-
-# For getting object naming information.
 from django.conf import settings
-
-# For getting the API models.
-from django.contrib.contenttypes.models import ContentType
-
-# For checking for and creating users.
 from django.contrib.auth.models import Group, User
-
-# For recording the creation time.
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
-# For user IDs.
-import random
-
-# Regular expressions
-import re
-
-# For user passwords.
-import uuid
 
 
 class DbUtils:
@@ -255,14 +235,13 @@ class DbUtils:
                 # a root ID that does not exist.
                 return "non_root_id"
 
-    # Checking whether or not a user exists and their
-    # temp identifier matches.
     def check_activation_credentials(
         self, p_app_label, p_model_name, p_email, p_temp_identifier
     ) -> bool:
         """
         Simple existence check.
-
+        Checking whether or not a user exists and their
+        temp identifier matches.
         Source: https://stackoverflow.com/a/9089028
         Source: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#exists
         """
@@ -279,7 +258,6 @@ class DbUtils:
             # Take the time and add 2 days.
             time_check = list(user_info.values_list("created", flat=True))[0]
 
-            # Source: https://www.kite.com/python/answers/how-to-add-hours-to-the-current-time-in-python
             time_check = time_check + datetime.timedelta(hours=48)
 
             # Crappy timezone problems.
@@ -343,9 +321,9 @@ class DbUtils:
             return False
 
     def get_api_models(self):
-
-        # Get all the ACCESSIBLE models in the API.
-        # Source: https://stackoverflow.com/a/9407979
+        """Get all the ACCESSIBLE models in the API.
+        Source: https://stackoverflow.com/a/9407979
+        """
 
         api_models = []
 
@@ -959,9 +937,9 @@ class DbUtils:
         p_update_field=False,
     ):
 
-        # Source: https://docs.djangoproject.com/en/3.1/topics/db/queries/#topics-db-queries-update
+        """Source: https://docs.djangoproject.com/en/3.1/topics/db/queries/#topics-db-queries-update
 
-        # Serialize our data.
+        Serialize our data."""
         serializer = getGenericSerializer(
             incoming_model=apps.get_model(
                 app_label=p_app_label, model_name=p_model_name
@@ -999,5 +977,5 @@ class DbUtils:
 
             return objects_modified
 
-    def convert_id_form(oi_root):
+    def convert_id_form(self, oi_root):
         return oi_root.split("_")[0] + "{:06d}".format(int(oi_root.split("_")[1]))
