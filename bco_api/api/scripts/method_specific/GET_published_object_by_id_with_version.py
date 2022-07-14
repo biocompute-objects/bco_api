@@ -24,9 +24,9 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
     if underscores < 1:
         # ERROR - there should be an underscore separating the prefix and the BCO name
         return Response(
-                data='This API requires that the prefix and the BCO name be separated by an underscore \'_\' in the object_id_root PATH variable.',
-                status=status.HTTP_400_BAD_REQUEST
-                )
+            data="This API requires that the prefix and the BCO name be separated by an underscore '_' in the object_id_root PATH variable.",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     # TODO: This allows BCO Names to support underscores - not sure if that is valid though
     #       This can be 'fixed' by adding in a check for > 1 above
@@ -47,14 +47,10 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
     #         )
     # The object ID either exists or it does not.
     retrieved = list(
-            BCO.objects.filter(
-                    object_id__regex=rf'(.*?)/{oi_root}/{oi_version}',
-                    state='PUBLISHED'
-                    ).values_list(
-                    'contents',
-                    flat=True
-                    )
-            )
+        BCO.objects.filter(
+            object_id__regex=rf"(.*?)/{oi_root}/{oi_version}", state="PUBLISHED"
+        ).values_list("contents", flat=True)
+    )
     # Was the object found?
     if len(retrieved) > 0:
         # Kick it back.
@@ -62,11 +58,11 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
     else:
         # If all_versions has 0 length, then the
         # the root ID does not exist at all.
-        print('No objects were found for the root ID and version provided.')
+        print("No objects were found for the root ID and version provided.")
         return Response(
-                data='No objects were found for the root ID and version provided.',
-                status=status.HTTP_400_BAD_REQUEST
-                )
+            data="No objects were found for the root ID and version provided.",
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     # TODO: This code from here on down appears to be unreachable?  The above if/else will always return the request
     #       Maybe this is placeholder code for something?
@@ -74,55 +70,45 @@ def GET_published_object_by_id_with_version(oi_root, oi_version):
     db = DbUtils.DbUtils()
 
     # First, get the table based on the requested published object.
-    table_name = (
-            oi_root.split('_')[0] + '_publish'
-    ).lower()
+    table_name = (oi_root.split("_")[0] + "_publish").lower()
 
     # Does the table exist?
     # TODO: replace with better table call...
-    available_tables = settings.MODELS['json_object']
+    available_tables = settings.MODELS["json_object"]
 
     if table_name in available_tables:
 
         # Construct the object ID.
-        constructed = object_id = settings.PUBLIC_HOSTNAME + '/' + oi_root + '/' + oi_version
+        constructed = object_id = (
+            settings.PUBLIC_HOSTNAME + "/" + oi_root + "/" + oi_version
+        )
 
         # Does the object exist in the table?
-        if apps.get_model(
-                app_label='api',
-                model_name=table_name
-                ).objects.filter(
-                object_id=constructed
-                ).exists():
+        if (
+            apps.get_model(app_label="api", model_name=table_name)
+            .objects.filter(object_id=constructed)
+            .exists()
+        ):
 
             # Get the object, then check the permissions.
             objected = apps.get_model(
-                    app_label='api',
-                    model_name=table_name
-                    ).objects.get(
-                    object_id=constructed
-                    )
+                app_label="api", model_name=table_name
+            ).objects.get(object_id=constructed)
 
             return Response(
-                    data=serializers.serialize(
-                            'json',
-                            [objected, ]
-                            ),
-                    status=status.HTTP_200_OK
-                    )
+                data=serializers.serialize(
+                    "json",
+                    [
+                        objected,
+                    ],
+                ),
+                status=status.HTTP_200_OK,
+            )
 
         else:
 
-            return (
-                    Response(
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            )
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     else:
 
-        return (
-                Response(
-                        status=status.HTTP_400_BAD_REQUEST
-                        )
-        )
+        return Response(status=status.HTTP_400_BAD_REQUEST)

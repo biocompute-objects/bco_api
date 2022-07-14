@@ -1,21 +1,12 @@
-# Prefix
-# from api.model.prefix import Prefix
+#!/usr/bin/env python3
+"""User Utilities
+Functions for operations with Users
+"""
 
-# For returning server information.
 from django.conf import settings
-
-# For pulling the user ID directly (see below for
-# the note on the documentation error in django-rest-framework).
 from django.contrib.auth.models import Group, User
-
-# Permissions
 from django.contrib.auth.models import Permission
-
-# For getting the user's token.
 from rest_framework.authtoken.models import Token
-
-# Conditional logic
-from django.db.models import Q
 
 
 class UserUtils:
@@ -29,19 +20,20 @@ class UserUtils:
     -------
 
     """
+
     def check_permission_exists(self, perm):
-        """Does the user exist?"""
-        return Permission.objects.get(codename='test')
+        """Does the permission exist?"""
+        return Permission.objects.filter(codename=perm).exists()
 
-    def check_group_exists(self, n):
+    def check_group_exists(self, name):
         """Does the user exist?"""
-        return Group.objects.filter(name=n).exists()
+        return Group.objects.filter(name=name).exists()
 
-    def check_user_exists(self, un):
+    def check_user_exists(self, user_name):
         """Does the user exist?"""
-        return User.objects.filter(username=un).exists()
+        return User.objects.filter(username=user_name).exists()
 
-    def check_user_in_group(self, un, gn):
+    def check_user_in_group(self, user_name, group_name):
         """Check if a user is in a group.
 
         First check that the user exists.
@@ -54,42 +46,26 @@ class UserUtils:
         """
 
         try:
-
-            # Django wants a primary key for the User...
-            user = User.objects.get(username=un).username
-
+            user = User.objects.get(username=user_name).username
             try:
-
-                # Django wants a primary key for the Group...
-                group = Group.objects.get(name=gn).name
-
-                # Finally, check that the user is in the group.
-                if gn in list(User.objects.get(username=un).groups.values_list('name', flat=True)):
-
-                    # Kick back the user and group info.
-                    return {
-                            'user' : user,
-                            'group': group
-                            }
-
+                group = Group.objects.get(name=group_name).name
+                if group_name in list(
+                    User.objects.get(username=user_name).groups.values_list(
+                        "name", flat=True
+                    )
+                ):
+                    return {"user": user, "group": group}
                 else:
-
                     return False
-
             except Group.DoesNotExist:
-
-                # Bad group.
                 return False
-
         except User.DoesNotExist:
-
-            # Bad user.
             return False
 
-    def check_user_owns_prefix(self, un, prfx):
+    def check_user_owns_prefix(self, user_name, prfx):
         """Check if a user owns a prefix."""
 
-        return Prefix.objects.filter(owner_user=un, prefix=prfx).exists()
+        return Prefix.objects.filter(owner_user=user_name, prefix=prfx).exists()
 
     def get_user_groups_by_token(self, token):
         """Takes token to give groups.
@@ -104,15 +80,15 @@ class UserUtils:
         # group created when the account was created should show up).
         return Group.objects.filter(user=username)
 
-    def get_user_groups_by_username(self, un):
+    def get_user_groups_by_username(self, user_name):
         """Takes usernames to give groups.
         Get the groups for this username (at a minimum the user
         group created when the account was created should show up).
         """
-        return Group.objects.filter(user=User.objects.get(username=un))
+        return Group.objects.filter(user=User.objects.get(username=user_name))
 
     # Get all user information.
-    def get_user_info(self,username):
+    def get_user_info(self, username):
         """Get User Info
 
         Arguments
@@ -159,37 +135,36 @@ class UserUtils:
         user_id = User.objects.get(username=username).pk
         token = Token.objects.get(user=user_id)
         other_info = {
-            'permissions'       : { },
-            'account_creation'  : '',
-            'account_expiration': ''
+            "permissions": {},
+            "account_creation": "",
+            "account_expiration": "",
         }
 
         user = User.objects.get(username=username)
-        user_perms = {'user'  : [], 'groups': []}
+        user_perms = {"user": [], "groups": []}
 
         for permission in user.user_permissions.all():
-            if permission.name not in user_perms['user']:
-                user_perms['user'].append(permission.name)
+            if permission.name not in user_perms["user"]:
+                user_perms["user"].append(permission.name)
 
         for group in user.groups.all():
-            if group.name not in user_perms['groups']:
-                user_perms['groups'].append(group.name)
+            if group.name not in user_perms["groups"]:
+                user_perms["groups"].append(group.name)
             for permission in Permission.objects.filter(group=group):
-                if permission.name not in user_perms['user']:
-                    user_perms['user'].append(permission.name)
+                if permission.name not in user_perms["user"]:
+                    user_perms["user"].append(permission.name)
 
-        other_info['permissions'] = user_perms
+        other_info["permissions"] = user_perms
 
-        other_info['account_creation'] = user.date_joined
+        other_info["account_creation"] = user.date_joined
         return {
-                'hostname'               : settings.ALLOWED_HOSTS[0],
-                'human_readable_hostname': settings.HUMAN_READABLE_HOSTNAME,
-                'public_hostname'        : settings.PUBLIC_HOSTNAME,
-                'token'                  : token.key,
-                'username'               : user.username,
-                'other_info'             : other_info
-                }
-
+            "hostname": settings.ALLOWED_HOSTS[0],
+            "human_readable_hostname": settings.HUMAN_READABLE_HOSTNAME,
+            "public_hostname": settings.PUBLIC_HOSTNAME,
+            "token": token.key,
+            "username": user.username,
+            "other_info": other_info,
+        }
 
     def prefixes_for_user(self, user_object):
         """Prefix for a given user.
@@ -200,21 +175,27 @@ class UserUtils:
         a prefix automatically means viewing
         permission.
         """
-        
-        return list(set([i.split('_')[1] for i in user_object.get_all_permissions()]))
 
+        return list(set([i.split("_")[1] for i in user_object.get_all_permissions()]))
 
-    def prefix_perms_for_user(self, user_object, flatten=True, specific_permission=None):
+    def prefix_perms_for_user(
+        self, user_object, flatten=True, specific_permission=None
+    ):
         """Prefix permissions for a given user."""
 
         if specific_permission is None:
-            specific_permission = ['add', 'change', 'delete', 'view', 'draft', 'publish']
+            specific_permission = [
+                "add",
+                "change",
+                "delete",
+                "view",
+                "draft",
+                "publish",
+            ]
 
-        prefixed = self.get_user_info(
-                user_object
-                )['other_info']['permissions']
+        prefixed = self.get_user_info(user_object)["other_info"]["permissions"]
         permissions = []
-        for pre in prefixed['user']:
+        for pre in prefixed["user"]:
             permissions.append(Permission.objects.get(name=pre).codename)
 
         return permissions
@@ -261,7 +242,7 @@ class UserUtils:
 
         # # Return based on what we need.
         # if flatten == True:
-        
+
         #     # Only unique permissions are returned.
         #     return flat_perms
 
@@ -276,12 +257,13 @@ class UserUtils:
         ----------
         request: rest_framework.request.Request
             Django request object.
-        
+
         Returns
         -------
         django.contrib.auth.models.User
         """
 
         user_id = Token.objects.get(
-            key=request.META.get('HTTP_AUTHORIZATION').split(' ')[1]).user_id
+            key=request.META.get("HTTP_AUTHORIZATION").split(" ")[1]
+        ).user_id
         return User.objects.get(id=user_id)

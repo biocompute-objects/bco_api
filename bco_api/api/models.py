@@ -59,8 +59,8 @@ class BCO(models.Model):
     contents = models.JSONField()
     object_class = models.TextField(blank=True, null=True)
     object_id = models.TextField()
-    owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field='name')
-    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='username')
+    owner_group = models.ForeignKey(Group, on_delete=models.CASCADE, to_field="name")
+    owner_user = models.ForeignKey(User, on_delete=models.CASCADE, to_field="username")
     prefix = models.CharField(max_length=5)
     schema = models.TextField()
     state = models.TextField()
@@ -76,6 +76,7 @@ class new_users(models.Model):
     """Instead of using the User model, just use
     a crude table to store the temporary information
     when someone asks for a new account."""
+
     email = models.EmailField()
     temp_identifier = models.TextField(max_length=100)
     # In case we are writing back to UserDB.
@@ -100,8 +101,6 @@ class new_users(models.Model):
         return str(self.temp_identifier)
 
 
-
-
 # def get_first_name(self):
 #     return self.first_name
 
@@ -120,6 +119,7 @@ class new_users(models.Model):
 
 # --- User --- #
 
+
 @receiver(post_save, sender=User)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     """Link user creation to token generation.
@@ -128,7 +128,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         # The anonymous user's token is hard-coded
         # in server.conf.
-        if instance.username == 'anon':
+        if instance.username == "anon":
             # Create anon's record with the hard-coded key.
             Token.objects.create(user=instance, key=settings.ANON_KEY)
         else:

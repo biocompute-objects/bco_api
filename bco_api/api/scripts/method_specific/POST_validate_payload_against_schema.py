@@ -1,47 +1,43 @@
-import json
-from ..utilities import JsonUtils
+#!/usr/bin/env python3
+"""Bulk Validate BioCompute Objects
+"""
 
-def POST_validate_payload_against_schema(
-	bulk_request
-):
+from rest_framework import status
+from rest_framework.response import Response
+from api.scripts.utilities.JsonUtils import parse_bco
 
-	# Take the bulk request and determine which
-	# kind of schema we're looking for.
 
-	# Since bulk_request is an array, go over each
-	# item in the array, stopping if we have a failure.
-	for validation_object in bulk_request:
+def post_validate_bco(request):
+    """Bulk BCO Validation
 
-		# First, get the object to be validated.
-		to_be_validated = validation_object['payload']
+    Take the bulk request and validate each BCO.
 
-		# Is the schema on the server or was it provided?
-		if 'schema_server' in validation_object:
-			
-			# Load the schema, then pass it along for validation.
-			# Check to make sure schema file exists...
-			with open('api/validation_definitions/' + validation_object['schema_server'], 'r') as f:
-				schema_helper = json.load(f)
+    Parameters
+    ----------
+    request : rest_framework.request.Request
+        The bulk request object.
 
-			return(
-				{
-					'request_status': 'success', 
-					'contents': JsonUtils.JsonUtils().check_object_against_schema(
-						object_pass = to_be_validated, 
-						schema_pass = schema_helper
-					)
-				}
-			)
+    Returns
+    -------
+    Response : dict
+        A rest framework response object. The response data is a list of
+        dictionaries, each of which corisponding to one of the BCOs submitted
+        for validation.
+    """
 
-		elif 'schema_own' in bulk_request:
-			
-			# Use the provided schema.
-			return(
-				{
-					'request_status': 'success', 
-					'contents': JsonUtils.JsonUtils().check_object_against_schema(
-						object_pass = to_be_validated, 
-						schema_pass = validation_object['schema_own']
-					)
-				}
-			)
+    bco_list = request.data["POST_validate_bco"]
+    results = {}
+    any_failed = False
+    for bco in bco_list:
+        results = parse_bco(bco, results)
+        identifier = bco["object_id"]
+
+        if results[identifier]["number_of_errors"] == 0:
+            results[identifier]["error_detail"] = ["BCO Valid"]
+        else:
+            any_failed = True
+
+    if any_failed is True:
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=results)
+
+    return Response(status=status.HTTP_200_OK, data=results)

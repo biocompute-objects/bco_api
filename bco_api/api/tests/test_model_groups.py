@@ -4,11 +4,11 @@
 
 """
 
-import json
+from datetime import timedelta
 from django.test import TestCase
 from django.contrib.auth.models import Group, User
 from django.utils import timezone
-from datetime import timedelta
+
 # from django.urls import reverse
 from api.model.groups import GroupInfo
 
@@ -22,12 +22,12 @@ class GroupsTestCase(TestCase):
         self.delete_members_on_group_deletion = False
         self.description = "A test group."
         self.max_n_members = 100
-        self.expiration = timezone.now() + timedelta(seconds=600)  # make valid for 10 minutes
+        self.expiration = timezone.now() + timedelta(
+            seconds=600
+        )  # make valid for 10 minutes
 
     def create_group(self):
-        """Create Test Group
-
-        """
+        """Create Test Group"""
 
         # Return a tuple so we can distinguish easier in the test_group_creation (readability)
         return (
@@ -38,14 +38,14 @@ class GroupsTestCase(TestCase):
                 owner_user=User.objects.get(username=self.username),
                 description=self.description,
                 max_n_members=self.max_n_members,
-                expiration=self.expiration
-            )
+                expiration=self.expiration,
+            ),
         )
 
     def test_group_creation(self):
         """Test Group creation
 
-            Creates Group, asserts that group and group info are properly set.
+        Creates Group, asserts that group and group info are properly set.
         """
 
         new_group, new_group_info = self.create_group()
@@ -55,10 +55,16 @@ class GroupsTestCase(TestCase):
 
         # GroupInfo assertions
         self.assertTrue(isinstance(new_group_info, GroupInfo))
-        self.assertEqual(new_group_info.delete_members_on_group_deletion, self.delete_members_on_group_deletion)
+        self.assertEqual(new_group_info.__str__(), new_group_info.group.name)
+        self.assertEqual(
+            new_group_info.delete_members_on_group_deletion,
+            self.delete_members_on_group_deletion,
+        )
         self.assertEqual(new_group_info.description, self.description)
         self.assertEqual(new_group_info.group, Group.objects.get(name=self.group_name))
-        self.assertEqual(new_group_info.owner_user, User.objects.get(username=self.username))
+        self.assertEqual(
+            new_group_info.owner_user, User.objects.get(username=self.username)
+        )
         self.assertEqual(new_group_info.max_n_members, self.max_n_members)
         self.assertEqual(new_group_info.expiration, self.expiration)
 

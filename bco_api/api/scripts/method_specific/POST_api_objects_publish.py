@@ -1,211 +1,172 @@
 #!/usr/bin/env python3
-"""publish
+"""Bulk Publish
 
 --------------------
 Take the bulk request and publish objects directly.
 """
 
-from ...models import BCO
-# For getting objects out of the database.
-from ..utilities import DbUtils
-
-# User information
-from ..utilities import UserUtils
-
-# For the owner group
-from django.contrib.auth.models import Group
-
-# Permissions for objects
-from guardian.shortcuts import get_perms
-
-# Responses
+from api.models import BCO
+from api.model.prefix import prefix_table, Prefix
+from api.scripts.utilities.DbUtils import DbUtils as db_utils
+from api.scripts.utilities.UserUtils import UserUtils as user_utils
+from api.scripts.utilities.JsonUtils import parse_bco
+from django.conf import settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 
-def POST_api_objects_publish(incoming):
+
+def post_api_objects_publish(incoming):
     """
     Take the bulk request and publish objects directly.
     """
 
-    # Instantiate any necessary imports.
-    db = DbUtils.DbUtils()
-    uu = UserUtils.UserUtils()
-
-    # The token has already been validated,
-    # so the user is guaranteed to exist.
-
-    # Get the User object.
-    user = uu.user_from_request(
-        rq = incoming
-    )
-
-    # Get the user's prefix permissions.
-    px_perms = uu.prefix_perms_for_user(
-        flatten = True,
-        user_object = user
-    )
-
-    # Define the bulk request.
-    bulk_request = incoming.data['POST_api_objects_publish']
-
-    # Construct an array to return the objects.
+    root_uri = settings.OBJECT_NAMING["root_uri"]
+    user = user_utils().user_from_request(request=incoming)
+    px_perms = user_utils().prefix_perms_for_user(flatten=True, user_object=user)
+    bulk_request = incoming.data["POST_api_objects_publish"]
     returning = []
-
-    # Since bulk_request is an array, go over each
-    # item in the array.
+    any_failed = False
+    results = {}
     for publish_object in bulk_request:
+        results = parse_bco(publish_object["contents"], results)
+        object_key = publish_object["contents"]["object_id"]
+        if results[object_key]["number_of_errors"] > 0:
+            returning.append(
+                db_utils().messages(parameters={"errors": results})[
+                    "400_non_publishable_object"
+                ]
+            )
+            any_failed = True
+            continue
 
-        # Attempting to publish from a draft ID.
+        prefix = publish_object["prefix"].upper()
+        if Prefix.objects.filter(prefix=prefix).exists():
+            prefix_counter = prefix_table.objects.get(prefix=prefix)
 
-        # Get the prefix *that we are publishing under*
-        # (this prefix is not necessarily the same one
-        # as the draft was created under).
-        standardized = publish_object['prefix']
-
-        # Does the requestor have publish permissions for
-        # the *prefix*?
-        if 'publish_' + standardized in px_perms:
-        
-            # The requestor has publish permissions for
-            # the prefix.  If no object ID is provided,
-            # proceed straight to the publish attempt.
-                
-            # Attempt to publish, but first, verify
-            # that the object is IEEE-compliant.
-            # schema_check = ju.check_object_against_schema(
-            #     object_pass = objected,
-            #     schema_pass = 
-            # )
-            # TODO: fix the schema check...
-            schema_check = None
-
-            if schema_check is None:
-
-                # If an object_id is given with the request,
-                # it means that we are trying to publish
-                # a new version of an existing published object (on this server).
-
-                # Go straight to the publish attempt if there is no
-                # object_id key given with the request.
-                if 'object_id' not in publish_object:
-
-                    # Object is compliant, so kick it off to
-                    # be published.
-
-                    # For publishing, the owner group and the
-                    # owner user are "the same".  That is, the
-                    # owner group is the one derived from the owner user.
-                    published = db.publish(
-                        og = Group.objects.get(name = user.username).name,
-                        ou = user.username,
-                        prfx = standardized,
-                        publishable = publish_object["contents"],
-                        publishable_id = 'new'
+            if "publish_" + prefix in px_perms:
+                if "object_id" in publish_object:
+                    accession = publish_object["object_id"].split("/")[-2]
+                    object_num = int(
+                        publish_object["object_id"].split("_")[1].split("/")[0]
                     )
-
-
-                    # Did the publishing go well?
-                    if isinstance(published, dict):
-
-                        # Update the request status.
+                    constructed_obj_id = (
+                        root_uri
+                        + "/"
+                        + accession
+                        + "/"
+                        + publish_object["contents"]["provenance_domain"]["version"]
+                    )
+                    if BCO.objects.filter(object_id__contains=accession).exists():
                         returning.append(
-                            db.messages(
-                                parameters = {
-                                    'published_id': published['published_id']
-                                }
-                            )['200_OK_object_publish']
+                            db_utils().messages(parameters={"object_id": accession})[
+                                "409_object_conflict"
+                            ]
                         )
+                        any_failed = True
+                        continue
+                    if publish_object["object_id"] != constructed_obj_id:
+                        returning.append(
+                            db_utils().messages(
+                                parameters={
+                                    "object_id": publish_object["object_id"],
+                                    "constructed_obj_id": constructed_obj_id,
+                                }
+                            )["409_object_id_conflict"]
+                        )
+                        any_failed = True
+                        continue
+                    new_object = {}
+                    new_object["contents"] = publish_object["contents"]
+                    new_object["object_id"] = constructed_obj_id
+                    new_object["contents"]["object_id"] = constructed_obj_id
+                    new_object["owner_group"] = publish_object["owner_group"]
+                    new_object["owner_user"] = user.username
+                    new_object["prefix"] = prefix
+                    new_object["last_update"] = timezone.now()
+                    new_object["schema"] = "IEEE"
+                    new_object["state"] = "PUBLISHED"
 
+                    objects_written = db_utils().write_object(
+                        p_app_label="api",
+                        p_model_name="BCO",
+                        p_fields=[
+                            "contents",
+                            "last_update",
+                            "object_id",
+                            "owner_group",
+                            "owner_user",
+                            "prefix",
+                            "schema",
+                            "state",
+                        ],
+                        p_data=new_object,
+                    )
+                    if prefix_counter.n_objects < object_num:
+                        prefix_counter.n_objects = object_num + 1
+                        prefix_counter.save()
+                    returning.append(
+                        db_utils().messages(
+                            parameters={"object_id": constructed_obj_id}
+                        )["201_create"]
+                    )
                 else:
-
-                    # When an object ID is provided, the requestor must
-                    # have publish permissions for the published object.
-                    objected = BCO.objects.get(
-                        object_id = publish_object['object_id']
+                    object_num = format(prefix_counter.n_objects, "06d")
+                    version = publish_object["contents"]["provenance_domain"]["version"]
+                    constructed_obj_id = (
+                        root_uri + "/" + prefix + "_" + object_num + "/" + version
                     )
 
-                    # We don't care where the publish permission comes from,
-                    # be it a User permission or a Group permission.
-                    all_permissions = get_perms(user,objected)
-                    # Published object owner automatically has publish
-                    # permissions, but we need to check for the publish
-                    # permission otherwise.
-                    if user.username == objected.owner_user.username or 'publish_new_version_' + publish_object['object_id'] in all_permissions:
+                    new_object = {}
+                    new_object["contents"] = publish_object["contents"]
+                    new_object["object_id"] = constructed_obj_id
+                    new_object["contents"]["object_id"] = constructed_obj_id
+                    new_object["owner_group"] = publish_object["owner_group"]
+                    new_object["owner_user"] = user.username
+                    new_object["prefix"] = prefix
+                    new_object["last_update"] = timezone.now()
+                    new_object["schema"] = "IEEE"
+                    new_object["state"] = "PUBLISHED"
 
-                        # We need to check that the provided object ID
-                        # complies with the versioning rules.
-                        versioned = db.check_version_rules(
-                            published_id = publish_object['object_id']
-                        )
+                    objects_written = db_utils().write_object(
+                        p_app_label="api",
+                        p_model_name="BCO",
+                        p_fields=[
+                            "contents",
+                            "last_update",
+                            "object_id",
+                            "owner_group",
+                            "owner_user",
+                            "prefix",
+                            "schema",
+                            "state",
+                        ],
+                        p_data=new_object,
+                    )
 
-                        # If we get a dictionary back, that means we have
-                        # a usable object ID.  Otherwise, something went wrong
-                        # with trying to use the provided object ID.
-                        if isinstance(versioned, dict):
-
-                            # We now have the published_id to write with.
-
-                            # For publishing, the owner group and the
-                            # owner user are "the same".  That is, the
-                            # owner group is the one derived from the owner user.
-                            published = db.publish(
-                                og = Group.objects.get(name = user.username).name,
-                                ou = user.username,
-                                prfx = standardized,
-                                publishable = publish_object['contents'],
-                                publishable_id = versioned
-                            )
-
-                            # Did the publishing go well?
-                            if isinstance(published, dict):
-
-                                # Update the request status.
-                                returning.append(
-                                    db.messages(
-                                        parameters = {
-                                            'published_id': versioned
-                                        }
-                                    )['200_OK_object_publish']
-                                )
-                        else:
-                            # Either the object wasn't found
-                            # or an invalid version number was provided.
-                            if versioned == 'bad_version_number':
-                                returning.append(
-                                    db.messages(
-                                        parameters = {}
-                                    )['400_bad_version_number']
-                                )
-                            elif versioned == 'non_root_id':
-                                returning.append(
-                                    db.messages(
-                                        parameters = {}
-                                    )['400_non_root_id']
-                                )
-                    
-                    else:
-
-                        # Insufficient permissions.
-                        returning.append(db.messages(parameters = {}
-                            )['403_insufficient_permissions']
-                        )
+                    prefix_counter.n_objects = prefix_counter.n_objects + 1
+                    prefix_counter.save()
+                    returning.append(
+                        db_utils().messages(
+                            parameters={"object_id": constructed_obj_id}
+                        )["201_create"]
+                    )
 
             else:
-                # Object provided is not schema-compliant.
-                returning.append(db.messages(
-                    parameters = {'errors': schema_check}
-                    )['400_non_publishable_object']
+                returning.append(
+                    db_utils().messages(parameters={"prefix": prefix})[
+                        "401_prefix_unauthorized"
+                    ]
                 )
-        else:
-            # Update the request status.
-            returning.append(db.messages(
-                parameters = {'prefix': standardized}
-                )['401_prefix_unauthorized']
-            )
+                any_failed = True
 
-    # As this view is for a bulk operation, status 200
-    # means that the request was successfully processed,
-    # but NOT necessarily each item in the request.
-    # For example, a table may not have been found for the first
-    # requested draft.
-    return Response(status = status.HTTP_200_OK,data = returning)
+        else:
+            returning.append(
+                db_utils().messages(parameters={"prefix": prefix})["404_missing_prefix"]
+            )
+            any_failed = True
+
+    if any_failed:
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
+
+    return Response(status=status.HTTP_200_OK, data=returning)
