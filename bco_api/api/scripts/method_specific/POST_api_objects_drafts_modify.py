@@ -35,7 +35,7 @@ def post_api_objects_drafts_modify(request):
         An HttpResponse that allows its data to be rendered into arbitrary
         media types. As this view is for a bulk operation, status 200 means
         that the request was successfully processed for each item in the
-        request. A status of 300 means that some of the requests were
+        request. A status of 207 means that some of the requests were
         successfull.
     """
 
@@ -69,6 +69,19 @@ def post_api_objects_drafts_modify(request):
             # object-level change permissions OR if they are in a
             # group that has object-level change permissions.
             # To check these options, we need the actual object.
+
+            if draft_object['object_id'] != draft_object["contents"]["object_id"]:
+                returning.append(
+                    db_utils.messages(
+                        parameters={
+                            "object_id": draft_object["contents"]["object_id"],
+                            "draft_object_id": draft_object["object_id"]
+                            }
+                    )["409_draft_object_id_conflict"]
+                )
+                any_failed = True
+                continue
+
             if BCO.objects.filter(
                 object_id=draft_object["contents"]["object_id"]
             ).exists():
@@ -136,8 +149,8 @@ def post_api_objects_drafts_modify(request):
         if returning[0]["status_code"] == "403":
             return Response(status=status.HTTP_403_FORBIDDEN, data=returning)
         else:
-            return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+            return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
     if any_failed and len(returning) > 1:
-        return Response(status=status.HTTP_300_MULTIPLE_CHOICES, data=returning)
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
     else:
         return Response(status=status.HTTP_200_OK, data=returning)

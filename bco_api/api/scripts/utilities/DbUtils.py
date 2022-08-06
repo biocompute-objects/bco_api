@@ -740,6 +740,15 @@ class DbUtils:
                 + parameters["object_id"]
                 + " has already been created on this server.",
             },
+            "409_draft_object_id_conflict": {
+                "request_status": "FAILURE",
+                "status_code": "409",
+                "message": "The provided object_id "
+                + parameters["object_id"]
+                + " does not match the saved draft object_id "
+                + parameters["draft_object_id"]
+                + ". Once a draft is created you can not change the object id.",
+            },
             "409_object_id_conflict": {
                 "request_status": "FAILURE",
                 "status_code": "409",
