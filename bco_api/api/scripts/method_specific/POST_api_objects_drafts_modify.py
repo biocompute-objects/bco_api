@@ -70,13 +70,13 @@ def post_api_objects_drafts_modify(request):
             # group that has object-level change permissions.
             # To check these options, we need the actual object.
 
-            if draft_object['object_id'] != draft_object["contents"]["object_id"]:
+            if draft_object["object_id"] != draft_object["contents"]["object_id"]:
                 returning.append(
                     db_utils.messages(
                         parameters={
                             "object_id": draft_object["contents"]["object_id"],
-                            "draft_object_id": draft_object["object_id"]
-                            }
+                            "draft_object_id": draft_object["object_id"],
+                        }
                     )["409_draft_object_id_conflict"]
                 )
                 any_failed = True
