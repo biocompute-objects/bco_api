@@ -19,7 +19,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
 
-
 class DbUtils:
     """Class Description
     -----------------

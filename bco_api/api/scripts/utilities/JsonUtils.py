@@ -58,7 +58,6 @@ def validate(schema, json_object, results):
     results : dict
        A dictionary that is used to collect the validation results.
     """
-
     if "object_id" in json_object:
         identifier = json_object["object_id"]
 
@@ -99,6 +98,18 @@ def parse_bco(bco, results):
     results[identifier] = {"number_of_errors": 0, "error_detail": []}
     try:
         spec_version = get_schema(bco["spec_version"])
+
+    except AttributeError:
+        file_path = os.path.dirname(
+            os.path.abspath("api/validation_definitions/IEEE/2791object.json")
+        )
+
+        ieee = "api/validation_definitions/IEEE/2791object.json"
+        with open(ieee, "r", encoding="utf-8") as file:
+            spec_version = jsonref.load(
+                file, base_uri=f"file://{file_path}/", jsonschema=True
+            )
+
     except ErrorConnecting:
         file_path = os.path.dirname(
             os.path.abspath("api/validation_definitions/IEEE/2791object.json")
@@ -109,8 +120,16 @@ def parse_bco(bco, results):
             spec_version = jsonref.load(
                 file, base_uri=f"file://{file_path}/", jsonschema=True
             )
+
     results = validate(spec_version, bco, results)
     if "extension_domain" in bco.keys():
+        if bco["extension_domain"] is not list:
+            results[identifier]["extension_domain"] = {
+                "number_of_errors": 1,
+                "error_detail": ["extension_doamin invalid"],
+            }
+
+            return results
         for extension in bco["extension_domain"]:
             extension_id = extension["extension_schema"]
             results[identifier][extension_id] = {

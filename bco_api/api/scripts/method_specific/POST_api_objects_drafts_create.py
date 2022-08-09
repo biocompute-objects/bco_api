@@ -138,7 +138,9 @@ def post_api_objects_drafts_create(request):
                 prefix_counter.save()
                 # Update the request status.
                 returning.append(
-                    db_utils.messages(parameters={"object_id": creation_object['object_id']})["201_create"]
+                    db_utils.messages(
+                        parameters={"object_id": creation_object["object_id"]}
+                    )["201_create"]
                 )
 
             else:
