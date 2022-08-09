@@ -444,6 +444,7 @@ class DbUtils:
             "expiration_date",
             "group",
             "object_id",
+            "draft_object_id",
             "constructed_obj_id",
             "object_perms",
             "prefix",
