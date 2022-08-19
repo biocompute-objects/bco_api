@@ -178,7 +178,8 @@ TEMPLATES = [
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
         "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
-    }
+    },
+    "DEEP_LINKING": True
 }
 
 REDOC_SETTINGS = {"LAZY_RENDERING": False}
