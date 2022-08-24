@@ -41,6 +41,14 @@ DEBUG = PRODUCTION
 # The human-readable hostname.
 HUMAN_READABLE_HOSTNAME = server_config["HRHOSTNAME"]["hrnames"]
 
+if server_config["GROUP_PREFIX"]["allow_all_creation"] == "True":
+    GROUP=True
+    PREFIX=True
+elif server_config["GROUP_PREFIX"]["allow_group_creation"] == "True":
+    GROUP=True
+elif server_config["GROUP_PREFIX"]["allow_prefix_creation"] == "True":
+    PREFIX=True
+
 # The publicly accessible hostname.
 if server_config["PRODUCTION"]["production"] == "True":
     PUBLIC_HOSTNAME = server_config["PUBLICHOSTNAME"]["prod_name"]
