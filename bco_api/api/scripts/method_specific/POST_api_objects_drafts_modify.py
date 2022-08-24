@@ -70,7 +70,7 @@ def post_api_objects_drafts_modify(request):
             # group that has object-level change permissions.
             # To check these options, we need the actual object.
 
-            if draft_object["object_id"] != draft_object["contents"]["object_id"]:
+            if draft_object["object_id"] not in draft_object["contents"]["object_id"]:
                 returning.append(
                     db_utils.messages(
                         parameters={
@@ -152,5 +152,5 @@ def post_api_objects_drafts_modify(request):
             return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
     if any_failed and len(returning) > 1:
         return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
-    else:
-        return Response(status=status.HTTP_200_OK, data=returning)
+
+    return Response(status=status.HTTP_200_OK, data=returning)

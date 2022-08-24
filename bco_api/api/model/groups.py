@@ -7,7 +7,6 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import Group, User
 from django.dispatch import receiver
 from rest_framework import status
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
 from api.scripts.utilities.DbUtils import DbUtils
@@ -153,7 +152,7 @@ def post_api_groups_create(request):
             users_excluded = []
 
             for usrnm in creation_object["usernames"]:
-                if usr_utils.check_user_exists(un=usrnm):
+                if usr_utils.check_user_exists(user_name=usrnm):
                     User.objects.get(username=usrnm).groups.add(
                         Group.objects.get(name=creation_object["name"])
                     )
@@ -327,7 +326,7 @@ def post_api_groups_modify(request):
                     # WARNING: This could cause an error if this is sent in!
                     if "owner_group" in action_set:
                         # Make sure the provided owner group exists.
-                        if usr_utils.check_group_exists(n=action_set["owner_group"]):
+                        if usr_utils.check_group_exists(name=action_set["owner_group"]):
                             group_information.owner_group = Group.objects.get(
                                 name=action_set["owner_group"]
                             )
@@ -338,7 +337,7 @@ def post_api_groups_modify(request):
 
                     if "owner_user" in action_set:
                         # Make sure the provided owner user exists.
-                        if usr_utils.check_user_exists(un=action_set["owner_user"]):
+                        if usr_utils.check_user_exists(user_name=action_set["owner_user"]):
                             group_information.owner_user = User.objects.get(
                                 username=action_set["owner_user"]
                             )

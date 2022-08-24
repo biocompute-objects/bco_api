@@ -2,10 +2,11 @@
 """Functions for operations with groups
 """
 
+
 import re
 from django.db import models
 from django.contrib.auth.models import Group, Permission, User
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 import django.db.utils as PermErrors
 from django.contrib.contenttypes.models import ContentType
@@ -21,7 +22,7 @@ from api.scripts.utilities import UserUtils
 # Generic meta data model
 # TODO: rename to prefix_meta
 class prefix_table(models.Model):
-    # The number of objects for a given prefix.
+    """ The number of objects for a given prefix."""
 
     # Field is required.
     n_objects = models.IntegerField()
@@ -85,95 +86,103 @@ def post_api_prefixes_create(request):
         arbitrary media types.
     """
 
-    # TODO: replace user/group looping with basic filtering
-    # on the model.  Loops now are slower than a single
-    # filter call.
-
-    # Instantiate any necessary imports.
     db_utils = DbUtils.DbUtils()
     user_utils = UserUtils.UserUtils()
-
-    # Define the bulk request.
     bulk_request = request.data["POST_api_prefixes_create"]
-
-    # Get all existing prefixes.
-    available_prefixes = list(Prefix.objects.all().values_list("prefix", flat=True))
-
-    # Construct an array to return information about processing
-    # the request.
-    returning = []
-
-    # Since bulk_request is an array, go over each
-    # item in the array.
-
+    unavailable = list(Prefix.objects.all().values_list("prefix", flat=True))
+    return_data = []
+    any_failed = False
     for creation_object in bulk_request:
-        # Go over each prefix proposed.
+        owner_user = User.objects.get(username=creation_object['owner_user'])
+        if creation_object['owner_group'] == 'bco_drafter':
+            is_public = True
+        else:
+            is_public = False
         for prfx in creation_object["prefixes"]:
-            # Create a list to hold information about errors.
-            errors = {}
-            # Standardize the prefix name.
             standardized = prfx["prefix"].upper()
-            # TODO: abstract this error check to schema checker?
-            # Check for each error.
-            # Create a flag for if one of these checks fails.
-            error_check = False
-            # Does the prefix follow the regex for prefixes?
             if not re.match(r"^[A-Z]{3,5}$", standardized):
-                error_check = True
-                # Bad request because the prefix doesn't follow
-                # the naming rules.
-                errors["400_bad_request_malformed_prefix"] = db_utils.messages(
-                    parameters={"prefix": standardized.upper()}
-                )["400_bad_request_malformed_prefix"]
+                return_data.append(
+                    db_utils.messages(parameters={"prefix": standardized})[
+                        "400_bad_request_malformed_prefix"
+                    ]
+                )
+                any_failed = True
+                continue
 
-            # Has the prefix already been created?
-            if standardized in available_prefixes:
-                error_check = True
-                # Update the request status.
-                errors["409_prefix_conflict"] = db_utils.messages(
-                    parameters={"prefix": standardized.upper()}
-                )["409_prefix_conflict"]
+            if standardized in unavailable:
+                return_data.append(
+                    db_utils.messages(parameters={"prefix": standardized})[
+                        "409_prefix_conflict"
+                    ]
+                )
+                any_failed = True
+                continue
 
-            # Does the user exist?
             if (
                 user_utils.check_user_exists(user_name=creation_object["owner_user"])
                 is False
             ):
+                return_data.append(
+                    db_utils.messages(parameters={creation_object["owner_user"]})[
+                        "404_user_not_found"
+                    ]
+                )
+                any_failed = True
+                continue
 
-                error_check = True
-
-                # Bad request.
-                errors["404_user_not_found"] = db_utils.messages(
-                    parameters={"username": creation_object["owner_user"]}
-                )["404_user_not_found"]
-
-            # Does the group exist?
-            if (
-                user_utils.check_group_exists(name=creation_object["owner_group"])
-                is False
-            ):
-                error_check = True
-                # Bad request.
-                errors["404_group_not_found"] = db_utils.messages(
-                    parameters={"group": creation_object["owner_group"]}
-                )["404_group_not_found"]
-
-            # Was the expiration date validly formatted and, if so,
-            # is it after right now?
             if "expiration_date" in prfx:
                 if (
                     db_utils.check_expiration(dt_string=prfx["expiration_date"])
                     is not None
                 ):
-                    error_check = True
-                    # Bad request.
-                    errors["400_invalid_expiration_date"] = db_utils.messages(
-                        parameters={"expiration_date": prfx["expiration_date"]}
-                    )["400_invalid_expiration_date"]
+                    return_data.append(
+                    db_utils.messages(parameters={"expiration_date": prfx["expiration_date"]})[
+                        "400_invalid_expiration_date"
+                    ]
+                    )
+                    any_failed = True
+                    continue
+
             # Did any check fail?
-            if error_check is False:
-                # The prefix has not been created, so create it.
-                DbUtils.DbUtils().write_object(
+            if any_failed is False:
+                draft = prfx["prefix"].lower() + "_drafter"
+                publish = prfx["prefix"].lower() + "_publisher"
+
+                if len(Group.objects.filter(name=draft)) != 0:
+                    drafters = Group.objects.get(name=draft)
+                    owner_user.groups.add(drafters)
+                else:
+                    Group.objects.create(name=draft)
+                    drafters = Group.objects.get(name=draft)
+                    owner_user.groups.add(drafters)
+                    GroupInfo.objects.create(
+                        delete_members_on_group_deletion=False,
+                        description=prfx['description'],
+                        group=drafters,
+                        max_n_members=-1,
+                        owner_user=owner_user,
+                    )
+
+                if len(Group.objects.filter(name=publish)) != 0:
+                    publishers = Group.objects.get(name=publish)
+                    owner_user.groups.add(publishers)
+                else:
+                    Group.objects.create(name=publish)
+                    publishers = Group.objects.get(name=publish)
+                    owner_user.groups.add(publishers)
+                    GroupInfo.objects.create(
+                        delete_members_on_group_deletion=False,
+                        description=prfx['description'],
+                        group=publishers,
+                        max_n_members=-1,
+                        owner_user=owner_user,
+                    )
+                if is_public is True:
+                    owner_group = 'bco_drafter'
+                else:
+                    owner_group = publish
+
+                write_result = DbUtils.DbUtils().write_object(
                     p_app_label="api",
                     p_model_name="Prefix",
                     p_fields=[
@@ -188,24 +197,38 @@ def post_api_prefixes_create(request):
                             request=request
                         ).username,
                         "description": prfx["description"],
-                        "owner_group": creation_object["owner_group"],
+                        "owner_group": owner_group,
                         "owner_user": creation_object["owner_user"],
                         "prefix": standardized,
                     },
                 )
+                if write_result != 1:
+                    return_data.append(
+                        db_utils.messages(parameters={"prefix": standardized})[
+                            "409_prefix_conflict"
+                        ]
+                    )
+                    any_failed = True
+                    continue
 
+                return_data.append(
+                    db_utils.messages(
+                        parameters={"prefix": standardized}
+                    )["201_prefix_create"]
+                )
                 # Created the prefix.
-                errors["201_prefix_create"] = db_utils.messages(
-                    parameters={"prefix": standardized}
-                )["201_prefix_create"]
+                # errors["201_prefix_create"] = db_utils.messages(
+                #     parameters={"prefix": standardized}
+                # )["201_prefix_create"]
 
             # Append the possible "errors".
-            returning.append(errors)
+    if any_failed and len(return_data) == 1:
+        return Response(status=return_data[0]['status_code'], data=return_data)
 
-    # As this view is for a bulk operation, status 200
-    # means that the request was successfully processed,
-    # but NOT necessarily each item in the request.
-    return Response(status=status.HTTP_200_OK, data=returning)
+    if any_failed and len(return_data) > 1:
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=return_data)
+
+    return Response(status=status.HTTP_200_OK, data=return_data)
 
 
 def post_api_prefixes_delete(request):
@@ -234,9 +257,9 @@ def post_api_prefixes_delete(request):
     bulk_request = request.data["POST_api_prefixes_delete"]
 
     # Get all existing prefixes.
-    available_prefixes = list(Prefix.objects.all().values_list("prefix", flat=True))
+    unavailable = list(Prefix.objects.all().values_list("prefix", flat=True))
 
-    returning = []
+    return_data = []
 
     for creation_object in bulk_request:
 
@@ -249,7 +272,7 @@ def post_api_prefixes_delete(request):
         # Create a flag for if one of these checks fails.
         error_check = False
 
-        if standardized not in available_prefixes:
+        if standardized not in unavailable:
             error_check = True
             # Update the request status.
             errors["404_missing_prefix"] = db_utils.messages(
@@ -270,12 +293,12 @@ def post_api_prefixes_delete(request):
             )["200_OK_prefix_delete"]
 
         # Append the possible "errors".
-        returning.append(errors)
+        return_data.append(errors)
 
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
-    return Response(status=status.HTTP_200_OK, data=returning)
+    return Response(status=status.HTTP_200_OK, data=return_data)
 
 
 def post_api_prefixes_modify(request):
@@ -300,11 +323,11 @@ def post_api_prefixes_modify(request):
     user_utils = UserUtils.UserUtils()
 
     bulk_request = request.data["POST_api_prefixes_modify"]
-    available_prefixes = list(Prefix.objects.all().values_list("prefix", flat=True))
+    unavailable = list(Prefix.objects.all().values_list("prefix", flat=True))
 
     # Construct an array to return information about processing
     # the request.
-    returning = []
+    return_data = []
 
     # Since bulk_request is an array, go over each
     # item in the array.
@@ -322,7 +345,7 @@ def post_api_prefixes_modify(request):
             # Create a flag for if one of these checks fails.
             error_check = False
 
-            if standardized not in available_prefixes:
+            if standardized not in unavailable:
 
                 error_check = True
 
@@ -404,17 +427,16 @@ def post_api_prefixes_modify(request):
                 )["201_prefix_modify"]
 
             # Append the possible "errors".
-            returning.append(errors)
+            return_data.append(errors)
 
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
-    return Response(status=status.HTTP_200_OK, data=returning)
+    return Response(status=status.HTTP_200_OK, data=return_data)
 
 
 def post_api_prefixes_permissions_set(request):
-
-    # Set the permissions for prefixes.
+    """Set the permissions for prefixes."""
 
     # Instantiate any necessary imports.
     db = DbUtils.DbUtils()
@@ -427,11 +449,11 @@ def post_api_prefixes_permissions_set(request):
     bulk_request = request.data["POST_api_prefixes_permissions_set"]
 
     # Get all existing prefixes.
-    available_prefixes = list(Prefix.objects.all().values_list("prefix", flat=True))
+    unavailable = list(Prefix.objects.all().values_list("prefix", flat=True))
 
     # Construct an array to return information about processing
     # the request.
-    returning = []
+    return_data = []
 
     # Since bulk_request is an array, go over each
     # item in the array.
@@ -450,7 +472,7 @@ def post_api_prefixes_permissions_set(request):
             error_check = False
 
             # Has the prefix already been created?
-            if standardized not in available_prefixes:
+            if standardized not in unavailable:
 
                 error_check = True
 
@@ -578,12 +600,12 @@ def post_api_prefixes_permissions_set(request):
                     errors["group"] = sub_errors
 
             # Append the possible "errors".
-            returning.append(errors)
+            return_data.append(errors)
 
     # As this view is for a bulk operation, status 200
     # means that the request was successfully processed,
     # but NOT necessarily each item in the request.
-    return Response(status=status.HTTP_200_OK, data=returning)
+    return Response(status=status.HTTP_200_OK, data=return_data)
 
 
 def post_api_prefixes_token(request):
@@ -645,8 +667,8 @@ def post_api_prefixes_token_flat(request):
 
 
 # --- Prefix --- #
-@receiver(post_save, sender=Prefix)
-def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs):
+@receiver(pre_save, sender=Prefix)
+def create_permissions_for_prefix(sender, instance=None, **kwargs):
     """Link prefix creation to permissions creation.
     Check to see whether or not the permissions
     have already been created for this prefix.
@@ -667,61 +689,30 @@ def create_permissions_for_prefix(sender, instance=None, created=False, **kwargs
     #         max_n_members=-1,
     #         owner_user=User.objects.get(username='wheel')
     #     )
-    if created:
-        owner_user = User.objects.get(username=instance.owner_user)
-        owner_group = Group.objects.get(name=instance.owner_group_id)
-        draft = instance.prefix.lower() + "_drafter"
-        publish = instance.prefix.lower() + "_publisher"
+    owner_user = User.objects.get(username=instance.owner_user)
+    owner_group = Group.objects.get(name=instance.owner_group_id)
+    drafters = Group.objects.get(name=instance.prefix.lower() + "_drafter")
+    publishers = Group.objects.get(name=instance.prefix.lower() + "_publisher")
 
-        if len(Group.objects.filter(name=draft)) != 0:
-            drafters = Group.objects.get(name=draft)
-            owner_user.groups.add(drafters)
-        else:
-            Group.objects.create(name=draft)
-            drafters = Group.objects.get(name=draft)
-            owner_user.groups.add(drafters)
-            GroupInfo.objects.create(
-                delete_members_on_group_deletion=False,
-                description=instance.description,
-                group=drafters,
-                max_n_members=-1,
-                owner_user=owner_user,
+    try:
+        for perm in ["add", "change", "delete", "view", "draft", "publish"]:
+            Permission.objects.create(
+                name="Can " + perm + " BCOs with prefix " + instance.prefix,
+                content_type=ContentType.objects.get(app_label="api", model="bco"),
+                codename=perm + "_" + instance.prefix,
             )
+            new_perm = Permission.objects.get(codename=perm + "_" + instance.prefix)
+            owner_user.user_permissions.add(new_perm)
+            owner_group.permissions.add(new_perm)
+            publishers.permissions.add(new_perm)
+            if perm == "publish":
+                pass
+            else:
+                drafters.permissions.add(new_perm)
 
-        if len(Group.objects.filter(name=publish)) != 0:
-            publishers = Group.objects.get(name=publish)
-            owner_user.groups.add(publishers)
-        else:
-            Group.objects.create(name=publish)
-            publishers = Group.objects.get(name=publish)
-            owner_user.groups.add(publishers)
-            GroupInfo.objects.create(
-                delete_members_on_group_deletion=False,
-                description=instance.description,
-                group=publishers,
-                max_n_members=-1,
-                owner_user=owner_user,
-            )
-
-        try:
-            for perm in ["add", "change", "delete", "view", "draft", "publish"]:
-                Permission.objects.create(
-                    name="Can " + perm + " BCOs with prefix " + instance.prefix,
-                    content_type=ContentType.objects.get(app_label="api", model="bco"),
-                    codename=perm + "_" + instance.prefix,
-                )
-                new_perm = Permission.objects.get(codename=perm + "_" + instance.prefix)
-                owner_user.user_permissions.add(new_perm)
-                owner_group.permissions.add(new_perm)
-                publishers.permissions.add(new_perm)
-                if perm == "publish":
-                    pass
-                else:
-                    drafters.permissions.add(new_perm)
-
-        except PermErrors.IntegrityError:
-            # The permissions already exist.
-            pass
+    except PermErrors.IntegrityError:
+        # The permissions already exist.
+        pass
 
 
 @receiver(post_save, sender=Prefix)

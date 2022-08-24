@@ -1181,7 +1181,7 @@ class ApiPrefixesCreate(APIView):
         type=openapi.TYPE_OBJECT,
         title="Prefix Creation Schema",
         description="Several parameters are required to create a prefix.",
-        required=["owner_group", "owner_user", "prefix"],
+        required=["owner_user", "prefix"],
         properties={
             "description": openapi.Schema(
                 type=openapi.TYPE_STRING,
