@@ -1,18 +1,15 @@
 # For getting objects out of the database.
-from .scripts.utilities import DbUtils
-
 # Apps
-from django.apps import apps
-
 # Group object permissions
 # Source: https://github.com/django-guardian/django-guardian#usage
-from guardian.shortcuts import get_group_perms
-
 # REST permissions.
 # Source: https://stackoverflow.com/a/18646798
-from rest_framework import permissions
 
-# User info
+from django.apps import apps
+from django.conf import settings
+from api.scripts.utilities import DbUtils
+from guardian.shortcuts import get_group_perms
+from rest_framework import permissions
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User, Group
 
@@ -21,14 +18,13 @@ from django.contrib.auth.models import User, Group
 
 
 class RequestorInGroupAdminsGroup(permissions.BasePermission):
+    """Class docstring"""
     def has_permission(self, request, view):
+        """Check to see if the requester is in the group admins group.
+            Get the groups for this token (user).
+            This means getting the user ID for the token,
+            then the username."""
 
-        # Check to see if the requester is in the group admins group.
-
-        # Get the groups for this token (user).
-
-        # This means getting the user ID for the token,
-        # then the username.
         user_id = Token.objects.get(
             key=request.META.get("HTTP_AUTHORIZATION").split(" ")[1]
         ).user_id
@@ -59,6 +55,9 @@ class RequestorInPrefixAdminsGroup(permissions.BasePermission):
         then the username.
         Get the prefix admins.
         """
+
+        if settings.PREFIX is True:
+            return True
         if "HTTP_AUTHORIZATION" in request.META:
             user_id = Token.objects.get(
                 key=request.META.get("HTTP_AUTHORIZATION").split(" ")[1]
@@ -67,7 +66,7 @@ class RequestorInPrefixAdminsGroup(permissions.BasePermission):
             username = User.objects.get(id=user_id)
 
             prefix_admins = Group.objects.filter(user=username, name="prefix_admins")
-
+            import pdb; pdb.set_trace()
             return len(prefix_admins) > 0
 
         else:
