@@ -1,0 +1,25 @@
+#cat docker-compose.yml
+
+version: '3.4'
+
+services:
+  bco-api:
+    build: .
+    # image: ghcr.io/biocompute-objects/bco_api:latest
+    container_name: bco-api
+    environment:
+      TZ: 'America/New_York'
+
+    ports:
+      - "8000:8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+    # volumes:
+      #  - /Users/hadleyking/GitHub/biocompute-objects/dev/data/db.sqlite3:/biocompute_api/bco_api/db.sqlite3
+      #  - /Users/hadleyking/GitHub/biocompute-objects/dev/data/server.conf:/biocompute_api/bco_api/server.conf
+
