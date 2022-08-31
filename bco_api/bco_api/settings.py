@@ -88,8 +88,6 @@ elif server_config["REQUESTS_FROM"]["public"].strip() == "true":
         CORS_ORIGIN_ALLOW_ALL = True
 
 # Use the REST framework
-# Source: https://www.django-rest-framework.org/api-guide/authentication/#setting-the-authentication-scheme
-# Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication"
@@ -192,7 +190,7 @@ WSGI_APPLICATION = "bco_api.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        "NAME": server_config["DATABASES"]["path"],
     }
 }
 
@@ -260,8 +258,6 @@ elif server_config["PRODUCTION"]["production"] == "False":
             OBJECT_NAMING[i] = server_config["OBJECT_NAMING"][i]
 
 # emailing notifications
-
-# e-Mail settings are explained at https://stackoverflow.com/questions/46053085/django-gmail-smtp-error-please-run-connect-first
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "localhost"
 EMAIL_PORT = 25
