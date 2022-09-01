@@ -3,9 +3,9 @@ LABEL org.opencontainers.image.source https://github.com/biocompute-objects/bco_
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Note that this is just for debug / test purposes; should not be set via the setup for production
-ENV DJANGO_SUPERUSER_PASSWORD="BioCompute123"
-ENV DJANGO_SUPERUSER_USERNAME="BioComputeSuperUser"
-ENV DJANGO_SUPERUSER_EMAIL="BioComputeSuperUser@gwu.edu"
+# ENV DJANGO_SUPERUSER_PASSWORD="BioCompute123"
+# ENV DJANGO_SUPERUSER_USERNAME="BioComputeSuperUser"
+# ENV DJANGO_SUPERUSER_EMAIL="BioComputeSuperUser@gwu.edu"
 
 RUN apt-get -qq update && apt-get install -y python3.9 python3-dev python3-pip
 
@@ -17,10 +17,7 @@ COPY requirements.txt .
 
 RUN python3 -m pip install -r requirements.txt
 
-# COPY admin_only ./admin_only
 COPY bco_api ./bco_api
-#COPY static ./static
-# COPY docs ./docs
 
 WORKDIR /biocompute_api/bco_api
 
