@@ -7,9 +7,14 @@ services:
     build: .
     # image: ghcr.io/biocompute-objects/bco_api:latest
     container_name: bco-api
+    volumes:
+       - /Users/hadleyking/GitHub/biocompute-objects/dev/data/db.sqlite3:/biocompute_api/bco_api/db.sqlite3
+       - /Users/hadleyking/GitHub/biocompute-objects/dev/data/server.conf:/biocompute_api/bco_api/server.conf
     environment:
       TZ: 'America/New_York'
-
+      ENV DJANGO_SUPERUSER_PASSWORD: "BioCompute123"
+      ENV DJANGO_SUPERUSER_USERNAME: "BioComputeSuperUser"
+      ENV DJANGO_SUPERUSER_EMAIL: "BioComputeSuperUser@gwu.edu"
     ports:
       - "8000:8000"
     read_only: true
@@ -18,8 +23,4 @@ services:
     restart: unless-stopped
     stdin_open: true
     tty: true
-
-    # volumes:
-      #  - /Users/hadleyking/GitHub/biocompute-objects/dev/data/db.sqlite3:/biocompute_api/bco_api/db.sqlite3
-      #  - /Users/hadleyking/GitHub/biocompute-objects/dev/data/server.conf:/biocompute_api/bco_api/server.conf
 
