@@ -123,7 +123,7 @@ def parse_bco(bco, results):
 
     results = validate(spec_version, bco, results)
     if "extension_domain" in bco.keys():
-        if bco["extension_domain"] is not list:
+        if isinstance(bco["extension_domain"], list)  is False:
             results[identifier]["extension_domain"] = {
                 "number_of_errors": 1,
                 "error_detail": ["extension_doamin invalid"],
