@@ -19,11 +19,12 @@ from django.contrib.auth.models import User, Group
 
 class RequestorInGroupAdminsGroup(permissions.BasePermission):
     """Class docstring"""
+
     def has_permission(self, request, view):
         """Check to see if the requester is in the group admins group.
-            Get the groups for this token (user).
-            This means getting the user ID for the token,
-            then the username."""
+        Get the groups for this token (user).
+        This means getting the user ID for the token,
+        then the username."""
 
         user_id = Token.objects.get(
             key=request.META.get("HTTP_AUTHORIZATION").split(" ")[1]
@@ -66,7 +67,9 @@ class RequestorInPrefixAdminsGroup(permissions.BasePermission):
             username = User.objects.get(id=user_id)
 
             prefix_admins = Group.objects.filter(user=username, name="prefix_admins")
-            import pdb; pdb.set_trace()
+            import pdb
+
+            pdb.set_trace()
             return len(prefix_admins) > 0
 
         else:

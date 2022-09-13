@@ -42,12 +42,12 @@ DEBUG = PRODUCTION
 HUMAN_READABLE_HOSTNAME = server_config["HRHOSTNAME"]["hrnames"]
 
 if server_config["GROUP_PREFIX"]["allow_all_creation"] == "True":
-    GROUP=True
-    PREFIX=True
+    GROUP = True
+    PREFIX = True
 elif server_config["GROUP_PREFIX"]["allow_group_creation"] == "True":
-    GROUP=True
+    GROUP = True
 elif server_config["GROUP_PREFIX"]["allow_prefix_creation"] == "True":
-    PREFIX=True
+    PREFIX = True
 
 # The publicly accessible hostname.
 if server_config["PRODUCTION"]["production"] == "True":
@@ -185,7 +185,7 @@ SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
         "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
     },
-    "DEEP_LINKING": True
+    "DEEP_LINKING": True,
 }
 
 REDOC_SETTINGS = {"LAZY_RENDERING": False}
