@@ -51,7 +51,7 @@ class BCO(models.Model):
     schema: str
         schema to which the BCO should be validated. Default is 'IEEE'
     state:str
-        State of object. PUBLISHED, DRAFT, and DELETE are currently accepted values.
+        State of object. REFERENCED, PUBLISHED, DRAFT, and DELETE are currently accepted values.
     last_update: DateTime
         Date Time object for the last database change to this object
     """
