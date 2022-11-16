@@ -65,11 +65,7 @@ class RequestorInPrefixAdminsGroup(permissions.BasePermission):
             ).user_id
 
             username = User.objects.get(id=user_id)
-
             prefix_admins = Group.objects.filter(user=username, name="prefix_admins")
-            import pdb
-
-            pdb.set_trace()
             return len(prefix_admins) > 0
 
         else:
