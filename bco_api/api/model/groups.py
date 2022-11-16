@@ -337,7 +337,9 @@ def post_api_groups_modify(request):
 
                     if "owner_user" in action_set:
                         # Make sure the provided owner user exists.
-                        if usr_utils.check_user_exists(user_name=action_set["owner_user"]):
+                        if usr_utils.check_user_exists(
+                            user_name=action_set["owner_user"]
+                        ):
                             group_information.owner_user = User.objects.get(
                                 username=action_set["owner_user"]
                             )

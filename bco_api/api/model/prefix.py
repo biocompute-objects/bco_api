@@ -22,7 +22,7 @@ from api.scripts.utilities import UserUtils
 # Generic meta data model
 # TODO: rename to prefix_meta
 class prefix_table(models.Model):
-    """ The number of objects for a given prefix."""
+    """The number of objects for a given prefix."""
 
     # Field is required.
     n_objects = models.IntegerField()
@@ -93,8 +93,8 @@ def post_api_prefixes_create(request):
     return_data = []
     any_failed = False
     for creation_object in bulk_request:
-        owner_user = User.objects.get(username=creation_object['owner_user'])
-        if creation_object['owner_group'] == 'bco_drafter':
+        owner_user = User.objects.get(username=creation_object["owner_user"])
+        if creation_object["owner_group"] == "bco_drafter":
             is_public = True
         else:
             is_public = False
@@ -136,9 +136,9 @@ def post_api_prefixes_create(request):
                     is not None
                 ):
                     return_data.append(
-                    db_utils.messages(parameters={"expiration_date": prfx["expiration_date"]})[
-                        "400_invalid_expiration_date"
-                    ]
+                        db_utils.messages(
+                            parameters={"expiration_date": prfx["expiration_date"]}
+                        )["400_invalid_expiration_date"]
                     )
                     any_failed = True
                     continue
@@ -157,7 +157,7 @@ def post_api_prefixes_create(request):
                     owner_user.groups.add(drafters)
                     GroupInfo.objects.create(
                         delete_members_on_group_deletion=False,
-                        description=prfx['description'],
+                        description=prfx["description"],
                         group=drafters,
                         max_n_members=-1,
                         owner_user=owner_user,
@@ -172,13 +172,13 @@ def post_api_prefixes_create(request):
                     owner_user.groups.add(publishers)
                     GroupInfo.objects.create(
                         delete_members_on_group_deletion=False,
-                        description=prfx['description'],
+                        description=prfx["description"],
                         group=publishers,
                         max_n_members=-1,
                         owner_user=owner_user,
                     )
                 if is_public is True:
-                    owner_group = 'bco_drafter'
+                    owner_group = "bco_drafter"
                 else:
                     owner_group = publish
 
@@ -212,9 +212,9 @@ def post_api_prefixes_create(request):
                     continue
 
                 return_data.append(
-                    db_utils.messages(
-                        parameters={"prefix": standardized}
-                    )["201_prefix_create"]
+                    db_utils.messages(parameters={"prefix": standardized})[
+                        "201_prefix_create"
+                    ]
                 )
                 # Created the prefix.
                 # errors["201_prefix_create"] = db_utils.messages(
@@ -223,7 +223,7 @@ def post_api_prefixes_create(request):
 
             # Append the possible "errors".
     if any_failed and len(return_data) == 1:
-        return Response(status=return_data[0]['status_code'], data=return_data)
+        return Response(status=return_data[0]["status_code"], data=return_data)
 
     if any_failed and len(return_data) > 1:
         return Response(status=status.HTTP_207_MULTI_STATUS, data=return_data)
