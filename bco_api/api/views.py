@@ -1009,7 +1009,6 @@ class ApiObjectsPublish(APIView):
     def post(self, request) -> Response:
         return check_post_and_process(request, post_api_objects_publish)
 
-
 class ApiObjectsSearch(APIView):
     """
     Search for BCO

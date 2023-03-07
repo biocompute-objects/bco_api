@@ -133,7 +133,7 @@ AUTHENTICATION_BACKENDS = [
 # Application definition
 
 # Token-based authentication.
-# Source: https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#tokenau thentication
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.admindocs",
