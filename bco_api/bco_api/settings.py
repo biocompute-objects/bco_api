@@ -98,10 +98,15 @@ elif server_config["REQUESTS_FROM"]["public"].strip() == "true":
 # Use the REST framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication"
+        "rest_framework.authentication.TokenAuthentication",
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+    
+
 }
 
 # Password validation
@@ -149,6 +154,8 @@ INSTALLED_APPS = [
     "api",
     "reset_migrations",
     "guardian",
+    'rest_framework_jwt',
+    'rest_framework_jwt.blacklist',
 ]
 
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error

@@ -228,6 +228,7 @@ class ApiAccountsDescribe(APIView):
         Pass the request to the handling function
         Source: https://stackoverflow.com/a/31813810
         """
+        print('hadley')
         if "Authorization" in request.headers:
             return POST_api_accounts_describe(
                 token=request.META.get("HTTP_AUTHORIZATION")
