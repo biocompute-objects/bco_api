@@ -8,6 +8,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 # For importing configuration files
 import configparser
@@ -98,8 +99,8 @@ elif server_config["REQUESTS_FROM"]["public"].strip() == "true":
 # Use the REST framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        'authentication.services.JSONWebTokenAuthenticationQS',
         "rest_framework.authentication.TokenAuthentication",
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ],
@@ -107,6 +108,13 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     
 
+}
+
+JWT_AUTH = {
+    # "JWT_RESPONSE_PAYLOAD_HANDLER": "authentication.services.custom_jwt_handler",
+    "JWT_EXPIRATION_DELTA": timedelta(seconds=604800),
+    "JWT_REFRESH_EXPIRATION_DELTA": timedelta(days=14),
+    "JWT_ALLOW_REFRESH": True,
 }
 
 # Password validation
@@ -147,15 +155,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "drf_yasg",
     "rest_framework",
     "rest_framework.authtoken",
-    "drf_yasg",
-    "rest_framework_swagger",
-    "api",
-    "reset_migrations",
-    "guardian",
     'rest_framework_jwt',
     'rest_framework_jwt.blacklist',
+    "rest_framework_swagger",
+    "reset_migrations",
+    "guardian",
+    "api",
 ]
 
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error
@@ -170,7 +178,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "bco_api.urls"
+ROOT_URLCONF = "bcodb.urls"
 
 TEMPLATES = [
     {
@@ -197,7 +205,7 @@ SWAGGER_SETTINGS = {
 
 REDOC_SETTINGS = {"LAZY_RENDERING": False}
 
-WSGI_APPLICATION = "bco_api.wsgi.application"
+WSGI_APPLICATION = "bcodb.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases

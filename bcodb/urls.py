@@ -11,4 +11,5 @@ urlpatterns = [
     path("api/token/", obtain_jwt_token),
     path("api/verify/", verify_jwt_token),
     path("", include("api.urls")),
+    path("api/", include("authentication.urls"))
 ]
