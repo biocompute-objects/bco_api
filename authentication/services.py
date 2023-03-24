@@ -1,26 +1,54 @@
 # authenticaton/services.api
 
+import jwt
 import json
 import requests
-from rest_framework import exceptions, status
-from rest_framework.response import Response
 from django.contrib.auth.models import User, Group
-from rest_framework_jwt.authentication import JSONWebTokenAuthentication
-# from rest_framework_jwt.views import verify_jwt_token
+from rest_framework import exceptions, status, serializers
+from rest_framework.response import Response
+from rest_framework_jwt.authentication import BaseAuthentication
+from rest_framework_jwt.settings import api_settings
+from rest_framework_jwt.utils import jwt_get_secret_key
 
-class JSONWebTokenAuthenticationQS(JSONWebTokenAuthentication):
+jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
+    
+class CustomJSONWebTokenAuthentication(BaseAuthentication):
+    
+    def authenticate(self, request):
+        if 'Authorization' in request.headers:
+            type, token = request.headers['Authorization'].split(' ')
+            if type == 'Bearer':
+                unverified_payload = jwt.decode(token, None, False)
+                if unverified_payload['iss'] == 'https://orcid.org':
+                    orc_bool = authenticate_orcid(unverified_payload, token)
 
-    def get_jwt_value(self, request):
-        print('get_jwt_value')
-        type, token = request.headers['Authorization'].split(' ')
-        # type = request.headers['Authorization'].split(' ')
-        if type == 'Bearer':
-            # import pdb; pdb.set_trace()
-            return Response(status=status.HTTP_202_ACCEPTED)
-        if type == 'Token':
-            pass
-        # raise exceptions.AuthenticationFailed()
-        
+                try:
+                    user = User.objects.get(username=unverified_payload['username'])
+                    return (user, token)
+                except User.DoesNotExist:
+                    pass
+
+            if type == 'Token':
+                pass
+        pass
+
+def authenticate_orcid(payload:dict, token:str)-> bool:
+    """Authenticate ORCID
+    
+    Custom function to authenticate ORCID credentials.
+    """
+    
+
+    orcid_jwks = {
+        jwk['kid']: json.dumps(jwk)
+        for jwk in requests.get('https://orcid.org/oauth/jwks').json()['keys']
+    }
+    orcid_jwk = next(iter(orcid_jwks.values()))
+    orcid_key = jwt.algorithms.RSAAlgorithm.from_jwk(orcid_jwk)
+
+    result = jwt.decode(token, key=orcid_key, algorithms=['RS256'], audience='APP-ZQZ0BL62NV9SBWAX')
+    import pdb; pdb.set_trace()
+
 
 def custom_jwt_handler(token, user=None, request=None, public_key=None):
     """Custom JWT Handler
