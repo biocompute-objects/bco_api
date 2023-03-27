@@ -4,6 +4,8 @@
 Django views for BCODB API
 """
 
+import jwt
+from django.contrib.auth.models import User
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -11,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 from api.permissions import RequestorInPrefixAdminsGroup
 from api.scripts.method_specific.GET_activate_account import GET_activate_account
 from api.scripts.method_specific.GET_draft_object_by_id import get_draft_object_by_id
@@ -229,10 +232,16 @@ class ApiAccountsDescribe(APIView):
         Source: https://stackoverflow.com/a/31813810
         """
 
-        if "Authorization" in request.headers:
+        if request.headers["Authorization"].split(" ")[0] == "Token":
             return POST_api_accounts_describe(
                 token=request.META.get("HTTP_AUTHORIZATION")
             )
+        if request.headers["Authorization"].split(" ")[0] == "Bearer":
+            jw_token=request.META.get("HTTP_AUTHORIZATION").split(" ")[1]
+            unverified_payload = jwt.decode(jw_token, None, False)
+            user = User.objects.get(email=unverified_payload['email'])
+            token = "Thing "+ str(Token.objects.get(user=user))
+            return POST_api_accounts_describe(token)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 

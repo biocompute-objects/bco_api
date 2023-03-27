@@ -9,6 +9,8 @@ from rest_framework.response import Response
 from rest_framework_jwt.authentication import BaseAuthentication
 from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.utils import jwt_get_secret_key
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
     
@@ -18,16 +20,19 @@ class CustomJSONWebTokenAuthentication(BaseAuthentication):
         if 'Authorization' in request.headers:
             type, token = request.headers['Authorization'].split(' ')
             if type == 'Bearer':
-                unverified_payload = jwt.decode(token, None, False)
+                try:
+                    unverified_payload = jwt.decode(token, None, False)
+                except Exception as exp:
+                    raise exceptions.AuthenticationFailed(exp)
                 if unverified_payload['iss'] == 'https://orcid.org':
-                    orc_bool = authenticate_orcid(unverified_payload, token)
-
+                    authenticate_orcid(unverified_payload, token)
+                if unverified_payload['iss'] == 'accounts.google.com':
+                    authenticate_google(token, request)
                 try:
                     user = User.objects.get(username=unverified_payload['username'])
                     return (user, token)
                 except User.DoesNotExist:
-                    pass
-
+                    return None
             if type == 'Token':
                 pass
         pass
@@ -37,7 +42,6 @@ def authenticate_orcid(payload:dict, token:str)-> bool:
     
     Custom function to authenticate ORCID credentials.
     """
-    
 
     orcid_jwks = {
         jwk['kid']: json.dumps(jwk)
@@ -45,10 +49,19 @@ def authenticate_orcid(payload:dict, token:str)-> bool:
     }
     orcid_jwk = next(iter(orcid_jwks.values()))
     orcid_key = jwt.algorithms.RSAAlgorithm.from_jwk(orcid_jwk)
+    try:
+        jwt.decode(token, key=orcid_key, algorithms=['RS256'], audience='APP-ZQZ0BL62NV9SBWAX')
+    except Exception as exp:
+        raise exceptions.AuthenticationFailed(exp)
 
-    result = jwt.decode(token, key=orcid_key, algorithms=['RS256'], audience='APP-ZQZ0BL62NV9SBWAX')
+def authenticate_google(token: str, request: requests) -> bool:
+    """Authenticate Google
+    
+    Custom function to authenticate Google credentials.
+    """
+    idinfo = id_token.verify_oauth2_token(token, requests.Request())
+
     import pdb; pdb.set_trace()
-
 
 def custom_jwt_handler(token, user=None, request=None, public_key=None):
     """Custom JWT Handler
