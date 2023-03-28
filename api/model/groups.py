@@ -434,7 +434,7 @@ def associate_user_group(sender, instance, created, **kwargs):
         Group.objects.create(name=instance)
         group = Group.objects.get(name=instance)
         group.user_set.add(instance)
-        if instance.username not in ["anon", "bco_drafter", "bco_publisher"]:
+        if instance.username not in ["anon", "bco_drafter", "bco_publisher", "AnonymousUser"]:
             User.objects.get(username=instance).groups.add(
                 Group.objects.get(name="bco_drafter")
             )

@@ -20,7 +20,6 @@ def POST_api_accounts_describe(token):
 
     # Instantiate UserUtils
     uu = UserUtils.UserUtils()
-
     # Get the user's information
     return Response(
         data=uu.get_user_info(username=Token.objects.get(key=processed).user.username),
