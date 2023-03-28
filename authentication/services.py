@@ -98,9 +98,8 @@ def authenticate_orcid(payload:dict, token:str)-> User:
         raise exceptions.AuthenticationFailed(exp)
     try:
         user = User.objects.get(username=Authentication.objects.get(auth_service__icontains=payload['iss']).username)
-    except User.DoesNotExist:
+    except (Authentication.DoesNotExist, User.DoesNotExist):
         return None
-
     return user
 
 def authenticate_google(token: str) -> bool:
