@@ -1,8 +1,26 @@
 # authentication/selectors.py
 
+import jwt
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
+from authentication.models import Authentication
 from rest_framework.authtoken.models import Token
+
+def get_user_from_auth_token(token: str)-> User:
+    """Get user from Auth Token
+    """
+    payload = jwt.decode(token, None, False)
+
+    if payload['iss'] == 'https://orcid.org' or payload['iss'] == 'https://sandbox.orcid.org':
+        try:
+            return User.objects.get(username=Authentication.objects.get(auth_service__icontains=payload['iss']).username)
+        except User.DoesNotExist:
+            return None
+    if payload['iss'] == 'accounts.google.com':
+        try:
+            return User.objects.get(email=payload['email'])
+        except User.DoesNotExist:
+            return None
 
 def check_user_email(email: str)-> bool:
     """Check for user

@@ -164,6 +164,7 @@ INSTALLED_APPS = [
     "reset_migrations",
     "guardian",
     "api",
+    "authentication.apps.Authentication"
 ]
 
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error

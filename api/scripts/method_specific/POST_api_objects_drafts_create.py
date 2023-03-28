@@ -11,9 +11,9 @@ from api.model.prefix import prefix_table
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import status, authtoken
 from rest_framework.response import Response
-
+from authentication.selectors import get_user_from_auth_token
 
 def post_api_objects_drafts_create(request):
     """Create BCO Draft
@@ -31,7 +31,10 @@ def post_api_objects_drafts_create(request):
     """
 
     db_utils = DbUtils.DbUtils()
-    user = UserUtils.UserUtils().user_from_request(request=request)
+    try:
+        user = UserUtils.UserUtils().user_from_request(request=request)
+    except authtoken.models.Token.DoesNotExist:
+        user = get_user_from_auth_token(request.META.get("HTTP_AUTHORIZATION").split(" ")[1])
     prefix_perms = UserUtils.UserUtils().prefix_perms_for_user(
         flatten=True, user_object=user, specific_permission=["add"]
     )

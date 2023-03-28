@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from authentication.selectors import check_user_email, get_user_info
 from authentication.services import validate_token, create_bcodb, send_bcodb
+from authentication.models import Authentication
 
 class RegisterBcodbAPI(APIView):
     """
