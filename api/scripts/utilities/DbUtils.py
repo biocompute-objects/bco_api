@@ -416,7 +416,7 @@ class DbUtils:
             r = requests.post(
                 data=json.dumps(uu.get_user_info(username=new_username), default=str),
                 headers=headers,
-                url="http://127.0.0.1:8181/users/add_api/",
+                url="http://127.0.0.1:8080/users/add_api/",
             )
 
         # Delete the record in the temporary table.
