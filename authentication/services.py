@@ -3,6 +3,7 @@
 import jwt
 import json
 import requests
+import jsonschema
 from django.contrib.auth.models import User, Group
 from rest_framework import exceptions, status, serializers
 from rest_framework.response import Response
@@ -14,28 +15,6 @@ from google.auth.transport import requests as g_requests
 from authentication.selectors import check_user_email
 from authentication.models import Authentication
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
-
-class AuthInputSerializer(serializers.ModelSerializer):
-    auth_service = serializers.JSONField()
-
-    class Meta:
-        model = Authentication
-        fields = ('username', 'auth_service')
-
-    def validate_auth_service(self, value):
-        for auth in value:
-            if 'sub' not in auth or 'iss' not in auth:
-                raise serializers.ValidationError('Each item in auth_service',
-                ' list must be in the form of {"sub": "###########", "iss":',
-                ' "http://example.org"}')
-        return value
-
-    def create(self, validated_data):
-        auth_service = validated_data.pop('auth_service')
-        instance = super().create(validated_data)
-        instance.auth_service = auth_service
-        instance.save()
-        return instance
 
 class CustomJSONWebTokenAuthentication(BaseAuthentication):
     
@@ -57,7 +36,7 @@ class CustomJSONWebTokenAuthentication(BaseAuthentication):
                 
                 return (user, token)
 
-            if type == 'Token':
+            if type == 'Token' or type == 'TOKEN':
                 pass
         pass
 
@@ -77,6 +56,22 @@ def authenticate_portal(payload: dict, token:str)-> User:
     else:
         exceptions.AuthenticationFailed(response.reason)
 
+def validate_auth_service(value):
+        schema = {
+            "type": "object",
+            "required": ["iss", "sub"],
+            "additionalProperties": False,
+            "properties": {
+                "iss": {"type": "string", "description": "The 'iss' (issuer) claim identifies the principal that issued the JWT."},
+                "sub": {"type": "string", "description": "The 'sub' (subject) claim identifies the principal that is the subject of the JWT."}
+            }
+        }
+        try:
+            jsonschema.validate(value, schema)
+        except jsonschema.ValidationError as error:
+            data = {"message": error.message}
+            return data
+        return 1
 
 def authenticate_orcid(payload:dict, token:str)-> User:
     """Authenticate ORCID
@@ -92,7 +87,7 @@ def authenticate_orcid(payload:dict, token:str)-> User:
     orcid_key = jwt.algorithms.RSAAlgorithm.from_jwk(orcid_jwk)
 
     try:
-        jwt.decode(token, key=orcid_key, algorithms=['RS256'], audience='APP-88DEA42BRILGEHKC')
+        jwt.decode(token, key=orcid_key, algorithms=['RS256'], audience=['APP-88DEA42BRILGEHKC', 'APP-ZQZ0BL62NV9SBWAX'])
     except Exception as exp:
         print('exp:', exp)
         raise exceptions.AuthenticationFailed(exp)
