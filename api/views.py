@@ -232,7 +232,7 @@ class ApiAccountsDescribe(APIView):
         Source: https://stackoverflow.com/a/31813810
         """
 
-        if request.headers["Authorization"].split(" ")[0] == "Token":
+        if request.headers["Authorization"].split(" ")[0] == "Token" or request.headers["Authorization"].split(" ")[0] == "TOKEN":
             return POST_api_accounts_describe(
                 token=request.META.get("HTTP_AUTHORIZATION")
             )
