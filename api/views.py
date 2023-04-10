@@ -1026,21 +1026,45 @@ class ApiObjectsSearch(APIView):
     --------------------
 
     Search for available BCO objects that match criteria.
+
+    `type` can be one of 3 different values => mine | prefix | bco_id
+    `search` should be an empty string if you are doing the mine search as that is for "My BCOs"
+    For prefix `search` should be the name of the prefix.
+    For `bco_id` it should be some substring that is present in the desired `bco_id` or SET of `bco_ids`
+    
+    Shell
+    ```shell
+    curl -X POST "http://localhost:8000/api/objects/search/" -H  "accept: application/json" -H  "Authorization: Token ${token}" -H  "Content-Type: application/json" -d "{\"POST_api_objects_search\":[{\"type\": \"prefix\",\"search\": \"TEST\"}]}"
+    ```
+
+    JavaScript
+    ```javascript
+    axios.post("http://localhost:8000/api/objects/search/", {
+        "POST_api_objects_search":[
+            {
+                "type": "prefix",
+                "search": "TEST"
+            }
+        ]
+        }, {
+            headers: {
+            "Authorization": "Token ${token},
+            "Content-Type": "application/json"
+            }
+        });
+    ```
     """
 
-    # authentication_classes = []
-    # permission_classes = []
-    # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        title="BCO Publication Schema",
-        description="Publish description.",
+        title="BCO Search Schema",
+        description="Search for BCOs",
         properties={
-            "x": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Description of X"
+            "type": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Type of search to perform"
             ),
-            "y": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Description of Y"
+            "search": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Search value"
             ),
         },
     )
@@ -1048,9 +1072,8 @@ class ApiObjectsSearch(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "BCO publication is successful.",
-            400: "Bad request.",
-            403: "Invalid token.",
+            200: "Search successful.",
+            404: "That prefix was not found on this server."
         },
         tags=["BCO Management"],
     )
