@@ -13,10 +13,15 @@ def get_user_from_auth_token(token: str)-> User:
 
     if payload['iss'] == 'https://orcid.org' or payload['iss'] == 'https://sandbox.orcid.org':
         try:
-            return User.objects.get(username=Authentication.objects.get(auth_service__icontains=payload['iss']).username)
+            return User.objects.get(username=Authentication.objects.get(auth_service__icontains=payload['sub']).username)
         except User.DoesNotExist:
             return None
     if payload['iss'] == 'accounts.google.com':
+        try:
+            return User.objects.get(email=payload['email'])
+        except User.DoesNotExist:
+            return None
+    if payload['iss'] in ['http://localhost:8080', 'https://test.portal.biochemistry.gwu.edu/', 'https://biocomputeobject.org/']:
         try:
             return User.objects.get(email=payload['email'])
         except User.DoesNotExist:

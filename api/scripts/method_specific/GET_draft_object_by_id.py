@@ -8,10 +8,10 @@ for it.
 
 from api.models import BCO
 from api.scripts.utilities import UserUtils
-from rest_framework import status
+from rest_framework import status, authtoken
 from rest_framework.response import Response
 from guardian.shortcuts import get_objects_for_user
-
+from authentication.selectors import get_user_from_auth_token
 
 def get_draft_object_by_id(do_id, request):
     """Get a draft object
@@ -40,7 +40,11 @@ def get_draft_object_by_id(do_id, request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         # Get the requestor's info.
-        user = UserUtils.UserUtils().user_from_request(request=request)
+        try:
+            user = UserUtils.UserUtils().user_from_request(request=request)
+        except authtoken.models.Token.DoesNotExist:
+            user = get_user_from_auth_token(request.META.get("HTTP_AUTHORIZATION").split(" ")[1])
+        # import pdb; pdb.set_trace()
         user_perms = UserUtils.UserUtils().prefix_perms_for_user(
             flatten=True, user_object=user, specific_permission=["view"]
         )
