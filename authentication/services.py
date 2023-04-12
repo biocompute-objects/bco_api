@@ -92,7 +92,7 @@ def authenticate_orcid(payload:dict, token:str)-> User:
         print('exp:', exp)
         raise exceptions.AuthenticationFailed(exp)
     try:
-        user = User.objects.get(username=Authentication.objects.get(auth_service__icontains=payload['iss']).username)
+        user = User.objects.get(username=Authentication.objects.get(auth_service__icontains=payload['sub']).username)
     except (Authentication.DoesNotExist, User.DoesNotExist):
         return None
     return user
