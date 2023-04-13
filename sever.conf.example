@@ -1,0 +1,74 @@
+# This is the main server configuration file for the BCO API.
+
+# --- Production and publishing flags --- #
+# NOTE:  Valid values are True or False (note the capitalization).
+[PRODUCTION]
+production=False
+
+# DB Version
+[VERSION]
+version=22.11
+
+# NOTE:  Valid values are True or False (note the capitalization).
+# Is this a publish-only server?
+[PUBLISHONLY]
+publishonly=False
+
+# --- Security settings --- #
+
+# Create a key for an anonymous public user.
+[KEYS]
+anon=627626823549f787c3ec763ff687169206626149
+
+[DATABASES]
+# default settting
+path=./db.sqlite3
+# path=/Users/hadleyking/GitHub/biocompute-objects/dev/data/db.sqlite3
+
+# Which host names do you want to associate with the server?
+# Note: the local hostname (i.e. 127.0.0.1) should come at the end.
+[HOSTNAMES]
+prod_names=test.portal.biochemistry.gwu.edu,127.0.0.1
+names=127.0.0.1:8000,127.0.0.1
+
+# Give the human-readable hostnames
+[HRHOSTNAME]
+hrnames=BCO Server (Default)
+
+# The public hostname of the server (i.e. the one to make requests to)
+[PUBLICHOSTNAME]
+prod_name=https://test.portal.biochemistry.gwu.edu
+name=http://127.0.0.1:8000
+
+# Who gets to make requests?
+[REQUESTS_FROM]
+portal=https://test.portal.biochemistry.gwu.edu
+local_development_portal=http://127.0.0.1:3000,http://localhost:3000
+public=true
+
+# --- Namings --- #
+# How do you want to name your objects?
+[OBJECT_NAMING]
+prod_root_uri=https://test.portal.biochemistry.gwu.edu
+root_uri=http://127.0.0.1:8000
+prod_uri_regex=root_uri/prefix_(\d+)/(\d+).(\d+)
+uri_regex=root_uri/prefix_(\d+)/(\d+).(\d+)
+
+# --- Requests --- #
+# Where are the request templates defined?
+[REQUESTS]
+folder=../api/request_definitions/
+
+# --- Group and Prefix creation --- #
+# To enable all users to create a prefix, group creation needs to be enabled.
+# When a prefix is created it has assocaited groups created as well. If the 
+# user does not have permission to creat the needed groups the prefix creation
+# will fail.
+[GROUP_PREFIX]
+allow_all_creation=True
+allow_group_creation=True
+allow_prefix_creation=True
+
+# Where are the validation templates defined?
+# [VALIDATIONS]
+# folder=../api/validation_definitions/
