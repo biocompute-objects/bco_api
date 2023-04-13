@@ -140,6 +140,6 @@ dmypy.json
 # bco_api/api/migrations/
 .DS_Store*
 *.vscode/*
-
+server.conf
 # JetBrains IDEs
 .idea/
