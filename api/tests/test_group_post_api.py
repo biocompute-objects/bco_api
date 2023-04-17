@@ -145,6 +145,5 @@ class GroupApiTestCase(TestCase):
         response = view(request)
 
         # print("\ttest_post_api_groups_delete response: {}".format(response.data))
-        # import pdb; pdb.set_trace()
         # Assert the status code is as expected.
         self.assertEqual(response.status_code, 200)

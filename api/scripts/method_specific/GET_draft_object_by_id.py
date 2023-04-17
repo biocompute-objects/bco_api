@@ -44,7 +44,6 @@ def get_draft_object_by_id(do_id, request):
             user = UserUtils.UserUtils().user_from_request(request=request)
         except authtoken.models.Token.DoesNotExist:
             user = get_user_from_auth_token(request.META.get("HTTP_AUTHORIZATION").split(" ")[1])
-        # import pdb; pdb.set_trace()
         user_perms = UserUtils.UserUtils().prefix_perms_for_user(
             flatten=True, user_object=user, specific_permission=["view"]
         )
