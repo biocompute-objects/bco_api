@@ -79,10 +79,3 @@ class SearchObjectsAPI(APIView):
         search_result = chain(result.values(*return_values))
         return Response(status=status.HTTP_200_OK, data={search_result})
 
-        
-        # result = BCO.objects.filter(state="PUBLISHED")
-        # for query, value in search.items():
-        #     filter = f'{query}__icontains'
-        #     result = search_db(filter, value, result)
-        # search_result = chain(result.values(*return_values))
-        # return Response(status=status.HTTP_200_OK, data={search_result})
