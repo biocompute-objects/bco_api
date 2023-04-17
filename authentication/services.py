@@ -21,7 +21,6 @@ jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 class CustomJSONWebTokenAuthentication(BaseAuthentication):
     
     def authenticate(self, request):
-        # import pdb; pdb.set_trace()
         if 'Authorization' in request.headers:
             type, token = request.headers['Authorization'].split(' ')
 
@@ -131,7 +130,7 @@ def validate_token(token: str, url: str)-> bool:
     """
 
     headers = {"Content-type": "application/json; charset=UTF-8",}
-    import pdb; pdb.set_trace
+
     response = requests.post(
         data=json.dumps({"token": token}, default=str),
         headers=headers,

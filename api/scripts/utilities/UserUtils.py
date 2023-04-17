@@ -220,7 +220,6 @@ class UserUtils:
         #     if not flatten:
         #         bco_specific['user']['bco'] = { }
 
-        # import pdb; pdb.set_trace()
         # for k, v in prefixed['groups']:
         #     if 'bco' in prefixed['groups'][k]:
         #         if flatten:

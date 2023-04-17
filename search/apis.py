@@ -73,8 +73,6 @@ class SearchObjectsAPI(APIView):
         search = self.request.GET
         print(request.user.username)
         result = controled_list(request.user)
-        # import pdb; pdb.set_trace()
-        # result = BCO.objects.all()
         for query, value in search.items():
             filter = f'{query}__icontains'
             result = search_db(filter, value, result)

@@ -44,7 +44,6 @@ class UserTestCase(TestCase):
         self.assertEqual(user.__token__(), self.token)
         self.assertEqual(user.__hostname__(), self.hostname)
         self.assertEqual(user.__temp_identifier__(), self.temp_identifier)
-        # import pdb; pdb.set_trace()
 
     def test_activate_user(self):
         """Activate new user

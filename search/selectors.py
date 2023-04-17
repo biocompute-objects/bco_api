@@ -26,7 +26,6 @@ def search_db(filter:str, value:str, result:QuerySet)-> QuerySet:
     return new_result
 
 def controled_list(user: User):
-    import pdb; pdb.set_trace()
     prefix_list = []
     results_list = BCO.objects.none()
     raw_prefixes = UserUtils().prefix_perms_for_user(user_object=user)
