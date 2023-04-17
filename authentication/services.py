@@ -12,16 +12,25 @@ from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.utils import jwt_get_secret_key
 from google.oauth2 import id_token
 from google.auth.transport import requests as g_requests
-from authentication.selectors import check_user_email
+from authentication.selectors import get_anon
 from authentication.models import Authentication
+
+
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
 class CustomJSONWebTokenAuthentication(BaseAuthentication):
     
     def authenticate(self, request):
+        # import pdb; pdb.set_trace()
         if 'Authorization' in request.headers:
             type, token = request.headers['Authorization'].split(' ')
+
             if type == 'Bearer':
+                if token == "null":
+                    token = "627626823549f787c3ec763ff687169206626149"
+                    user = get_anon()
+
+                    return (user, token)
                 try:
                     unverified_payload = jwt.decode(token, None, False)
                 except Exception as exp:
