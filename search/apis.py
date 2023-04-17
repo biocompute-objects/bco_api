@@ -3,9 +3,11 @@ import json
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from authentication.services import CustomJSONWebTokenAuthentication
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-from search.selectors import search_db
+from search.selectors import search_db, controled_list
 from api.models import BCO
 from itertools import chain
 
@@ -15,8 +17,9 @@ class SearchObjectsAPI(APIView):
     -------------------
     Endpoint for use of query string based search.
     """
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes = [CustomJSONWebTokenAuthentication]
+    permission_classes = [AllowAny,]
+
     auth = openapi.Parameter('test', openapi.IN_QUERY, description="test manual param", type=openapi.TYPE_BOOLEAN)
 
     @swagger_auto_schema(
@@ -54,7 +57,6 @@ class SearchObjectsAPI(APIView):
     def get(self, request) -> Response:
         """GET search
         TODO: multiple values in the URL will only return the last one.
-        TODO: add authentication options
         """
         return_values = [
           "contents",
@@ -67,11 +69,22 @@ class SearchObjectsAPI(APIView):
           "schema",
           "state",
         ]
+
         search = self.request.GET
-        print(search)
-        result = BCO.objects.all()
+        print(request.user.username)
+        result = controled_list(request.user)
+        # import pdb; pdb.set_trace()
+        # result = BCO.objects.all()
         for query, value in search.items():
             filter = f'{query}__icontains'
             result = search_db(filter, value, result)
         search_result = chain(result.values(*return_values))
         return Response(status=status.HTTP_200_OK, data={search_result})
+
+        
+        # result = BCO.objects.filter(state="PUBLISHED")
+        # for query, value in search.items():
+        #     filter = f'{query}__icontains'
+        #     result = search_db(filter, value, result)
+        # search_result = chain(result.values(*return_values))
+        # return Response(status=status.HTTP_200_OK, data={search_result})

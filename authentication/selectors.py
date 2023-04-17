@@ -6,6 +6,12 @@ from django.contrib.auth.models import User, Permission
 from authentication.models import Authentication
 from rest_framework.authtoken.models import Token
 
+
+def get_anon()-> User:
+    """Get AnonymosUser
+    """
+    return User.objects.get(username="AnonymousUser")
+
 def get_user_from_auth_token(token: str)-> User:
     """Get user from Auth Token
     """
