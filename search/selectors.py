@@ -37,6 +37,8 @@ def controled_list(user: User):
     for prefix in prefix_list:
         if user.username == "AnonymousUser":
             bco_list = BCO.objects.filter(prefix=prefix).values().exclude(state="DELETE").exclude(state="DRAFT")
+        else:
+            bco_list = BCO.objects.filter(prefix=prefix).values().exclude(state="DELETE")
         results_list = results_list | bco_list
     
     return results_list
