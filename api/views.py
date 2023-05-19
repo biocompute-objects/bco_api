@@ -1536,7 +1536,7 @@ class ApiPrefixesToken(APIView):
         if "Authorization" in request.headers:
             # Pass the request to the handling function
             # Source: https://stackoverflow.com/a/31813810
-            return POST_api_prefixes_token(request=request)
+            return post_api_prefixes_token_flat(request=request)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 

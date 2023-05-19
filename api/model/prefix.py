@@ -659,7 +659,7 @@ def post_api_prefixes_token_flat(request):
     """
 
     prefixes = UserUtils.UserUtils().prefix_perms_for_user(
-        user_object=UserUtils.UserUtils().user_from_request(request=request).username,
+        user_object=request.user,
         flatten=True,
     )
 

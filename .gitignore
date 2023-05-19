@@ -131,15 +131,15 @@ dmypy.json
 # --- USER-ADDED IGNORES --- #
 
 # The settings file.
-# bco_api/bco_api/settings.py
+bcodb/settings.py
 
 # The server configuration file.
-# bco_api/bco_api/server.conf
+server.conf
 
 # The migrations folder.
 # bco_api/api/migrations/
 .DS_Store*
 *.vscode/*
-server.conf
+static/
 # JetBrains IDEs
 .idea/
