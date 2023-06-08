@@ -78,12 +78,12 @@ def validate(schema, json_object, results):
     return results
 
 
-def parse_bco(bco, results):
+def parse_bco(bco: dict, results: dict):
     """BCO Parsing for Validation
 
     Parameters
     ----------
-    bco : JSON
+    bco : dict
         The BCO JSON to be processed for validation.
     results : dict
         A dictionary to be populated with the BCO validation results
