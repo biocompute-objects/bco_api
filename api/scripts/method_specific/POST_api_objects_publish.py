@@ -29,7 +29,16 @@ def post_api_objects_publish(incoming):
     any_failed = False
     results = {}
     for publish_object in bulk_request:
-        results = parse_bco(publish_object["contents"], results)
+        try:
+            results = parse_bco(publish_object["contents"], results)
+        except KeyError as error:
+            returning.append(
+                db_utils().messages(parameters={"errors": str(error)})[
+                    "400_non_publishable_object"
+                ]
+            )
+            any_failed = True
+            continue
         object_key = publish_object["contents"]["object_id"]
         if results[object_key]["number_of_errors"] > 0:
             returning.append(
@@ -47,6 +56,7 @@ def post_api_objects_publish(incoming):
             if "publish_" + prefix in px_perms:
                 if "object_id" in publish_object:
                     accession = publish_object["object_id"].split("/")[-2]
+                    version = publish_object["object_id"].split("/")[-1]
                     object_num = int(
                         publish_object["object_id"].split("_")[1].split("/")[0]
                     )
@@ -57,9 +67,10 @@ def post_api_objects_publish(incoming):
                         + "/"
                         + publish_object["contents"]["provenance_domain"]["version"]
                     )
-                    if BCO.objects.filter(object_id__contains=accession).exists():
+                    if BCO.objects.filter(object_id__contains=accession+'/'+version).exists():
+                        # import pdb; pdb.set_trace()
                         returning.append(
-                            db_utils().messages(parameters={"object_id": accession})[
+                            db_utils().messages(parameters={"object_id": accession+'/'+version})[
                                 "409_object_conflict"
                             ]
                         )
