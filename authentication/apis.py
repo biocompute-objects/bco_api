@@ -142,10 +142,16 @@ class AddAuthenticationApi(APIView):
             auth_object = Authentication.objects.get(username=request.user.username)
 
             if request.data in auth_object.auth_service:
-                return Response(status=status.HTTP_409_CONFLICT, data={"message": "That object already exists for this account."})
+                return Response(
+                    status=status.HTTP_409_CONFLICT,
+                    data={"message": "That object already exists for this account."}
+                )
             auth_object.auth_service.append(request.data)
             auth_object.save()
-            return Response(status=status.HTTP_200_OK, data={"message": "Authentication added to existing object"})
+            return Response(
+                status=status.HTTP_200_OK,
+                data={"message": "Authentication added to existing object"}
+            )
 
         except Authentication.DoesNotExist:
             auth_object = Authentication.objects.create(
@@ -153,10 +159,16 @@ class AddAuthenticationApi(APIView):
                 auth_service=[request.data]
                 )
             print('status=status.HTTP_201_CREATED')
-            return Response(status=status.HTTP_201_CREATED, data={"message": "Authentication object added to account"})
+            return Response(
+                status=status.HTTP_201_CREATED,
+                data={"message": "Authentication object added to account"}
+            )
 
         except Exception as err:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": err})
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"message": err}
+            )
 
 class RemoveAuthenticationApi(APIView):
     """
@@ -206,12 +218,16 @@ class RemoveAuthenticationApi(APIView):
         },
         tags=["Authentication"],
     )
+
     def post(self, request):
         """"""
+
         result = validate_auth_service(request.data)
-        
         if result != 1:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data=result)
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=result
+            )
         try:
             auth_object = Authentication.objects.get(username=request.user.username)
         except Authentication.DoesNotExist:
@@ -226,7 +242,10 @@ class RemoveAuthenticationApi(APIView):
             )
         auth_object.auth_service.remove(request.data)
         auth_object.save()
-        return Response(status=status.HTTP_200_OK, data={"message": "Authentication object removed."})
+        return Response(
+            status=status.HTTP_200_OK,
+            data={"message": "Authentication object removed."}
+        )
 
 class ResetTokenApi(APIView):
     """Reset Token
