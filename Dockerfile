@@ -17,9 +17,9 @@ COPY requirements.txt .
 
 RUN python3 -m pip install -r requirements.txt
 
-COPY bco_api ./bco_api
+COPY . ./
 
-WORKDIR /biocompute_api/bco_api
+WORKDIR /biocompute_api/
 
 RUN python3 manage.py migrate
 RUN python3 manage.py createsuperuser --no-input

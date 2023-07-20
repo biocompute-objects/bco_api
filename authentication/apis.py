@@ -134,7 +134,7 @@ class AddAuthenticationApi(APIView):
         """
         result = validate_auth_service(request.data)
         
-        if result is not 1:
+        if result != 1:
             return Response(status=status.HTTP_400_BAD_REQUEST, data=result)
         try: 
             auth_object = Authentication.objects.get(username=request.user.username)
@@ -208,7 +208,7 @@ class RemoveAuthenticationApi(APIView):
         """"""
         result = validate_auth_service(request.data)
         
-        if result is not 1:
+        if result != 1:
             return Response(status=status.HTTP_400_BAD_REQUEST, data=result)
         try:
             auth_object = Authentication.objects.get(username=request.user.username)
