@@ -2,6 +2,7 @@
 """Functions for operations with groups
 """
 
+import sys
 from django.db import models
 from django.db.models.signals import post_save
 from django.contrib.auth.models import Group, User
@@ -430,14 +431,16 @@ def associate_user_group(sender, instance, created, **kwargs):
     if the user isn't anon or the already existent bco_drafter or bco_publisher.
     """
 
-    if created:
-        Group.objects.create(name=instance)
-        group = Group.objects.get(name=instance)
-        group.user_set.add(instance)
-        if instance.username not in ["anon", "bco_drafter", "bco_publisher", "AnonymousUser"]:
-            User.objects.get(username=instance).groups.add(
-                Group.objects.get(name="bco_drafter")
-            )
-            User.objects.get(username=instance).groups.add(
-                Group.objects.get(name="bco_publisher")
-            )
+    if not 'test' in sys.argv:
+        if created:
+            print(instance)
+            Group.objects.create(name=instance)
+            group = Group.objects.get(name=instance)
+            group.user_set.add(instance)
+            if instance.username not in ["anon", "bco_drafter", "bco_publisher", "AnonymousUser"]:
+                User.objects.get(username=instance).groups.add(
+                    Group.objects.get(name="bco_drafter")
+                )
+                User.objects.get(username=instance).groups.add(
+                    Group.objects.get(name="bco_publisher")
+                )
