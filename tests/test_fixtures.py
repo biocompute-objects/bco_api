@@ -20,9 +20,9 @@ class DatabaseTestCase(TestCase):
         # connection to the temporary database
         self.connection = connections['default']
         
-    def tearDown(self):
-        # Cleanup: Delete the temporary directory and database
-        shutil.rmtree(self.tmp_dir)
+    # def tearDown(self):
+    #     # Cleanup: Delete the temporary directory and database
+    #     shutil.rmtree(self.tmp_dir)
 
     def test_table_data(self):
 
