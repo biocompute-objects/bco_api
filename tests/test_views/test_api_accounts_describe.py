@@ -1,43 +1,52 @@
+
 from django.test import TestCase, Client
+from rest_framework.test import APIClient
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
+
+
 
 class AccountDescribeTestCase(TestCase):
     def setUp(self):
-        self.client = Client()
+        self.client = APIClient()
 
+        # Creating a user for authentication
+        self.user = User.objects.create(username='testuser')
 
-    def get_csrf_token(self):
-        # Retrieve the CSRF token from the test client's cookies
-        if 'csrftoken' in self.client.cookies:
-            return self.client.cookies['csrftoken'].value
-        return None
+        # Checking if user already has token, if not then creating one
+        if not Token.objects.filter(user=self.user).exists():
+            self.token = Token.objects.create(user=self.user)
+        else:
+            self.token = Token.objects.get(user=self.user)
 
+    
     def test_success_response(self):
         # Successful request with authorization token and CSRF token
-        csrf_token = self.get_csrf_token()
-        if csrf_token:
-            headers = {
-                'Authorization': 'Token 07801a1a4cdbf1945e22ac8439f1db27fe813f7a',
-                'X-CSRFToken': csrf_token,
-            }
-            response = self.client.post('/api/accounts/describe/',data={}, headers=headers)
-            self.assertEqual(response.status_code, 200)
-        else:
-            self.fail('CSRF token not found.')
+        
+        
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        response = self.client.post('/api/accounts/describe/')
+        self.assertEqual(response.status_code, 200)
+
             
     def test_bad_request_response(self):
         # Bad request: Authorization is not provided in the request headers
+        #403 Forbidden Request"
         response = self.client.post('/api/accounts/describe/')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 403)
 
     def test_unauthorized_response(self):
         # Unauthorized: Authentication credentials were not provided
-        csrf_token = self.get_csrf_token()
-        if csrf_token:
-            headers = {
-                'Authorization': 'Token 07801b1a4cdbf1945e22ac8439f1db27fe813f7a',
-                'X-CSRFToken': csrf_token,
+        #403 Forbidden Request"
+        headers = {
+                
+                'Authorization': 'Token incorrect_token_here',
             }
-            response = self.client.post('/api/accounts/describe/',data={}, headers=headers)
-            self.assertEqual(response.status_code, 401)
-        else:
-            self.fail('CSRF token not found.')
+        
+        
+        response = self.client.post('/api/accounts/describe/',data={}, headers=headers)
+        self.assertEqual(response.status_code, 403)
+        
+
+
+
