@@ -1,5 +1,5 @@
 # The BCO model
-from ...models import BCO
+from api.models import BCO
 
 # Responses
 from rest_framework import status
@@ -107,5 +107,5 @@ def GET_published_object_by_id(oi_root):
         print("No objects were found for the root ID provided.")
         return Response(
             data="No objects were found for the root ID provided.",
-            status=status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_404_NOT_FOUND,
         )
