@@ -221,8 +221,8 @@ class ApiAccountsDescribe(APIView):
         manual_parameters=auth,
         responses={
             200: "Authorization is successful.",
-            400: "Bad request.  Authorization is not provided in the request headers.",
-            401: "Unauthorized. Authentication credentials were not provided.",
+            403: "Forbidden. Authentication credentials were not provided.",
+            403: "Invalid token"
         },
         tags=["Account Management"],
     )

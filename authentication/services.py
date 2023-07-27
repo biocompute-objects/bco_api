@@ -39,10 +39,12 @@ class CustomJSONWebTokenAuthentication(BaseAuthentication):
                     user = authenticate_orcid(unverified_payload, token)
                 if unverified_payload['iss'] == 'accounts.google.com':
                     user = authenticate_google(token)
-                if unverified_payload['iss'] in ['http://localhost:8080', 'https://test.portal.biochemistry.gwu.edu/', 'https://biocomputeobject.org/']:
+                if unverified_payload['iss'] in ['http://localhost:8080', 'https://test.portal.biochemistry.gwu.edu', 'https://biocomputeobject.org']:
                     user = authenticate_portal(unverified_payload, token)
-                
-                return (user, token)
+                try:
+                    return (user, token)
+                except UnboundLocalError as exp:
+                    raise exceptions.AuthenticationFailed("Authentication failed. Token issuer not found. Please contact the site admin")
 
             if type == 'Token' or type == 'TOKEN':
                 pass
