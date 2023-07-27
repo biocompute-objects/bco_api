@@ -111,7 +111,7 @@ REST_FRAMEWORK = {
 }
 
 JWT_AUTH = {
-    # "JWT_RESPONSE_PAYLOAD_HANDLER": "authentication.services.custom_jwt_handler",
+    "JWT_RESPONSE_PAYLOAD_HANDLER": "authentication.services.custom_jwt_handler",
     "JWT_EXPIRATION_DELTA": timedelta(seconds=604800),
     "JWT_REFRESH_EXPIRATION_DELTA": timedelta(days=14),
     "JWT_ALLOW_REFRESH": True,

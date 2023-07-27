@@ -4,6 +4,7 @@
 
 
 import re
+import sys
 from django.db import models
 from django.contrib.auth.models import Group, Permission, User
 from django.db.models.signals import post_save, post_delete, pre_save
@@ -689,30 +690,32 @@ def create_permissions_for_prefix(sender, instance=None, **kwargs):
     #         max_n_members=-1,
     #         owner_user=User.objects.get(username='wheel')
     #     )
-    owner_user = User.objects.get(username=instance.owner_user)
-    owner_group = Group.objects.get(name=instance.owner_group_id)
-    drafters = Group.objects.get(name=instance.prefix.lower() + "_drafter")
-    publishers = Group.objects.get(name=instance.prefix.lower() + "_publisher")
+    
+    if not 'test' in sys.argv:
+        owner_user = User.objects.get(username=instance.owner_user)
+        owner_group = Group.objects.get(name=instance.owner_group_id)
+        drafters = Group.objects.get(name=instance.prefix.lower() + "_drafter")
+        publishers = Group.objects.get(name=instance.prefix.lower() + "_publisher")
 
-    try:
-        for perm in ["add", "change", "delete", "view", "draft", "publish"]:
-            Permission.objects.create(
-                name="Can " + perm + " BCOs with prefix " + instance.prefix,
-                content_type=ContentType.objects.get(app_label="api", model="bco"),
-                codename=perm + "_" + instance.prefix,
-            )
-            new_perm = Permission.objects.get(codename=perm + "_" + instance.prefix)
-            owner_user.user_permissions.add(new_perm)
-            owner_group.permissions.add(new_perm)
-            publishers.permissions.add(new_perm)
-            if perm == "publish":
-                pass
-            else:
-                drafters.permissions.add(new_perm)
+        try:
+            for perm in ["add", "change", "delete", "view", "draft", "publish"]:
+                Permission.objects.create(
+                    name="Can " + perm + " BCOs with prefix " + instance.prefix,
+                    content_type=ContentType.objects.get(app_label="api", model="bco"),
+                    codename=perm + "_" + instance.prefix,
+                )
+                new_perm = Permission.objects.get(codename=perm + "_" + instance.prefix)
+                owner_user.user_permissions.add(new_perm)
+                owner_group.permissions.add(new_perm)
+                publishers.permissions.add(new_perm)
+                if perm == "publish":
+                    pass
+                else:
+                    drafters.permissions.add(new_perm)
 
-    except PermErrors.IntegrityError:
-        # The permissions already exist.
-        pass
+        except PermErrors.IntegrityError:
+            # The permissions already exist.
+            pass
 
 
 @receiver(post_save, sender=Prefix)
@@ -727,9 +730,9 @@ def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
         instance: api.model.prefix.Prefix
         created: bool
     """
-
-    if created:
-        prefix_table.objects.create(n_objects=1, prefix=instance.prefix)
+    if not 'test' in sys.argv:
+        if created:
+            prefix_table.objects.create(n_objects=1, prefix=instance.prefix)
 
 
 @receiver(post_delete, sender=Prefix)
