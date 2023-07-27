@@ -1669,18 +1669,9 @@ class DraftObjectId(APIView):
 class ObjectIdRootObjectId(APIView):
     """
     View Published BCO by ID
-
     --------------------
-
-    Reads and returns a published BCO based on an object ID.
-
+    Reads and returns a published BCO based on an object ID. This will return the highest versioned object.
     """
-
-    # For the success and error messages
-    # renderer_classes = [
-    #     TemplateHTMLRenderer
-    # ]
-    # template_name = 'api/account_activation_message.html'
 
     auth = []
     auth.append(
@@ -1692,17 +1683,14 @@ class ObjectIdRootObjectId(APIView):
         )
     )
 
-    # Anyone can view a published object
     authentication_classes = []
     permission_classes = []
 
     @swagger_auto_schema(
         manual_parameters=auth,
         responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered.",
+            200: "Object returned.",
+            404: "Object not found."
         },
         tags=["BCO Management"],
     )
