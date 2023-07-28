@@ -72,8 +72,14 @@ def validate_auth_service(value):
             "required": ["iss", "sub"],
             "additionalProperties": False,
             "properties": {
-                "iss": {"type": "string", "description": "The 'iss' (issuer) claim identifies the principal that issued the JWT."},
-                "sub": {"type": "string", "description": "The 'sub' (subject) claim identifies the principal that is the subject of the JWT."}
+                "iss": {
+                    "type": "string",
+                    "description": "The 'iss' (issuer) claim identifies the principal that issued the JWT."
+                },
+                "sub": {
+                    "type": "string",
+                    "description": "The 'sub' (subject) claim identifies the principal that is the subject of the JWT."
+                }
             }
         }
         try:
