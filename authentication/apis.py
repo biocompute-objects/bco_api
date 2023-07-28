@@ -123,9 +123,10 @@ class AddAuthenticationApi(APIView):
     @swagger_auto_schema(
         request_body=schema,
         responses={
-            200: "Add authentication is successful.",
-            201: "Authentication credentials were created and added.",
+            200: "New authentication credentials added to existing object.",
+            201: "Authentication object created and added to account.",
             400: "Bad request.",
+            403: "Authentication credentials were not provided.",
             409: "That object already exists for this account.",
         },
         tags=["Authentication"],
@@ -140,7 +141,6 @@ class AddAuthenticationApi(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data=result)
         try: 
             auth_object = Authentication.objects.get(username=request.user.username)
-
             if request.data in auth_object.auth_service:
                 return Response(
                     status=status.HTTP_409_CONFLICT,
@@ -150,7 +150,7 @@ class AddAuthenticationApi(APIView):
             auth_object.save()
             return Response(
                 status=status.HTTP_200_OK,
-                data={"message": "Authentication added to existing object"}
+                data={"message": "New authentication credentials added to existing object"}
             )
 
         except Authentication.DoesNotExist:
@@ -161,7 +161,7 @@ class AddAuthenticationApi(APIView):
             print('status=status.HTTP_201_CREATED')
             return Response(
                 status=status.HTTP_201_CREATED,
-                data={"message": "Authentication object added to account"}
+                data={"message": "Authentication object created and added to account"}
             )
 
         except Exception as err:

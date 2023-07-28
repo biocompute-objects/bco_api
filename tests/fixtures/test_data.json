@@ -208,6 +208,19 @@
 		}
 	},
 	{
+		"model": "authentication.authentication",
+		"pk": 1,
+		"fields": {
+			"username": "bco_api_user",
+			"auth_service": [
+				{
+					"iss": "Reeya1",
+					"sub": "ReeyaGupta1"
+				}
+			]
+		}
+	},
+	{
 		"model": "auth.permission",
 		"pk": 1,
 		"fields": {
