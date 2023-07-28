@@ -39,7 +39,6 @@ class BcoDraftCreateTestCase(TestCase):
             ]
         }
         response = client.post('/api/objects/drafts/create/',data, format='json')
-        import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, 200)
 
     def test_partial_failure(self):
