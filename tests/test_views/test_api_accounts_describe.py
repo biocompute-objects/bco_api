@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+
+"""API- Accounts describe
+Tests for 'Authorization is successfull' (200), 
+'Forbidden. Authentication credentials were not provided' (403),
+'Invalid Token' (403)
+"""
+
+
 from django.test import TestCase
 from django.contrib.auth.models import  User
 from rest_framework.authtoken.models import Token
