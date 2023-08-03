@@ -1,4 +1,11 @@
 
+#!/usr/bin/env python3
+
+"""Prefixes token
+Tests for 'Successful request' (200), 
+'forbiddden' (403)
+"""
+
 from django.test import TestCase, Client
 from rest_framework.test import APIClient
 from rest_framework.authtoken.models import Token
@@ -21,7 +28,7 @@ class PrefixesTokenTestCase(APITestCase):
 
     
     def test_success_response(self):
-        # Successful request with authorization token and CSRF token
+        # Successful request with authorization token 
         
         
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
@@ -32,9 +39,6 @@ class PrefixesTokenTestCase(APITestCase):
     def test_bad_request_response(self):
         # Bad request: Authorization is not provided in the request headers
         #Gives 403 instead of 400
-       
-        
-        
         response = self.client.post('/api/prefixes/token/')
         self.assertEqual(response.status_code, 403)
 
