@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """Remove Authentication
-Tests for 'New authentication credentials added to existing object' (200), 
-'Authentication credentials were created and added' (201), 'Bad request' (400),
+Tests for (#Gives 409 instead of 200(Successfull request)- Requires checking)
+'Bad request' (400),
 'That object already exists for this account' (409)
 """
 
@@ -17,33 +17,40 @@ class AuthenticationRemovetestcase(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
+                # Checking if the user 'bco_api_user' already exists
+        try:
+            self.user = User.objects.get(username='bco_api_user')
+        except User.DoesNotExist:
+            self.user = User.objects.create_user(username='bco_api_user')
+
+        # Checking if user already has token, if not then creating one
+        if not Token.objects.filter(user=self.user).exists():
+            self.token = Token.objects.create(user=self.user)
+        else:
+            self.token = Token.objects.get(user=self.user)
 
     def test_success_response(self):
         """# Successful request with authentication data
         #Gives a 409 instead of 200
         """
-        token = Token.objects.get(user=User.objects.get(username='bco_api_user')).key
-        data = {"iss": "Reeya1","sub": "ReeyaGupta1"}
+        data = {"iss": "Reeya2","sub": "ReeyaGupta2"}
 
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         response = self.client.post('/api/auth/remove/', data=data, format='json')
-        print(response.json())
+        
         self.assertEqual(response.status_code, 200)
 
-    # def test_bad_request_response(self):
-    #     # Bad request: Missing required fields
-    #     data = {}  
-    #     self.client.force_authenticate(user=self.user) 
-    #     response = self.client.post('/api/auth/remove/', data=data)
-    #     self.assertEqual(response.status_code, 400)
+    def test_bad_request_response(self):
+         # Bad request: Missing required fields
+        data = {}  
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        response = self.client.post('/api/auth/remove/', data=data)
+        self.assertEqual(response.status_code, 400)
 
-    # def test_object_already_exists_response(self):
-    #     # Object already exists for this account
-    #     data = {
-    #         "iss": "0000-0000-0000-0000",
-    #         "sub": "https://example.org"
-    #     }
+    def test_object_already_exists_response(self):
+        # Object already exists for this account
+        data = {"iss": "Reeya1","sub": "ReeyaGupta1"}
 
-    #     self.client.force_authenticate(user=self.user) 
-    #     response = self.client.post('/api/auth/remove/', data=data)
-    #     self.assertEqual(response.status_code, 409)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        response = self.client.post('/api/auth/remove/', data=data)
+        self.assertEqual(response.status_code, 409)
