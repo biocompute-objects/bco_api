@@ -50,6 +50,7 @@ class ModifyGroupTestCase(APITestCase):
     def test_modify_group_bad_request(self):
         # Bad request: Invalid or missing data
         # Gives 200 instead of 400
+        
         data = {
             "POST_api_groups_modify": [
                 {
