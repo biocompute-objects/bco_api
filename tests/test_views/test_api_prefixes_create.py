@@ -42,15 +42,14 @@ class CreatePrefixeTestCase(APITestCase):
 
     def test_create_prefix_success(self):
         # Successful request to create prefixes
-        #returns 207 instead of 201 (when multiple prefixes given) else returns 400
+        #returns 400 instead of 201 
         data = {
             "POST_api_prefixes_create": [
                 {
 
-                    ##Not sure- ownergroup - api.groupinfo or prefix_admins or bco_publisher????
-                    # owner_user - wheel or anon???
-                    "owner_group": "api.groupinfo",
-                    "owner_user": "wheel",
+                    
+                    "owner_group": "test_drafter",
+                    "owner_user": "bco_api_user",
                     "prefixes": [
                         {
                             "description": "Just a test prefix.",
@@ -72,8 +71,8 @@ class CreatePrefixeTestCase(APITestCase):
         data = {
             "POST_api_prefixes_create": [
                 {
-                    "owner_group": "prefix_admins",
-                    "owner_user": "wheel",
+                    "owner_group": "test_drafter",
+                    "owner_user": "bco_api_user",
                     "prefixes": [
                         {
                             "description": "Invalid prefix naming.",
@@ -96,8 +95,8 @@ class CreatePrefixeTestCase(APITestCase):
         data = {
             "POST_api_prefixes_create": [
                 {
-                    "owner_group": "prefix_admins",
-                    "owner_user": "wheel",
+                    "owner_group": "test_drafter",
+                    "owner_user": "bco_api_user",
                     "prefixes": [
                         {
                             "description": "Unauthorized request.",
@@ -114,11 +113,12 @@ class CreatePrefixeTestCase(APITestCase):
 
     def test_create_prefix_forbidden(self):
         # Forbidden request
+        ##Returns 400 instead of 403
         data = {
             "POST_api_prefixes_create": [
                 {
-                    "owner_group": "prefix_admins",
-                    "owner_user": "wheel",
+                    "owner_group": "test_drafter",
+                    "owner_user": "bco_api_user",
                     "prefixes": [
                         {
                             "description": "Forbidden request.",
@@ -142,8 +142,8 @@ class CreatePrefixeTestCase(APITestCase):
         data = {
             "POST_api_prefixes_create": [
                 {
-                    "owner_group": "prefix_admins",
-                    "owner_user": "wheel",
+                    "owner_group": "test_drafter",
+                    "owner_user": "bco_api_user",
                     "prefixes": [
                         {
                             "description": "Prefix conflict.",
