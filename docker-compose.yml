@@ -4,6 +4,7 @@ version: '3.4'
 
 services:
   bco-api:
+    platform: linux/amd64
     build: .
     # image: ghcr.io/biocompute-objects/bco_api:latest
     container_name: bco-api

@@ -2,6 +2,10 @@ FROM ubuntu:22.04
 LABEL org.opencontainers.image.source https://github.com/biocompute-objects/bco_api
 ENV DEBIAN_FRONTEND=noninteractive
 
+LABEL org.opencontainers.image.source=https://github.com/octocat/my-repo
+LABEL org.opencontainers.image.description="My container image"
+LABEL org.opencontainers.image.licenses=MIT
+
 # Note that this is just for debug / test purposes; should not be set via the setup for production
 # ENV DJANGO_SUPERUSER_PASSWORD="BioCompute123"
 # ENV DJANGO_SUPERUSER_USERNAME="BioComputeSuperUser"
