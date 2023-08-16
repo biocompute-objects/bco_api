@@ -6,11 +6,11 @@ services:
   bco-api:
     platform: linux/amd64
     build: .
-    # image: ghcr.io/biocompute-objects/bco_api:latest
+    image: ghcr.io/biocompute-objects/bco_api:23.07
     container_name: bco-api
     volumes:
-       - /Users/hadleyking/GitHub/biocompute-objects/dev/data/db.sqlite3:/biocompute_api/bco_api/db.sqlite3
-       - /Users/hadleyking/GitHub/biocompute-objects/dev/data/server.conf:/biocompute_api/bco_api/server.conf
+       - ./data/db.sqlite3:/biocompute_api/db.sqlite3
+       - ./data/server.conf:/biocompute_api/server.conf
     environment:
       TZ: 'America/New_York'
       ENV DJANGO_SUPERUSER_PASSWORD: "BioCompute123"

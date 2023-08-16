@@ -25,8 +25,8 @@ COPY . ./
 
 WORKDIR /biocompute_api/
 
-RUN python3 manage.py migrate
-RUN python3 manage.py createsuperuser --no-input
+# RUN python3 manage.py migrate
+# RUN python3 manage.py createsuperuser --no-input
 
 EXPOSE 8000
 #CMD ["bash"]
