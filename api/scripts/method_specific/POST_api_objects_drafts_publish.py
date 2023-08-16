@@ -10,9 +10,9 @@ from api.scripts.utilities import DbUtils, UserUtils
 from django.contrib.auth.models import Group
 from django.utils import timezone
 from guardian.shortcuts import get_perms
-from rest_framework import status
+from rest_framework import status, authtoken
 from rest_framework.response import Response
-
+from authentication.selectors import get_user_from_auth_token
 
 def post_api_objects_drafts_publish(request):
     """Publish draft
@@ -37,13 +37,29 @@ def post_api_objects_drafts_publish(request):
     returning = []
     any_failed = False
     db_utils = DbUtils.DbUtils()
-    user = UserUtils.UserUtils().user_from_request(request=request)
+    
+    try:
+        user = UserUtils.UserUtils().user_from_request(request=request)
+    except authtoken.models.Token.DoesNotExist:
+        user = get_user_from_auth_token(request.META.get("HTTP_AUTHORIZATION").split(" ")[1])
     prefix_perms = UserUtils.UserUtils().prefix_perms_for_user(
         flatten=True, user_object=user
     )
-    bulk_request = request.data["POST_api_objects_drafts_publish"]
+    try:
+        bulk_request = request.data["POST_api_objects_drafts_publish"]
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"Request format not accepted."})
 
     for publish_object in bulk_request:
+        if "draft_id" not in publish_object:
+            returning.append(
+                db_utils.messages(parameters={})[
+                    "400_bad_request"
+                ]
+            )
+            any_failed = True
+            continue
+
         draft_exists = BCO.objects.filter(
             object_id=publish_object["draft_id"], state="DRAFT"
         ).exists()
