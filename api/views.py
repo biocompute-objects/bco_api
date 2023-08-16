@@ -79,6 +79,7 @@ from api.scripts.method_specific.POST_api_objects_token import POST_api_objects_
 # For helper functions
 from api.scripts.utilities import UserUtils
 
+from authentication.services import CustomJSONWebTokenAuthentication
 
 ################################################################################################
 # NOTES
@@ -800,22 +801,39 @@ class ApiObjectsDraftsPermissionsSet(APIView):
 # TODO: What is the difference between this and ApiObjectsPublish?
 class ApiObjectsDraftsPublish(APIView):
     """
-    Publish a BCO
+    Bulk Publish BCOs
 
     --------------------
+    
+    Publish draft BCO objects.  Once published, a BCO object becomes immutable.
+    The `object_id` field is optional, and is used to specify if the object
+    should be published as a specific version, instead of the next available numeric 
+    version.
 
-    Publish a draft BCO object.  Once published, a BCO object becomes immutable.
+
+    ```json
+    {
+      "POST_api_objects_drafts_publish": [
+        {
+        "prefix": "TEST",
+        "draft_id": "http://127.0.0.1:8000/TEST_000001",
+        "object_id": "http://127.0.0.1:8000/TEST_000001/1.0",
+        "delete_draft": false
+        }
+      ]
+    }
     """
 
     # TODO: This seems to be missing group, which I would expect to be part of the publication
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJSONWebTokenAuthentication]
 
     POST_api_objects_drafts_publish_schema = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["draft_id", "prefix"],
         properties={
             "prefix": openapi.Schema(
-                type=openapi.TYPE_STRING, description="BCO Prefix to publish with."
+                type=openapi.TYPE_STRING, description="BCO Prefix to publish with." 
             ),
             "draft_id": openapi.Schema(
                 type=openapi.TYPE_STRING, description="BCO Object Draft ID."
@@ -847,13 +865,14 @@ class ApiObjectsDraftsPublish(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "BCO Publication is successful.",
-            300: "Some requests failed.",
+            200: "All BCO publications successful.",
+            207: "Some or all publications failed.",
             400: "Bad request.",
-            403: "Invalid token.",
+            403: "Authentication credentials were not provided.",
         },
         tags=["BCO Management"],
     )
+
     def post(self, request) -> Response:
         return check_post_and_process(request, post_api_objects_drafts_publish)
 
