@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 '''Publish BCO Draft
- expecting a response status code of 200,300, 400, but receiving a 207 status code (Multi-status rsponse), which might indicate that 
- suggesting that there are multiple operations being performed in the background as a result of the request.
-
+ expecting a response status code of 200,300, 400, but receiving a 404 status code (Forbidden)
  Tests for 403(Invalid token)
  '''
 
@@ -17,7 +15,7 @@ from rest_framework.test import APITestCase
 class PublishDraftBCOTestCase(TestCase):
     fixtures = ['tests/fixtures/test_data']
     def setUp(self):
-        fixtures = ['tests/fixtures/test_data']
+        
         self.client = APIClient()
                 # Checking if the user 'bco_api_user' already exists
         try:
@@ -33,7 +31,7 @@ class PublishDraftBCOTestCase(TestCase):
 
     def test_publish_bco_success(self):
         # Test for Successful request to publish a draft BCO
-        #Returns 207 instead of 200
+        #Returns 403 instead of 200
 
         data = {
             "POST_api_objects_drafts_publish": [
@@ -52,7 +50,7 @@ class PublishDraftBCOTestCase(TestCase):
 
     def test_publish_bco_partial_failure(self):
         # Some requests failed while publishing the draft BCO
-        #Returns 207 instead of 300
+        #Returns 403 instead of 300
 
         data = {
             "POST_api_objects_drafts_publish": [
@@ -77,13 +75,13 @@ class PublishDraftBCOTestCase(TestCase):
 
     def test_publish_bco_bad_request(self):
         # Bad request: Invalid or missing data
-        #Returns 207 instead of 400
+        #Returns 403 instead of 400
         
         data = {
             "POST_api_objects_drafts_publish": [
             {
                 "prefix": "BCO",
-                "draft_id": "InvalidID",
+                #"draft_id": "InvalidID",
                 "delete_draft": False
             },
            
