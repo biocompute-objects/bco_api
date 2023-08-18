@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+
+"""Objects Search
+Tests for successful search (status code: 200), 
+prefix not found (status code: 404)
+"""
+
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework.authtoken.models import Token
@@ -5,8 +12,10 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 
 class ObjectsSearchTestCase(APITestCase):
+    
+    fixtures = ['tests/fixtures/test_data']
     def setUp(self):
-        fixtures = ['tests/fixtures/test_data']
+        
         self.client = APIClient()
                 # Checking if the user 'bco_api_user' already exists
         try:
@@ -22,7 +31,7 @@ class ObjectsSearchTestCase(APITestCase):
 
     def test_search_successful(self):
         # Test case for a successful search (status code: 200)
-        ###Gives 404 instead of 200.
+        
         data = {
             "POST_api_objects_search": [
                 {
@@ -40,16 +49,16 @@ class ObjectsSearchTestCase(APITestCase):
 
     def test_prefix_not_found(self):
         # Test case for prefix not found (status code: 404)
+
         data = {
             "POST_api_objects_search": [
                 {
                     "type": "prefix",
-                    "search": "invalid prefix"
+                    "search": "invalidprefix"
                 }
             ]
         }
+
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-
         response = self.client.post("/api/objects/search/", data=data, format="json")
-
         self.assertEqual(response.status_code, 404)
