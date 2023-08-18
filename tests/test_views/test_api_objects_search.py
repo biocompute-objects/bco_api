@@ -49,6 +49,7 @@ class ObjectsSearchTestCase(APITestCase):
 
     def test_prefix_not_found(self):
         # Test case for prefix not found (status code: 404)
+
         data = {
             "POST_api_objects_search": [
                 {
@@ -57,8 +58,7 @@ class ObjectsSearchTestCase(APITestCase):
                 }
             ]
         }
+
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-
         response = self.client.post("/api/objects/search/", data=data, format="json")
-
         self.assertEqual(response.status_code, 404)

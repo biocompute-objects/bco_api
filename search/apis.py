@@ -12,11 +12,16 @@ from api.models import BCO
 from itertools import chain
 
 class SearchObjectsAPI(APIView):
-    """Search the BCODB **BETA**
+    """
+    Search the BCODB
 
     -------------------
+
     Endpoint for use of query string based search.
     """
+    
+    #TODO: multiple values in the URL will only return the last one.
+    
     authentication_classes = [CustomJSONWebTokenAuthentication]
     permission_classes = [AllowAny,]
 
@@ -46,18 +51,12 @@ class SearchObjectsAPI(APIView):
           )
         ],
         responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered.",
+            200: ""
         },
-        tags=["Account Management"],
+        tags=["BCO Management"],
     )
     
     def get(self, request) -> Response:
-        """GET search
-        TODO: multiple values in the URL will only return the last one.
-        """
         return_values = [
           "contents",
           "last_update",
