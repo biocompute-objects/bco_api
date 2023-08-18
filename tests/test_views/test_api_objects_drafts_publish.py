@@ -1,98 +1,99 @@
 #!/usr/bin/env python3
 
-'''Publish BCO Draft
- expecting a response status code of 200,300, 400, but receiving a 404 status code (Forbidden)
- Tests for 403(Invalid token)
- '''
+"""Test Bulk Publish BCOs
+Tests for 'All BCO publications successful.' (200), 'Some or all publications
+failed.' (207), 'Bad request.' (400), and 'Authentication credentials were not
+provided.' (404)
+"""
 
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 
 
 class PublishDraftBCOTestCase(TestCase):
     fixtures = ['tests/fixtures/test_data']
     def setUp(self):
-        
         self.client = APIClient()
-                # Checking if the user 'bco_api_user' already exists
-        try:
-            self.user = User.objects.get(username='bco_api_user')
-        except User.DoesNotExist:
-            self.user = User.objects.create_user(username='bco_api_user')
-
-        # Checking if user already has token, if not then creating one
-        if not Token.objects.filter(user=self.user).exists():
-            self.token = Token.objects.create(user=self.user)
-        else:
-            self.token = Token.objects.get(user=self.user)
 
     def test_publish_bco_success(self):
-        # Test for Successful request to publish a draft BCO
-        #Returns 403 instead of 200
+        """All BCO publications successful (200)
+        """
+
+        token = Token.objects.get(user=User.objects.get(username='test50')).key
 
         data = {
             "POST_api_objects_drafts_publish": [
                 {
                     "prefix": "BCO",
                     "draft_id": "http://127.0.0.1:8000/BCO_000000/DRAFT",
-                    
                     "delete_draft": False
-                    
+                },
+                {
+                    "prefix": "BCO",
+                    "draft_id": "http://127.0.0.1:8000/BCO_000001/DRAFT",
+                    "object_id" "http://127.0.0.1:8000/BCO_000000/1.1"
+                    "delete_draft": False
                 }
             ]
         }
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/objects/drafts/publish/', data=data, format='json')
         self.assertEqual(response.status_code, 200)
 
     def test_publish_bco_partial_failure(self):
-        # Some requests failed while publishing the draft BCO
-        #Returns 403 instead of 300
+        """Some or all publications failed (207)
+        """
+
+        token = Token.objects.get(user=User.objects.get(username='test50')).key
 
         data = {
             "POST_api_objects_drafts_publish": [
                 {
                     "prefix": "BCO",
-                    "draft_id": "http://127.0.0.1:8000/BCO_000001/DRAFT",
-                    
+                    "draft_id": "http://127.0.0.1:8000/BCO_000001/DRAFT", 
                     "delete_draft": False
                 },
                 {
                     "prefix": "InvalidPrefix",
                     "draft_id": "InvalidDraftId",
-                    
                     "delete_draft": False
                 }
                 
             ]
         }
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/objects/drafts/publish/', data=data, format='json')
-        self.assertEqual(response.status_code, 300)
+        self.assertEqual(response.status_code, 207)
 
     def test_publish_bco_bad_request(self):
-        # Bad request: Invalid or missing data
-        #Returns 403 instead of 400
-        
+        """Bad request (400)
+        """
+
+        token = Token.objects.get(user=User.objects.get(username='test50')).key
+
         data = {
-            "POST_api_objects_drafts_publish": [
+            "POST_wrong_thing": [
             {
                 "prefix": "BCO",
                 #"draft_id": "InvalidID",
                 "delete_draft": False
-            },
+            }
            
         ]
         }
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/objects/drafts/publish/', data=data, format='json')
         self.assertEqual(response.status_code, 400)
 
     def test_publish_bco_invalid_token(self):
-        # Request with invalid token or without authentication credentials
+        """Authentication credentials were not provided. (404)
+        """
+
+        token = Token.objects.get(user=User.objects.get(username='test50')).key
+
         data = {
             "POST_api_objects_drafts_publish": [
                 {
