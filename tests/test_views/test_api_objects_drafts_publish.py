@@ -105,7 +105,7 @@ class PublishDraftBCOTestCase(TestCase):
                 }
             ]
         }
-        #using invalid token
+
         self.client.credentials(HTTP_AUTHORIZATION='invalid token')
         response = self.client.post('/api/objects/drafts/publish/', data=data, format='json')
         self.assertEqual(response.status_code, 403)
