@@ -211,11 +211,6 @@ def post_api_objects_drafts_publish(request):
         #                     # Does the requestor have delete permissions on
         #                     # the object?
 
-    # As this view is for a bulk operation, status 200
-    # means that the request was successfully processed,
-    # but NOT necessarily each item in the request.
-    # For example, a table may not have been found for the first
-    # requested draft.
     if any_failed:
         return Response(status=status.HTTP_207_MULTI_STATUS, data=returning)
 

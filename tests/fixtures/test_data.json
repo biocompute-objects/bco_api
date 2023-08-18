@@ -1627,7 +1627,7 @@
 				"etag": "0275321b6011324035289a5624c635ce5490fbdec588aa5f3bcaf63b85369b4a",
 				"provenance_domain": {
 					"name": "Influenza A reference gene sequences",
-					"version": "1.0",
+					"version": "1.1",
 					"created": "2021-12-01T15:20:13.614Z",
 					"modified": "2022-06-28T23:10:12.804Z",
 					"review": [
@@ -1845,7 +1845,7 @@
 				"etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea",
 				"provenance_domain": {
 					"name": "HCV1a ledipasvir resistance SNP detection",
-					"version": "1.0",
+					"version": "1.1",
 					"created": "2017-01-24T09:40:17-0500",
 					"modified": "2022-06-28T23:12:50.369Z",
 					"review": [

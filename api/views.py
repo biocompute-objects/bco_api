@@ -825,8 +825,8 @@ class ApiObjectsDraftsPublish(APIView):
     """
 
     # TODO: This seems to be missing group, which I would expect to be part of the publication
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [CustomJSONWebTokenAuthentication]
+    permission_classes = [IsAuthenticated,]
+    # authentication_classes = [CustomJSONWebTokenAuthentication]
 
     POST_api_objects_drafts_publish_schema = openapi.Schema(
         type=openapi.TYPE_OBJECT,
