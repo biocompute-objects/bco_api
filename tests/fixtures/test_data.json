@@ -1015,9 +1015,7 @@
 		"pk": 3,
 		"fields": {
 			"name": "anon",
-			"permissions": [
-
-			]
+			"permissions": []
 		}
 	},
 	{
@@ -1025,9 +1023,7 @@
 		"pk": 4,
 		"fields": {
 			"name": "wheel",
-			"permissions": [
-
-			]
+			"permissions": []
 		}
 	},
 	{
@@ -1061,9 +1057,7 @@
 		"pk": 7,
 		"fields": {
 			"name": "AnonymousUser",
-			"permissions": [
-
-			]
+			"permissions": []
 		}
 	},
 	{
@@ -1092,9 +1086,7 @@
 		"pk": 9,
 		"fields": {
 			"name": "test50",
-			"permissions": [
-
-			]
+			"permissions": []
 		}
 	},
 	{
@@ -1102,9 +1094,7 @@
 		"pk": 10,
 		"fields": {
 			"name": "hivelab37",
-			"permissions": [
-
-			]
+			"permissions": []
 		}
 	},
 	{
@@ -1112,9 +1102,7 @@
 		"pk": 11,
 		"fields": {
 			"name": "jdoe58",
-			"permissions": [
-
-			]
+			"permissions": []
 		}
 	},
 	{
@@ -1192,9 +1180,7 @@
 			"groups": [
 				1
 			],
-			"user_permissions": [
-
-			]
+			"user_permissions": []
 		}
 	},
 	{
@@ -1242,9 +1228,7 @@
 			"groups": [
 				3
 			],
-			"user_permissions": [
-
-			]
+			"user_permissions": []
 		}
 	},
 	{
@@ -1278,9 +1262,7 @@
 				14,
 				15
 			],
-			"user_permissions": [
-
-			]
+			"user_permissions": []
 		}
 	},
 	{
@@ -1302,9 +1284,7 @@
 				2,
 				7
 			],
-			"user_permissions": [
-
-			]
+			"user_permissions": []
 		}
 	},
 	{
@@ -1367,9 +1347,7 @@
 				9,
 				12
 			],
-			"user_permissions": [
-
-			]
+			"user_permissions": []
 		}
 	},
 	{
@@ -1391,9 +1369,7 @@
 				2,
 				10
 			],
-			"user_permissions": [
-
-			]
+			"user_permissions": []
 		}
 	},
 	{
@@ -1415,9 +1391,7 @@
 				2,
 				11
 			],
-			"user_permissions": [
-
-			]
+			"user_permissions": []
 		}
 	},
 	{
@@ -1617,9 +1591,7 @@
 					"version": "1.0",
 					"created": "2021-12-01T15:20:13.614Z",
 					"modified": "2022-06-28T23:10:12.804Z",
-					"review": [
-
-					],
+					"review": [],
 					"contributors": [
 						{
 							"contribution": [
@@ -1652,9 +1624,7 @@
 					"keywords": [
 						"Influenza A, Complete Genome, FASTA, Genes"
 					],
-					"platform": [
-
-					],
+					"platform": [],
 					"pipeline_steps": [
 						{
 							"step_number": 0,
@@ -1749,8 +1719,7 @@
 							"url": "https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe"
 						}
 					],
-					"environment_variables": {
-					}
+					"environment_variables": {}
 				},
 				"io_domain": {
 					"input_subdomain": [
@@ -1771,9 +1740,7 @@
 						}
 					]
 				},
-				"parametric_domain": [
-
-				],
+				"parametric_domain": [],
 				"extension_domain": [
 					{
 						"extension_schema": "http://www.w3id.org/biocompute/extension_domain/1.1.0/dataset/dataset_extension.json",
@@ -2501,9 +2468,7 @@
 					"version": "1.0",
 					"created": "2021-12-16T21:06:50.969977Z",
 					"modified": "2022-06-28T23:21:47.218Z",
-					"review": [
-
-					],
+					"review": [],
 					"contributors": [
 						{
 							"contribution": [
@@ -2536,9 +2501,7 @@
 					"keywords": [
 						"SARS-CoV-2, COVID-19, Complete Proteome, FASTA, Proteins"
 					],
-					"platform": [
-
-					],
+					"platform": [],
 					"pipeline_steps": [
 						{
 							"step_number": 1,
@@ -2633,8 +2596,7 @@
 							"url": "https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe"
 						}
 					],
-					"environment_variables": {
-					}
+					"environment_variables": {}
 				},
 				"io_domain": {
 					"input_subdomain": [
@@ -2655,9 +2617,7 @@
 						}
 					]
 				},
-				"parametric_domain": [
-
-				],
+				"parametric_domain": [],
 				"extension_domain": [
 					{
 						"extension_schema": "http://www.w3id.org/biocompute/extension_domain/1.2.0/dataset/dataset_extension.json",
@@ -2778,17 +2738,13 @@
 						"ontology",
 						"controlled vocabulary"
 					],
-					"platform": [
-
-					],
+					"platform": [],
 					"pipeline_steps": [
 						{
 							"step_number": 1,
 							"name": "Header download",
 							"description": "Create a text file with the headers from each data sheet published for v0.3. Using the command `head -1 > ~/headers.txt`",
-							"prerequisite": [
-
-							],
+							"prerequisite": [],
 							"input_list": [
 								{
 									"uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/SRA_ngsQC.tsv",
@@ -2814,9 +2770,7 @@
 							"step_number": 2,
 							"name": "Manual Curation",
 							"description": "Manual curation of headers.txt into a curated list of terms with definitions.",
-							"prerequisite": [
-
-							],
+							"prerequisite": [],
 							"input_list": [
 								{
 									"uri": "https://argosdb-vm-dev/software/argosdb/home/headers.txt"
@@ -2861,8 +2815,7 @@
 							"url": "https://drive.google.com/drive/u/3/folders/1uUa4UYG3dd6yTOdxiyoav6qktit4-J-9"
 						}
 					],
-					"environment_variables": {
-					}
+					"environment_variables": {}
 				},
 				"io_domain": {
 					"input_subdomain": [
@@ -2896,14 +2849,10 @@
 						}
 					]
 				},
-				"parametric_domain": [
-
-				],
+				"parametric_domain": [],
 				"error_domain": {
-					"empirical_error": {
-					},
-					"algorithmic_error": {
-					}
+					"empirical_error": {},
+					"algorithmic_error": {}
 				},
 				"extension_domain": [
 					{
@@ -4098,9 +4047,7 @@
 					"version": "1.3",
 					"created": "2021-12-01T15:20:13.614Z",
 					"modified": "2022-06-28T23:06:43.263Z",
-					"review": [
-
-					],
+					"review": [],
 					"contributors": [
 						{
 							"contribution": [
@@ -4133,9 +4080,7 @@
 					"keywords": [
 						"Influenza A, Complete Genome, FASTA, Genes"
 					],
-					"platform": [
-
-					],
+					"platform": [],
 					"pipeline_steps": [
 						{
 							"step_number": 0,
@@ -4230,8 +4175,7 @@
 							"url": "https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe"
 						}
 					],
-					"environment_variables": {
-					}
+					"environment_variables": {}
 				},
 				"io_domain": {
 					"input_subdomain": [
@@ -4252,9 +4196,7 @@
 						}
 					]
 				},
-				"parametric_domain": [
-
-				],
+				"parametric_domain": [],
 				"extension_domain": [
 					{
 						"extension_schema": "http://www.w3id.org/biocompute/extension_domain/1.1.0/dataset/dataset_extension.json",
@@ -5005,9 +4947,7 @@
 					"version": "1.0",
 					"created": "2021-12-16T21:06:50.969977Z",
 					"modified": "2022-06-28T23:21:13.091Z",
-					"review": [
-
-					],
+					"review": [],
 					"contributors": [
 						{
 							"contribution": [
@@ -5040,9 +4980,7 @@
 					"keywords": [
 						"SARS-CoV-2, COVID-19, Complete Proteome, FASTA, Proteins"
 					],
-					"platform": [
-
-					],
+					"platform": [],
 					"pipeline_steps": [
 						{
 							"step_number": 1,
@@ -5137,8 +5075,7 @@
 							"url": "https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe"
 						}
 					],
-					"environment_variables": {
-					}
+					"environment_variables": {}
 				},
 				"io_domain": {
 					"input_subdomain": [
@@ -5159,9 +5096,7 @@
 						}
 					]
 				},
-				"parametric_domain": [
-
-				],
+				"parametric_domain": [],
 				"extension_domain": [
 					{
 						"extension_schema": "http://www.w3id.org/biocompute/extension_domain/1.2.0/dataset/dataset_extension.json",
@@ -6419,9 +6354,7 @@
 							"step_number": 1,
 							"name": "Header download",
 							"description": "Create a text file with the headers from each data sheet published for v0.3. Using the command `head -1 > ~/headers.txt`",
-							"prerequisite": [
-
-							],
+							"prerequisite": [],
 							"input_list": [
 								{
 									"uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/SRA_ngsQC.tsv",
@@ -6447,9 +6380,7 @@
 							"step_number": 2,
 							"name": "Manual Curation",
 							"description": "Manual curation of headers.txt into a curated list of terms with definitions.",
-							"prerequisite": [
-
-							],
+							"prerequisite": [],
 							"input_list": [
 								{
 									"uri": "https://argosdb-vm-dev/software/argosdb/home/headers.txt"
@@ -6494,8 +6425,7 @@
 							"url": "https://drive.google.com/drive/u/3/folders/1uUa4UYG3dd6yTOdxiyoav6qktit4-J-9"
 						}
 					],
-					"environment_variables": {
-					}
+					"environment_variables": {}
 				},
 				"io_domain": {
 					"input_subdomain": [
@@ -6529,14 +6459,10 @@
 						}
 					]
 				},
-				"parametric_domain": [
-
-				],
+				"parametric_domain": [],
 				"error_domain": {
-					"empirical_error": {
-					},
-					"algorithmic_error": {
-					}
+					"empirical_error": {},
+					"algorithmic_error": {}
 				},
 				"extension_domain": [
 					{
@@ -6725,6 +6651,23 @@
 			"owner_group": "bco_api_user",
 			"owner_user": "bco_api_user",
 			"prefix": "OTHER"
+		}
+	},
+	{
+		"model": "authentication.authentication",
+		"pk": 1,
+		"fields": {
+			"username": "bco_api_user",
+			"auth_service": [
+				{
+					"iss": "Reeya1",
+					"sub": "ReeyaGupta1"
+				},
+				{
+					"iss": "string",
+					"sub": "string"
+				}
+			]
 		}
 	}
 ]

@@ -213,8 +213,8 @@ class RemoveAuthenticationApi(APIView):
         request_body=schema,
         responses={
             200: "Remove authentication is successful.",
-            400: "Bad request.",
-            409: "That object already exists for this account.",
+            403: "Authentication failed.",
+            404: "That object does not exist for this account.",
         },
         tags=["Authentication"],
     )
@@ -225,20 +225,21 @@ class RemoveAuthenticationApi(APIView):
         result = validate_auth_service(request.data)
         if result != 1:
             return Response(
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_403_FORBIDDEN,
                 data=result
             )
+
         try:
             auth_object = Authentication.objects.get(username=request.user.username)
         except Authentication.DoesNotExist:
             return Response(
-                status=status.HTTP_409_CONFLICT,
-                data={"message": "That object does not exists."}
+                status=status.HTTP_404_NOT_FOUND,
+                data={"message": "That object does not exists for this user."}
             )
         if request.data not in auth_object.auth_service:
             return Response(
-                status=status.HTTP_409_CONFLICT,
-                data={"message": "That object does not exists."}
+                status=status.HTTP_404_NOT_FOUND,
+                data={"message": "That object does not exists for this user."}
             )
         auth_object.auth_service.remove(request.data)
         auth_object.save()
