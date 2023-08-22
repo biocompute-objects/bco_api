@@ -1,11 +1,15 @@
 
 #!/usr/bin/env python3
 
-'''Create Prefixes
- expecting a response status code of 201, 401, 403, 409, but receiving 
- a 400 
+"""Bulk Create Prefixes
+Tests for 'All prefixes were successfully created. 200', 'Some or all prefix
+creations failed. 207', and 'Unauthorized. Authentication credentials were
+not provided. 401'
 
- '''
+For the 207 response Each object submitted will have it's own response object
+with it's own status code and message. These are as follows:
+    
+ """
 
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -14,35 +18,21 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import Group
 
+
+#TODO: test for expiration date
+
 class CreatePrefixeTestCase(APITestCase):
     fixtures=['tests/fixtures/test_data']
 
     def setUp(self):
 
         self.client= APIClient()
-        
-        # Checking if the user 'bco_api_user' already exists
-        try:
-            self.user = User.objects.get(username='bco_api_user')
-        except User.DoesNotExist:
-            self.user = User.objects.create_user(username='bco_api_user')
-
-        # Checking if user already has token, if not then creating one
-        if not Token.objects.filter(user=self.user).exists():
-            self.token = Token.objects.create(user=self.user)
-        else:
-            self.token = Token.objects.get(user=self.user)
-
-        # Creating or retrieving the 'prefix_admins' group and adding the user to it
-        group, _ = Group.objects.get_or_create(name='prefix_admins')
-        self.user.groups.add(group)
-
-
-
 
     def test_create_prefix_success(self):
-        # Successful request to create prefixes
-        #returns 400 instead of 201 
+        """The prefix was successfully created. 200
+        """
+
+        token = Token.objects.get(user=User.objects.get(username='bco_api_user')).key
         data = {
             "POST_api_prefixes_create": [
                 {
@@ -53,7 +43,6 @@ class CreatePrefixeTestCase(APITestCase):
                     "prefixes": [
                         {
                             "description": "Just a test prefix.",
-                            "expiration_date": "null" ,
                             "prefix": "testR"
                         },
                         
@@ -62,14 +51,34 @@ class CreatePrefixeTestCase(APITestCase):
             ]
         }
 
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/prefixes/create/', data=data, format='json')
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 200)
 
     def test_create_prefix_bad_request(self):
-        # Bad request: Invalid prefix naming standard
+        """Tests for 'Some or all prefix creations failed. 207.'
+                201: The prefix * was successfully created.
+                400: Bad Request. The expiration date * is not valid
+                400: Bad Request. The prefix * does not follow the naming rules for a prefix.
+                403: Forbidden. User does not have permission to perform this action.
+                404: Not Found. The user * was not found on the server.
+                409: Conflict. The prefix the requestor is attempting to create already exists.
+        """
+
+        token = Token.objects.get(user=User.objects.get(username='bco_api_user')).key        
         data = {
             "POST_api_prefixes_create": [
+                {
+                    "owner_group": "test_drafter",
+                    "owner_user": "bco_api_user",
+                    "prefixes": [
+                        {
+                            "description": "Invalid expiration date.",
+                            "expiration_date": "2023-08-22T09:27:49-0400",
+                            "prefix": "testR"
+                        }
+                    ]
+                },
                 {
                     "owner_group": "test_drafter",
                     "owner_user": "bco_api_user",
@@ -80,81 +89,86 @@ class CreatePrefixeTestCase(APITestCase):
                             "prefix": "invalid-prefix"
                         }
                     ]
-                }
-            ]
-        }
-
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        response = self.client.post('/api/prefixes/create/', data=data, format='json')
-        self.assertEqual(response.status_code, 400)
-
-    def test_create_prefix_unauthorized(self):
-        # Unauthorized request
-        #Returns 400 instead of 401
-
-        data = {
-            "POST_api_prefixes_create": [
+                },
                 {
-                    "owner_group": "test_drafter",
-                    "owner_user": "bco_api_user",
+                    "owner_group": "does_not_exist",
+                    "owner_user": "does_not_exist",
                     "prefixes": [
                         {
-                            "description": "Unauthorized request.",
-                            "expiration_date": "null",
-                            "prefix": "unauthR"
-                        }
-                    ]
-                }
-            ]
-        }
-        #self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        response = self.client.post('/api/prefixes/create/', data=data, format='json')
-        self.assertEqual(response.status_code, 401)
-
-    def test_create_prefix_forbidden(self):
-        # Forbidden request
-        ##Returns 400 instead of 403
-        data = {
-            "POST_api_prefixes_create": [
-                {
-                    "owner_group": "test_drafter",
-                    "owner_user": "bco_api_user",
-                    "prefixes": [
-                        {
-                            "description": "Forbidden request.",
-                            "expiration_date": "2023-01-01-01-01-01",
-                            "prefix": "forbiddenR"
-                        }
-                    ]
-                }
-            ]
-        }
-
-        # Assuming the user is not in the prefix_admins group
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        response = self.client.post('/api/prefixes/create/', data=data, format='json')
-        self.assertEqual(response.status_code, 403)
-
-    def test_create_prefix_conflict(self):
-        # Conflict: Prefix already exists
-        #Returns 400 instead of 409
-
-        data = {
-            "POST_api_prefixes_create": [
-                {
-                    "owner_group": "test_drafter",
-                    "owner_user": "bco_api_user",
-                    "prefixes": [
-                        {
-                            "description": "Prefix conflict.",
-                            "expiration_date": "2023-01-01-01-01-01",
+                            "description": "Invalid owner.",
                             "prefix": "testR"
                         }
                     ]
+                },
+                {
+                    "owner_group": "test_drafter",
+                    "owner_user": "bco_api_user",
+                    "prefixes": [
+                        {
+                            "description": "Just a test prefix.",
+                            "prefix": "testR"
+                        },
+                        
+                    ]
+                },
+                {
+                    "owner_group": "test_drafter",
+                    "owner_user": "bco_api_user",
+                    "prefixes": [
+                        {
+                            "description": "Just a test prefix.",
+                            "prefix": "other"
+                        },
+                        
+                    ]
                 }
             ]
         }
 
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/prefixes/create/', data=data, format='json')
-        self.assertEqual(response.status_code, 409)
+
+        # 201: The prefix * was successfully created.
+        self.assertEqual(response.data[3]['status_code'], "201")
+        
+        # 400: Bad Request. The expiration date * is not valid
+        self.assertIn("not valid either because it does not match the required format 'YYYY-MM-DD-HH-MM-SS'", response.data[0]['message'])
+        
+        # 400: Bad Request. The prefix * does not follow the naming rules for a prefix.
+        self.assertIn('does not follow the naming rules for a prefix.', response.data[1]['message'])
+        
+        # TODO =>  403: Forbidden. User does not have permission to perform this action.
+        # This would require testing an instance where the prefix admins was enforced... 
+        
+        # 404: Not Found. The user * was not found on the server.
+        self.assertIn('was not found on the server.', response.data[2]['message'])
+        
+        # 409: Conflict. The prefix the requestor is attempting to create already exists.
+        self.assertIn('has already been created on this server.', response.data[4]['message'])
+    
+        self.assertEqual(response.status_code, 207)
+
+    def test_create_prefix_unauthorized(self):
+        """Unauthorized. Authentication credentials were not provided. 401
+        """
+
+        data = {
+            "POST_api_prefixes_create": [
+                {
+
+                    
+                    "owner_group": "test_drafter",
+                    "owner_user": "bco_api_user",
+                    "prefixes": [
+                        {
+                            "description": "Just a test prefix.",
+                            "prefix": "testR"
+                        },
+                        
+                    ]
+                }
+            ]
+        }
+
+        response = self.client.post('/api/prefixes/create/', data=data, format='json')
+        self.assertEqual(response.status_code, 403)

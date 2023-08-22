@@ -1202,13 +1202,8 @@ class ApiPrefixesCreate(APIView):
     ```
     """
 
-    # Permissions - prefix admins only
-    permission_classes = [RequestorInPrefixAdminsGroup]
+    permission_classes = [RequestorInPrefixAdminsGroup, IsAuthenticated, ]
 
-    # TYPE_ARRAY explanation
-    # Source: https://stackoverflow.com/questions/53492889/drf-yasg-doesnt-take-type-array-as-a-valid-type
-
-    # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Prefix Creation Schema",
@@ -1242,13 +1237,17 @@ class ApiPrefixesCreate(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            201: "The prefix was successfully created.",
-            400: "Bad request for one of two reasons: \n1) the prefix does not"
-            "follow the naming standard, or \n2) owner_user and/or"
-            "owner_group do not exist.",
-            401: "Unauthorized. Authentication credentials were not provided.",
-            403: "Forbidden. User doesnot have permission to perform this action",
-            409: "The prefix the requestor is attempting to create already exists.",
+            200: "All prefixes were successfully created.",
+            207: "Some or all prefix creations failed. Each object submitted"
+                " will have it's own response object with it's own status"
+                " code and message:\n"
+                    "201: The prefix * was successfully created.\n"
+                    "400: Bad Request. The expiration date * is not valid.\n"
+                    "400: Bad Request. The prefix * does not follow the naming rules for a prefix.\n"
+                    "403: Forbidden. User does not have permission to perform this action.\n"
+                    "404: Not Found. The user * was not found on the server.\n"
+                    "409: Conflict. The prefix the requestor is attempting to create already exists.\n",
+            401: "Unauthorized. Authentication credentials were not provided."
         },
         tags=["Prefix Management"],
     )
@@ -1455,7 +1454,6 @@ class ApiPrefixesPermissionsSet(APIView):
         ]
     }
     ```
-
     """
 
     # Permissions - prefix admins only
