@@ -271,7 +271,7 @@ class ResetTokenApi(APIView):
         manual_parameters=auth,
         responses={
             200: "Token reset is successful.",
-            400: "Bad request.",
+            403: "Invalid token.",
         },
         tags=["Authentication"],
     )

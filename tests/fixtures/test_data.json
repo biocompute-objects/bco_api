@@ -1350,7 +1350,7 @@
 			"username": "test50",
 			"first_name": "",
 			"last_name": "",
-			"email": "",
+			"email": "test@testing.com",
 			"is_staff": false,
 			"is_active": true,
 			"date_joined": "2022-05-10T20:50:39.093Z",
