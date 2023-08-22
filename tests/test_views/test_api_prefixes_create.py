@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 
 """Bulk Create Prefixes
@@ -8,7 +7,12 @@ not provided. 401'
 
 For the 207 response Each object submitted will have it's own response object
 with it's own status code and message. These are as follows:
-    
+    201: The prefix * was successfully created.
+    400: Bad Request. The expiration date * is not valid.
+    400: Bad Request. The prefix * does not follow the naming rules for a prefix.
+    403: Forbidden. User does not have permission to perform this action.
+    404: Not Found. The user * was not found on the server.
+    409: Conflict. The prefix the requestor is attempting to create already exists.
  """
 
 from django.test import TestCase
@@ -17,9 +21,6 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import Group
-
-
-#TODO: test for expiration date
 
 class CreatePrefixeTestCase(APITestCase):
     fixtures=['tests/fixtures/test_data']
@@ -44,8 +45,7 @@ class CreatePrefixeTestCase(APITestCase):
                         {
                             "description": "Just a test prefix.",
                             "prefix": "testR"
-                        },
-                        
+                        }
                     ]
                 }
             ]
@@ -118,8 +118,7 @@ class CreatePrefixeTestCase(APITestCase):
                         {
                             "description": "Just a test prefix.",
                             "prefix": "other"
-                        },
-                        
+                        }
                     ]
                 }
             ]
@@ -163,8 +162,7 @@ class CreatePrefixeTestCase(APITestCase):
                         {
                             "description": "Just a test prefix.",
                             "prefix": "testR"
-                        },
-                        
+                        }
                     ]
                 }
             ]
