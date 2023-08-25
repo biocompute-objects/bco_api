@@ -18,12 +18,17 @@ class SearchObjectsAPI(APIView):
     -------------------
 
     Endpoint for use of query string based search.
+    Four parameters are defined by this API: 
+    1. contents: Search in the contents of the BCO
+    2. prefix: BCO Prefix to search
+    3. owner_user: Search by BCO owner
+    4. object_id: BCO object_id to search for
+
+    Shell
+    ```shell
+    curl -X GET "http://localhost:8000/api/objects/?contents=review&prefix=BCO&owner_user=bco_api_user&object_id=DRAFT" -H  "accept: application/json"
+    ```
     """
-    
-    #TODO: multiple values in the URL will only return the last one.
-    
-    authentication_classes = [CustomJSONWebTokenAuthentication]
-    permission_classes = [AllowAny,]
 
     auth = openapi.Parameter('test', openapi.IN_QUERY, description="test manual param", type=openapi.TYPE_BOOLEAN)
 
@@ -39,12 +44,12 @@ class SearchObjectsAPI(APIView):
             description="BCO Prefix to search", 
             type=openapi.TYPE_STRING
           ),
-          openapi.Parameter('owner', 
+          openapi.Parameter('owner_user', 
             openapi.IN_QUERY,
             description="Search by BCO owner", 
             type=openapi.TYPE_STRING
           ),
-          openapi.Parameter('bco_id', 
+          openapi.Parameter('object_id', 
             openapi.IN_QUERY,
             description="BCO object_id to search for", 
             type=openapi.TYPE_STRING
@@ -69,12 +74,15 @@ class SearchObjectsAPI(APIView):
           "state",
         ]
 
-        search = self.request.GET
-        print(request.user.username)
+        search = dict(self.request.GET)
         result = controled_list(request.user)
         for query, value in search.items():
-            filter = f'{query}__icontains'
-            result = search_db(filter, value, result)
+            for item in value:
+              if query == 'owner_user':
+                filter = f'{query}'
+              else:
+                filter = f'{query}__icontains'                 
+              result = search_db(filter, item, result)
         search_result = chain(result.values(*return_values))
         return Response(status=status.HTTP_200_OK, data={search_result})
 
