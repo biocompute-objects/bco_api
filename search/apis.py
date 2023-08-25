@@ -56,7 +56,7 @@ class SearchObjectsAPI(APIView):
           )
         ],
         responses={
-            200: ""
+            200: "Search successfull"
         },
         tags=["BCO Management"],
     )

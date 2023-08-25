@@ -11,27 +11,18 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 
+#TODO: this needs refinement
 class ObjectsSearchTestCase(APITestCase):
     
     fixtures = ['tests/fixtures/test_data']
     def setUp(self):
-        
         self.client = APIClient()
-                # Checking if the user 'bco_api_user' already exists
-        try:
-            self.user = User.objects.get(username='bco_api_user')
-        except User.DoesNotExist:
-            self.user = User.objects.create_user(username='bco_api_user')
-
-        # Checking if user already has token, if not then creating one
-        if not Token.objects.filter(user=self.user).exists():
-            self.token = Token.objects.create(user=self.user)
-        else:
-            self.token = Token.objects.get(user=self.user)
 
     def test_search_successful(self):
-        # Test case for a successful search (status code: 200)
+        """Test case for a successful search (status code: 200)
+        """
         
+        token = Token.objects.get(user=User.objects.get(username='bco_api_user')).key
         data = {
             "POST_api_objects_search": [
                 {
@@ -40,16 +31,15 @@ class ObjectsSearchTestCase(APITestCase):
                 }
             ]
         }
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post("/api/objects/search/", data=data, format="json")
-
         self.assertEqual(response.status_code, 200)
 
-
-
     def test_prefix_not_found(self):
-        # Test case for prefix not found (status code: 404)
+        """Test case for prefix not found (status code: 404)
+        """
 
+        token = Token.objects.get(user=User.objects.get(username='bco_api_user')).key
         data = {
             "POST_api_objects_search": [
                 {
@@ -59,6 +49,6 @@ class ObjectsSearchTestCase(APITestCase):
             ]
         }
 
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post("/api/objects/search/", data=data, format="json")
         self.assertEqual(response.status_code, 404)
