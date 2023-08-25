@@ -1,4 +1,9 @@
 # search/selectors.py
+
+"""Search Selectors
+Set of selector functions to handle searching the BCODB
+"""
+
 from api.models import BCO
 from django.db.models import QuerySet
 from django.db.models.query import QuerySet
@@ -6,6 +11,7 @@ from django.contrib.auth.models import User
 from guardian.shortcuts import get_objects_for_user
 from itertools import chain
 from api.scripts.utilities.UserUtils import UserUtils
+
 return_values = [
           "contents",
           "last_update",
@@ -20,12 +26,20 @@ return_values = [
 
 def search_db(filter:str, value:str, result:QuerySet)-> QuerySet:
     """Search DB
-    Search the BCODB
+    Takes a filter, a value, and a result query set and uses them to return
+    a more refined query set. 
     """
+
     new_result = result.filter(**{filter: value})
+    print(len(result), ': ', len(new_result))
     return new_result
 
-def controled_list(user: User):
+def controled_list(user: User) -> QuerySet:
+    """User Controlled List
+    Takes a User object and returns a list of accessable BCOs based on their
+    permissions.
+    """
+
     prefix_list = []
     results_list = BCO.objects.none()
     raw_prefixes = UserUtils().prefix_perms_for_user(user_object=user)
@@ -33,9 +47,9 @@ def controled_list(user: User):
         pre = prefix.split("_")[1]
         if pre not in prefix_list and pre is not "prefix":
             prefix_list.append(pre)
-    
+
     for prefix in prefix_list:
-        if user.username == "AnonymousUser":
+        if user.username == "AnonymousUser" or user.username == "":
             bco_list = BCO.objects.filter(prefix=prefix).values().exclude(state="DELETE").exclude(state="DRAFT")
         else:
             bco_list = BCO.objects.filter(prefix=prefix).values().exclude(state="DELETE")
