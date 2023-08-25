@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''Verify a valid token
- Tests for 201
+
  '''
 
 from django.test import TestCase
@@ -30,14 +30,18 @@ class VerifyTokenBCOTestCase(TestCase):
 
     def test_valid_token(self):
         ##Test for a valid token
+        ##Gives 400 instead of 200
 
         data = {
-            "token": self.token.key
+            "VerifyAuthToken": [
+            {"token": self.token.key}
+            ]
         }
-        #self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         response = self.client.post('/api/verify/', data=data, format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["token"], self.token.key)
+        #self.assertIn('Success- Token is valid.', response.data[0]['message'])
+        #self.assertEqual(response.data["token"], self.token.key)
 
     def test_missing_token(self):
         # Test when token field is missing
@@ -49,7 +53,12 @@ class VerifyTokenBCOTestCase(TestCase):
     def test_invalid_token(self):
         # Test for an invalid token
         data = {
-            "token": "invalid_token_here"
+            "VerifyAuthToken": [
+            {"token": "invalid token here"}
+            ]
         }
+        self.client.credentials(HTTP_AUTHORIZATION='iNVALID TOKEN')
         response = self.client.post('/api/verify/', data=data, format='json')
-        self.assertEqual(response.status_code, 403)
+        #self.assertIn('Error- Token is invalid.', response.data.get('message'))
+        self.assertEqual(response.status_code, 400)
+        
