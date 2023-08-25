@@ -1053,7 +1053,10 @@ class ApiObjectsSearch(APIView):
     
     Shell
     ```shell
-    curl -X POST "http://localhost:8000/api/objects/search/" -H  "accept: application/json" -H  "Authorization: Token ${token}" -H  "Content-Type: application/json" -d "{\"POST_api_objects_search\":[{\"type\": \"prefix\",\"search\": \"TEST\"}]}"
+    curl -X POST "http://localhost:8000/api/objects/search/" -H  "accept: 
+    application/json" -H  "Authorization: Token ${token}" -H  "Content-Type:
+    application/json" -d "{\"POST_api_objects_search\":
+    [{\"type\": \"prefix\",\"search\": \"TEST\"}]}"
     ```
 
     JavaScript
