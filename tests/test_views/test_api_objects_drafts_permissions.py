@@ -472,7 +472,7 @@ class PermissionDraftBCOTestCase(TestCase):
         response = self.client.post('/api/objects/drafts/permissions/', data=data, format='json')
         self.assertEqual(response.status_code, 300)
 
-    def test_read_bco_bad_request(self):
+    def test_permission_bco_bad_request(self):
         ##Gives 300 instead of 400
         data = {
             "POST_api_objects_drafts_permissions": [
@@ -489,7 +489,7 @@ class PermissionDraftBCOTestCase(TestCase):
         response = self.client.post('/api/objects/drafts/permissions/', data=data, format='json')
         self.assertEqual(response.status_code, 400)
 
-    def test_read_bco_invalid_token(self):
+    def test_permission_bco_invalid_token(self):
         data = {
             "POST_api_objects_drafts_permissions": [
                 {
