@@ -1529,10 +1529,11 @@ class ApiPrefixesToken(APIView):
 
     --------------------
 
-    Get all available prefixes and their associated permissions for a given token.
-    The word 'Token' must be included in the header.
+    Get all available prefixes and their associated permissions for a given
+    token. The word 'Token' must be included in the header.
 
-    For example: 'Token 627626823549f787c3ec763ff687169206626149'.
+    For example: 'Token 627626823549f787c3ec763ff687169206626149'. Using that
+    token will return an empty list, as that is test user.
     """
 
     auth = [
@@ -1547,18 +1548,20 @@ class ApiPrefixesToken(APIView):
     @swagger_auto_schema(
         manual_parameters=auth,
         responses={
-            200: "The Authorization header was provided and available prefixes were returned.",
-            400: "The Authorization header was not provided.",
+            200: "The available prefixes were returned.",
+            401: "The authorization header was not provided.",
+            403: "Invalid token.",
         },
         tags=["Prefix Management"],
     )
     def post(self, request) -> Response:
         if "Authorization" in request.headers:
-            # Pass the request to the handling function
-            # Source: https://stackoverflow.com/a/31813810
             return post_api_prefixes_token_flat(request=request)
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data={"detail": "The authorization header was not provided."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
 
 class ApiPrefixesTokenFlat(APIView):
