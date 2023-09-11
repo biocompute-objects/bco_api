@@ -196,14 +196,10 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
                 {"activation_success": False, "status": status.HTTP_400_BAD_REQUEST}
             )
 
-
-# Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 class ApiAccountsDescribe(APIView):
-    """
-    Account details
+    """Account details
 
     --------------------
-    No schema for this request since only the Authorization header is required.
     The word 'Token' must be included in the header.
     For example: 'Token 627626823549f787c3ec763ff687169206626149'
     """
@@ -221,16 +217,12 @@ class ApiAccountsDescribe(APIView):
         manual_parameters=auth,
         responses={
             200: "Authorization is successful.",
-            403: "Forbidden. Authentication credentials were not provided.",
-            403: "Invalid token"
+            403: "Forbidden. Authentication credentials were not provided, or the token is invalid.",
         },
         tags=["Account Management"],
     )
     def post(self, request):
-        """
-        Pass the request to the handling function
-        Source: https://stackoverflow.com/a/31813810
-        """
+        """"""
 
         if request.headers["Authorization"].split(" ")[0] == "Token" or request.headers["Authorization"].split(" ")[0] == "TOKEN":
             return POST_api_accounts_describe(
