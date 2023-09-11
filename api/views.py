@@ -79,7 +79,6 @@ from api.scripts.method_specific.POST_api_objects_token import POST_api_objects_
 # For helper functions
 from api.scripts.utilities import UserUtils
 
-from authentication.services import CustomJSONWebTokenAuthentication
 
 ################################################################################################
 # NOTES
@@ -197,10 +196,14 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
                 {"activation_success": False, "status": status.HTTP_400_BAD_REQUEST}
             )
 
+
+# Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
 class ApiAccountsDescribe(APIView):
-    """Account details
+    """
+    Account details
 
     --------------------
+    No schema for this request since only the Authorization header is required.
     The word 'Token' must be included in the header.
     For example: 'Token 627626823549f787c3ec763ff687169206626149'
     """
@@ -218,12 +221,16 @@ class ApiAccountsDescribe(APIView):
         manual_parameters=auth,
         responses={
             200: "Authorization is successful.",
-            403: "Forbidden. Authentication credentials were not provided, or the token is invalid.",
+            403: "Forbidden. Authentication credentials were not provided.",
+            403: "Invalid token"
         },
         tags=["Account Management"],
     )
     def post(self, request):
-        """"""
+        """
+        Pass the request to the handling function
+        Source: https://stackoverflow.com/a/31813810
+        """
 
         if request.headers["Authorization"].split(" ")[0] == "Token" or request.headers["Authorization"].split(" ")[0] == "TOKEN":
             return POST_api_accounts_describe(
@@ -624,8 +631,9 @@ class ApiObjectsDraftsModify(APIView):
 
     --------------------
 
-    Modifies a BCO object.  The BCO object must be a draft in order to be modifiable.  The contents of the BCO will be replaced with the
-    new contents provided in the request body.
+    Modifies a BCO object.  The BCO object must be a draft in order to be
+    modifiable.  WARNING: The contents of the BCO will be replaced with the new
+    contents provided in the request body.
     """
 
     POST_api_objects_drafts_modify_schema = openapi.Schema(
@@ -661,6 +669,16 @@ class ApiObjectsDraftsModify(APIView):
         request_body=request_body,
         responses={
             200: "Modification of BCO draft is successful.",
+            207: "Some or all BCO modifications failed. Each object submitted"
+                " will have it's own response object with it's own status"
+                " code and message:\n"
+                    "201: The prefix * was successfully created.\n"
+                    "400: Bad Request. The expiration date * is not valid.\n"
+                    "400: Bad Request. The prefix * does not follow the naming rules for a prefix.\n"
+                    "403: Forbidden. User does not have permission to perform this action.\n"
+                    "404: Not Found. The user * was not found on the server.\n"
+                    "409: Conflict. The prefix the requestor is attempting to create already exists.\n",
+            401: "Unauthorized. Authentication credentials were not provided.",
             400: "Bad request.",
             403: "Invalid token.",
         },
@@ -793,39 +811,22 @@ class ApiObjectsDraftsPermissionsSet(APIView):
 # TODO: What is the difference between this and ApiObjectsPublish?
 class ApiObjectsDraftsPublish(APIView):
     """
-    Bulk Publish BCOs
+    Publish a BCO
 
     --------------------
-    
-    Publish draft BCO objects.  Once published, a BCO object becomes immutable.
-    The `object_id` field is optional, and is used to specify if the object
-    should be published as a specific version, instead of the next available numeric 
-    version.
 
-
-    ```json
-    {
-      "POST_api_objects_drafts_publish": [
-        {
-        "prefix": "TEST",
-        "draft_id": "http://127.0.0.1:8000/TEST_000001",
-        "object_id": "http://127.0.0.1:8000/TEST_000001/1.0",
-        "delete_draft": false
-        }
-      ]
-    }
+    Publish a draft BCO object.  Once published, a BCO object becomes immutable.
     """
 
     # TODO: This seems to be missing group, which I would expect to be part of the publication
-    permission_classes = [IsAuthenticated,]
-    # authentication_classes = [CustomJSONWebTokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     POST_api_objects_drafts_publish_schema = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["draft_id", "prefix"],
         properties={
             "prefix": openapi.Schema(
-                type=openapi.TYPE_STRING, description="BCO Prefix to publish with." 
+                type=openapi.TYPE_STRING, description="BCO Prefix to publish with."
             ),
             "draft_id": openapi.Schema(
                 type=openapi.TYPE_STRING, description="BCO Object Draft ID."
@@ -857,14 +858,13 @@ class ApiObjectsDraftsPublish(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "All BCO publications successful.",
-            207: "Some or all publications failed.",
+            200: "BCO Publication is successful.",
+            300: "Some requests failed.",
             400: "Bad request.",
-            403: "Authentication credentials were not provided.",
+            403: "Invalid token.",
         },
         tags=["BCO Management"],
     )
-
     def post(self, request) -> Response:
         return check_post_and_process(request, post_api_objects_drafts_publish)
 
@@ -1045,10 +1045,7 @@ class ApiObjectsSearch(APIView):
     
     Shell
     ```shell
-    curl -X POST "http://localhost:8000/api/objects/search/" -H  "accept: 
-    application/json" -H  "Authorization: Token ${token}" -H  "Content-Type:
-    application/json" -d "{\"POST_api_objects_search\":
-    [{\"type\": \"prefix\",\"search\": \"TEST\"}]}"
+    curl -X POST "http://localhost:8000/api/objects/search/" -H  "accept: application/json" -H  "Authorization: Token ${token}" -H  "Content-Type: application/json" -d "{\"POST_api_objects_search\":[{\"type\": \"prefix\",\"search\": \"TEST\"}]}"
     ```
 
     JavaScript
@@ -1216,8 +1213,13 @@ class ApiPrefixesCreate(APIView):
     ```
     """
 
-    permission_classes = [RequestorInPrefixAdminsGroup, IsAuthenticated, ]
+    # Permissions - prefix admins only
+    permission_classes = [RequestorInPrefixAdminsGroup]
 
+    # TYPE_ARRAY explanation
+    # Source: https://stackoverflow.com/questions/53492889/drf-yasg-doesnt-take-type-array-as-a-valid-type
+
+    # TODO: Need to get the schema that is being sent here from FE
     request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Prefix Creation Schema",
@@ -1251,17 +1253,13 @@ class ApiPrefixesCreate(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "All prefixes were successfully created.",
-            207: "Some or all prefix creations failed. Each object submitted"
-                " will have it's own response object with it's own status"
-                " code and message:\n"
-                    "201: The prefix * was successfully created.\n"
-                    "400: Bad Request. The expiration date * is not valid.\n"
-                    "400: Bad Request. The prefix * does not follow the naming rules for a prefix.\n"
-                    "403: Forbidden. User does not have permission to perform this action.\n"
-                    "404: Not Found. The user * was not found on the server.\n"
-                    "409: Conflict. The prefix the requestor is attempting to create already exists.\n",
-            401: "Unauthorized. Authentication credentials were not provided."
+            201: "The prefix was successfully created.",
+            400: "Bad request for one of two reasons: \n1) the prefix does not"
+            "follow the naming standard, or \n2) owner_user and/or"
+            "owner_group do not exist.",
+            401: "Unauthorized. Authentication credentials were not provided.",
+            403: "Forbidden. User doesnot have permission to perform this action",
+            409: "The prefix the requestor is attempting to create already exists.",
         },
         tags=["Prefix Management"],
     )
@@ -1468,6 +1466,7 @@ class ApiPrefixesPermissionsSet(APIView):
         ]
     }
     ```
+
     """
 
     # Permissions - prefix admins only
@@ -1521,11 +1520,10 @@ class ApiPrefixesToken(APIView):
 
     --------------------
 
-    Get all available prefixes and their associated permissions for a given
-    token. The word 'Token' must be included in the header.
+    Get all available prefixes and their associated permissions for a given token.
+    The word 'Token' must be included in the header.
 
-    For example: 'Token 627626823549f787c3ec763ff687169206626149'. Using that
-    token will return an empty list, as that is test user.
+    For example: 'Token 627626823549f787c3ec763ff687169206626149'.
     """
 
     auth = [
@@ -1540,20 +1538,18 @@ class ApiPrefixesToken(APIView):
     @swagger_auto_schema(
         manual_parameters=auth,
         responses={
-            200: "The available prefixes were returned.",
-            401: "The authorization header was not provided.",
-            403: "Invalid token.",
+            200: "The Authorization header was provided and available prefixes were returned.",
+            400: "The Authorization header was not provided.",
         },
         tags=["Prefix Management"],
     )
     def post(self, request) -> Response:
         if "Authorization" in request.headers:
+            # Pass the request to the handling function
+            # Source: https://stackoverflow.com/a/31813810
             return post_api_prefixes_token_flat(request=request)
         else:
-            return Response(
-                data={"detail": "The authorization header was not provided."},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApiPrefixesTokenFlat(APIView):
