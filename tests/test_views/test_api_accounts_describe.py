@@ -14,10 +14,7 @@ from rest_framework.test import APIClient
 
 class AccountDescribeTestCase(TestCase):
     fixtures = ['tests/fixtures/test_data']
-    # def setUp(self):
-    #     self.client = APIClient()
 
-    
     def test_success_response(self):
         """200: Authorization is successful.
         """
