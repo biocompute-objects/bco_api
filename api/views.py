@@ -1638,15 +1638,9 @@ class DraftObjectId(APIView):
 
     --------------------
 
-    Reads and returns and object based on a URI.
+    Reads and returns a single object from a given object_id.
 
     """
-
-    # For the success and error messages
-    # renderer_classes = [
-    #     TemplateHTMLRenderer
-    # ]
-    # template_name = 'api/account_activation_message.html'
 
     auth = []
     auth.append(
@@ -1661,10 +1655,12 @@ class DraftObjectId(APIView):
     @swagger_auto_schema(
         manual_parameters=auth,
         responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered.",
+            200: "Success. Object contents returned",
+            401: "The contents of the draft could not be sent back because"
+                " the requestor does not have appropriate permissions.",
+            403: "Forbidden. Authentication credentials were not provided, or"
+                " the token was invalid.",
+            404: "Not found. That draft could not be found on the server."
         },
         tags=["BCO Management"],
     )

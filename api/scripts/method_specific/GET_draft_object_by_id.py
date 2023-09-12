@@ -63,11 +63,11 @@ def get_draft_object_by_id(do_id, request):
 
         return Response(
             data="The contents of the draft could not be sent back because"
-            " the requestor did not have appropriate permissions.",
-            status=status.HTTP_403_FORBIDDEN,
+            " the requestor does not have appropriate permissions.",
+            status=status.HTTP_401_UNAUTHORIZED,
         )
     # the root ID does not exist at all.
     return Response(
-        data="The draft could not be found on the server.",
-        status=status.HTTP_400_BAD_REQUEST,
+        data="That draft could not be found on the server.",
+        status=status.HTTP_404_NOT_FOUND,
     )
