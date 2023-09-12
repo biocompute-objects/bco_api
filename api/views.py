@@ -627,13 +627,13 @@ class ApiObjectsDraftsCreate(APIView):
 
 class ApiObjectsDraftsModify(APIView):
     """
-    Modify a BCO Object
+    Bulk Modify BCO Objects
 
     --------------------
 
-    Modifies a BCO object.  The BCO object must be a draft in order to be
-    modifiable.  WARNING: The contents of the BCO will be replaced with the new
-    contents provided in the request body.
+    Modifies one or more BCO objects.  The BCO objects must be a draft in order
+    to be modifiable.  WARNING: The contents of the BCO will be replaced with
+    the new contents provided in the request body.
     """
 
     POST_api_objects_drafts_modify_schema = openapi.Schema(
@@ -668,19 +668,24 @@ class ApiObjectsDraftsModify(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "Modification of BCO draft is successful.",
+            200: "All modifications of BCO drafts are successful.",
             207: "Some or all BCO modifications failed. Each object submitted"
                 " will have it's own response object with it's own status"
                 " code and message:\n"
-                    "201: The prefix * was successfully created.\n"
-                    "400: Bad Request. The expiration date * is not valid.\n"
-                    "400: Bad Request. The prefix * does not follow the naming rules for a prefix.\n"
-                    "403: Forbidden. User does not have permission to perform this action.\n"
-                    "404: Not Found. The user * was not found on the server.\n"
-                    "409: Conflict. The prefix the requestor is attempting to create already exists.\n",
-            401: "Unauthorized. Authentication credentials were not provided.",
+                    "200: Success. The object with ID <'object_id'> was"
+                        "updated.\n"
+                    "400: Bad request. The request could not be processed with"
+                        "the parameters provided.\n "
+                    "401: Prefix unauthorized. The token provided does not "
+                        "have draft permissions for this prefix <'prefix'>.\n"
+                    "404: Not Found. The object ID <'object_id'> was not found "
+                    "on the server.\n"
+                    "409: Conflict. The provided object_id <'object_id'> does "
+                        "not match the saved draft object_id <'object_id'>. "
+                        "Once a draft is created you can not change the "
+                        "object_id.\n",
             400: "Bad request.",
-            403: "Invalid token.",
+            403: "Forbidden. Authentication credentials were not provided, or the token is invalid."
         },
         tags=["BCO Management"],
     )
