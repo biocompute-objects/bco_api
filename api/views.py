@@ -252,7 +252,17 @@ class ApiGroupsInfo(APIView):
     --------------------
 
     This API call checks a user's groups and permissions in ths system.  The User token is
-    required but all other parameters are optional.
+    required.
+    
+    ```JSON
+    {
+        "POST_api_groups_info": {
+            "names": [
+                "bco_drafter", "bco_publisher"
+            ]
+        }
+    }
+    ```
     """
 
     POST_api_groups_info_schema = openapi.Schema(
@@ -279,14 +289,13 @@ class ApiGroupsInfo(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "Authorization is successful. Group permissions returned",
-            400: "Bad request.  Authorization is not provided in the request headers.",
-            401: "Unauthorized. Authentication credentials were not valid.",
+            200: "Success. Group permissions returned",
+            400: "Bad request. Request is not formatted correctly.",
+            403: "Forbidden. Invalid token or authentication credentials were not provided.",
         },
         tags=["Group Management"],
     )
     def post(self, request):
-        """Post?"""
         return check_post_and_process(request, post_api_groups_info)
 
 
