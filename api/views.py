@@ -1718,9 +1718,6 @@ class ObjectIdRootObjectId(APIView):
     def get(self, request, object_id_root):
         return GET_published_object_by_id(object_id_root)
 
-
-# Allow anyone to view published objects.
-# Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 class ObjectIdRootObjectIdVersion(APIView):
     """
     View Published BCO by ID and Version
