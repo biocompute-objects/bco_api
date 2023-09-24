@@ -654,7 +654,6 @@ class ApiObjectsDraftsModify(APIView):
             ),
             "contents": openapi.Schema(
                 type=openapi.TYPE_OBJECT,
-                additional_properties=True,
                 description="Contents of the BCO.",
             ),
         },
