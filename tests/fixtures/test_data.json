@@ -6524,7 +6524,8 @@
 			"state": "PUBLISHED",
 			"last_update": "2022-06-28T23:44:58.161Z"
 		}
-	},	{
+	},
+	{
 		"model": "api.bco",
 		"pk": 13,
 		"fields": {
@@ -6753,6 +6754,55 @@
 			"schema": "IEEE",
 			"state": "PUBLISHED",
 			"last_update": "2022-06-28T23:44:58.161Z"
+		}
+	},
+	{
+		"model": "api.bco",
+		"pk": 14,
+		"fields": {
+			"contents": {
+				"object_id": "",
+				"spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
+				"etag": "da75a2c36dd6bf449d1f7b150197096e11c51812",
+				"provenance_domain": {
+				  "name": "",
+				  "version": "",
+				  "license": "",
+				  "created": "2023-09-05T18:10:23",
+				  "modified": "2023-09-05T18:10:23.167Z",
+				  "contributors": [
+					{
+					  "name": "",
+					  "affiliation": "",
+					  "email": "",
+					  "contribution": [],
+					  "orcid": ""
+					}
+				  ]
+				},
+				"usability_domain": [],
+				"description_domain": {
+				  "pipeline_steps": []
+				},
+				"parametric_domain": [],
+				"io_domain": {},
+				"execution_domain": {
+				  "script": [],
+				  "script_driver": "",
+				  "software_prerequisites": [],
+				  "external_data_endpoints": [],
+				  "environment_variables": {}
+				},
+				"extension_domain": []
+			},
+			"object_class": null,
+			"object_id": "http://127.0.0.1:8000/TEST_000002/DRAFT",
+			"owner_group": "bco_api_user",
+			"owner_user": "test50",
+			"prefix": "DRAFT",
+			"schema": "IEEE",
+			"state": "DRAFT",
+			"last_update": "2023-09-24T09:16:04.123Z"
 		}
 	},
 	{

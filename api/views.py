@@ -1783,8 +1783,8 @@ class ValidateBCO(APIView):
     ```JSON
     {
         "POST_validate_bco": [
-            {...},
-            {...}
+            {...BCO CONTENTS...},
+            {...BCO CONTENTS...}
         ]
     }
 
@@ -1810,10 +1810,10 @@ class ValidateBCO(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered.",
+            200: "All BCO validations are successful.",
+            207: "Some or all BCO validations failed. Each object submitted"
+                " will have it's own response object with it's own status"
+                " message:\n"
         },
         tags=["BCO Management"],
     )
