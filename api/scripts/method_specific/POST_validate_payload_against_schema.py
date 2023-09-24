@@ -26,15 +26,31 @@ def post_validate_bco(request):
     """
 
     bco_list = request.data["POST_validate_bco"]
+
     results = {}
     any_failed = False
-    for bco in bco_list:
-        results = parse_bco(bco, results)
-        identifier = bco["object_id"]
 
-        if results[identifier]["number_of_errors"] == 0:
-            results[identifier]["error_detail"] = ["BCO Valid"]
-        else:
+    for bco in bco_list:    
+        try:
+            results = parse_bco(bco, results)
+            
+            if bco["object_id"] == '':
+                identifier = bco_list.index(bco)
+                results[identifier] = results['']
+                del results['']
+            else:
+                identifier = bco["object_id"]
+
+            if results[identifier]["number_of_errors"] == 0:
+                results[identifier]["error_detail"] = ["BCO Valid"]
+            else:
+                any_failed = True
+
+        except Exception as error:
+            results[bco_list.index(bco)] = {
+                "number_of_errors": 1,
+                "error_detail": ["Bad request. BCO is not formatted correctly."]
+            }
             any_failed = True
 
     if any_failed is True:

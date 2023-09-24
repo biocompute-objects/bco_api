@@ -1,281 +1,90 @@
-##Wrong response codes in BCO API documentation. Needs to be worked on!!
+#!/usr/bin/env python3
 
+"""Bulk Validate BCOs
+Tests for 'Success. All BCOs are valid (200)', 'Forbidden. Invalid
+token. (403)', Forbidden response (400)
+"""
+
+import json
+from api.models import BCO
+from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework.test import APIClient
-from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
-from rest_framework.test import APITestCase
-import json
 
 class BcoValidateTestCase(TestCase):
+    fixtures = ['tests/fixtures/test_data']
+
     def setUp(self):
-        fixtures = ['tests/fixtures/test_data']
         self.client = APIClient()
-                # Checking if the user 'bco_api_user' already exists
-        try:
-            self.user = User.objects.get(username='bco_api_user')
-        except User.DoesNotExist:
-            self.user = User.objects.create_user(username='bco_api_user')
-
-        # Checking if user already has token, if not then creating one
-        if not Token.objects.filter(user=self.user).exists():
-            self.token = Token.objects.create(user=self.user)
-        else:
-            self.token = Token.objects.get(user=self.user)
-        self.url = '/api/objects/validate/'
-
-    def test_successful_validation(self):
-        # Test case for successful validation (response code 201)
-        data = {
-            "POST_validate_bco": [
-                {
-                    "object_id": "http://127.0.0.1:8000/BCO_000000/DRAFT",
+        self.bco_1 = BCO.objects.filter(object_id__icontains='TEST_000001/DRAFT')[0].contents
+        self.bco_2 = {}
+        self.bco_3 = {
+				"object_id": "",
 				"spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-				"etag": "0275321b6011324035289a5624c635ce5490fbdec588aa5f3bcaf63b85369b4a",
+				"etag": "da75a2c36dd6bf449d1f7b150197096e11c51812",
 				"provenance_domain": {
-					"name": "Influenza A reference gene sequences",
-					"version": "1.0",
-					"created": "2021-12-01T15:20:13.614Z",
-					"modified": "2022-06-28T23:10:12.804Z",
-					"review": [
-
-					],
-					"contributors": [
-						{
-							"contribution": [
-								"createdBy",
-								"authoredBy",
-								"curatedBy",
-								"importedBy",
-								"contributedBy"
-							],
-							"name": "Stephanie Singleton",
-							"affiliation": "The George Washington University ",
-							"email": "ssingleton@gwu.edu"
-						},
-						{
-							"contribution": [
-								"createdBy"
-							],
-							"name": "Jonathon Keeney",
-							"affiliation": "The George Washington University ",
-							"email": "keeneyjg@gwu.edu"
-						}
-					],
-					"license": "MIT"
-				},
-				"usability_domain": [
-					"Influenza A (A/Puerto Rico/8/1934 H1N1) reference protein coding sequences.",
-					"Cross reference to genes was retrieved using mappings present in proteins that were retrieved using UniProt proteome ID (UniProt ID: UP000009255; strain A/Puerto Rico/8/1934 H1N1). This set was chosen based on UniProt curation emphasis and community use. The primary use case for this data set is to visualize how protein annotations related to drug resistance mutations, selection pressure and more map to gene sequences. "
-				],
-				"description_domain": {
-					"keywords": [
-						"Influenza A, Complete Genome, FASTA, Genes"
-					],
-					"platform": [
-
-					],
-					"pipeline_steps": [
-						{
-							"step_number": 0,
-							"name": "Download files from UniProt",
-							"description": "Download all files associated with the Influenza A reference genome (influenza A, UP000009255) into the ARGOS Dev server Downloads folder. While logged into the server, execute the following commands: wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Viruses/UP000009255/*. One of the files acquired through this step and necessary for generating a new data set is 'UP000009255_211044_DNA.fasta.gz'. Then execute 'gunzip *.gz' to unzip all the files in the downloads folder. The file name is then changed to 'UP000009255_211044_DNA.fasta' in the downloads folder.",
-							"prerequisite": [
-								{
-									"name": "UniProt reference page ",
-									"uri": {
-										"uri": "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Viruses/UP000009255/",
-										"access_time": "2021-12-01T15:20:13.614Z"
-									}
-								}
-							],
-							"input_list": [
-								{
-									"uri": "ftp://argosdb-vm-dev/data/shared/argosdb/downloads/uniprot/v1.0/influenza_a/UP000009255_211044_DNA.fasta.gz",
-									"filename": "UP000009255_211044_DNA.fasta.gz",
-									"access_time": "2021-12-01T15:20:13.614Z"
-								}
-							],
-							"output_list": [
-								{
-									"uri": "ftp://argosdb-vm-dev/data/shared/argosdb/downloads/uniprot/v1.0/influenza_a/UP000009255_211044_DNA.fasta",
-									"filename": "UP000009255_211044_DNA.fasta",
-									"access_time": "2021-12-01T15:20:13.614Z"
-								}
-							],
-							"version": "1.1"
-						},
-						{
-							"step_number": 0,
-							"name": "Run the recipe created to process this fasta file, review the newly generated dataset, and change the name of the file for clarity",
-							"description": "This step will use a recipe and a python script to generate a new dataset. The recipe tells the python script how and what to construct. This dataset will then be then moved in the 'unreviewed' folder in the dev argosdb server, it will be manually reviewed, and then the name of the file will be changed for clarity and tracking purposes - this is prefered. \\nMake sure you are located in the correct folder to run the script (/software/argosdb/dataset-maker). Use the following command to run the recipe and the python script: ‘python3 make-dataset.py -i recipes/influenza_UP000009255_genome_sequences.json’. Next, go to the ‘unreviewed’ folder to review the newly generated dataset ‘UP000009255_211044_DNA.fasta’. Once reviewed and approved, move the file to the ‘reviewed’ folder. Lastly, once in the ‘reviewed’ folder, change the name of the file to: ‘ influenza_UP000009255_211044_DNA.fasta’",
-							"prerequisite": [
-								{
-									"name": "Dataset-maker python script",
-									"uri": {
-										"uri": "ftp://argosdb-vm-dev/software/argosdb/make-dataset.py",
-										"filename": "make-dataset.py"
-									}
-								},
-								{
-									"name": "Influenza genome FASTA recipe",
-									"uri": {
-										"uri": "ftp://argosdb-vm-dev/data/shared/argosdb/generated/datasets/recipes/Influenza/influenza_UP000009255_genome_sequences.json",
-										"filename": "influenza_UP000009255_genome_sequences.json"
-									}
-								}
-							],
-							"input_list": [
-								{
-									"uri": "ftp://argosdb-vm-dev/data/shared/argosdb/downloads/uniprot/v1.0/influenza_a/UP000009255_211044_DNA.fasta",
-									"filename": "UP000009255_211044_DNA.fasta",
-									"access_time": "2021-12-01T15:20:13.614Z"
-								}
-							],
-							"output_list": [
-								{
-									"uri": "ftp://argosdb-vm-dev/data/shared/argosdb/generated/datasets/reviewed/influenza_UP000009255_211044_DNA.fasta",
-									"filename": "influenza_UP000009255_211044_DNA.fasta",
-									"access_time": "2021-12-01T15:20:13.614Z"
-								}
-							],
-							"version": "1.1"
-						}
-					]
-				},
-				"execution_domain": {
-					"script": [
-						{
-							"uri": {
-								"uri": "ftp://argosdb-vm-dev/software/argosdb/make-dataset.py",
-								"filename": "make-dataset.py"
-							}
-						}
-					],
-					"script_driver": "python3",
-					"software_prerequisites": [
-						{
-							"name": "Python",
-							"version": "3",
-							"uri": {
-								"uri": "https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe",
-								"filename": ""
-							}
-						}
-					],
-					"external_data_endpoints": [
-						{
-							"name": "python-3.10.0",
-							"url": "https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe"
-						}
-					],
-					"environment_variables": {
-					}
-				},
-				"io_domain": {
-					"input_subdomain": [
-						{
-							"uri": {
-								"uri": "http://data.argosdb.org/ln2downloads/uniprot/v1.0/UP000009255_211044_DNA.fasta",
-								"filename": "UP000009255_211044_DNA.fasta"
-							}
-						}
-					],
-					"output_subdomain": [
-						{
-							"mediatype": "text/plain",
-							"uri": {
-								"uri": "http://data.argosdb.org/ln2data/uniprot/v1.0/UP000009255_211044_DNA.fasta",
-								"filename": "UP000009255_211044_DNA.fasta"
-							}
-						}
-					]
-				},
-				"parametric_domain": [
-
-				],
-				"extension_domain": [
+				  "name": "",
+				  "version": "",
+				  "license": "",
+				  "created": "2023-09-05T18:10:23",
+				  "modified": "2023-09-05T18:10:23.167Z",
+				  "contributors": [
 					{
-						"extension_schema": "http://www.w3id.org/biocompute/extension_domain/1.1.0/dataset/dataset_extension.json",
-						"dataset_extension": {
-							"additional_license": {
-								"data_license": "https://creativecommons.org/licenses/by/4.0/",
-								"script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
-							},
-							"dataset_categories": [
-								{
-									"category_value": "Influenza A",
-									"category_name": "species"
-								},
-								{
-									"category_value": "nucleotide",
-									"category_name": "molecule"
-								},
-								{
-									"category_value": "Influenza A",
-									"category_name": "tag"
-								},
-								{
-									"category_value": "fasta",
-									"category_name": "file_type"
-								},
-								{
-									"category_value": "reviewed",
-									"category_name": "status"
-								},
-								{
-									"category_value": "internal",
-									"category_name": "scope"
-								}
-							]
-						}
+					  "name": "",
+					  "affiliation": "",
+					  "email": "",
+					  "contribution": [],
+					  "orcid": ""
 					}
-				]
-			},
-                
-                ]
-            }
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        response = self.client.post(self.url, data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 201)
+				  ]
+				},
+				"usability_domain": [],
+				"description_domain": {
+				  "pipeline_steps": []
+				},
+				"parametric_domain": [],
+				"io_domain": {},
+				"execution_domain": {
+				  "script": [],
+				  "script_driver": "",
+				  "software_prerequisites": [],
+				  "external_data_endpoints": [],
+				  "environment_variables": {}
+				},
+				"extension_domain": []
+			}
+        
+    
+    def test_successful_validation(self):
+        """Test case for failed validation (response code 207)
+        """
 
-    def test_account_already_authorized(self):
-        # Test case for account already authorized (response code 208)
         data = {
             "POST_validate_bco": [
-                {
-                    # BCO data here for account already authorized
-                    
-                }
-            ]
+				self.bco_1
+			]
         }
-        response = self.client.post(self.url, data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 208)
 
-    def test_rejected_credentials(self):
-        # Test case for rejected credentials (response code 403)
+        response = self.client.post('/api/objects/validate/', data=data, format='json')
+        self.assertEqual(response.status_code, 200)
+        
+    def test_unsuccessful_validation(self):
+        """Test case for successful validation (response code 201)
+        """
+
         data = {
             "POST_validate_bco": [
-                {
-                    # BCO data for rejected credentials
-                    # Example:
-                    # "bco_data_key": "bco_data_value"
-                }
-            ]
+				self.bco_1,
+                self.bco_2,
+                self.bco_3
+			]
         }
-        response = self.client.post(self.url, data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 403)
 
-    def test_account_not_registered(self):
-        # Test case for account not registered (response code 424)
-        data = {
-            "POST_validate_bco": [
-                {
-                    # Put your BCO data here for account not registered
-                    # Example:
-                    # "bco_data_key": "bco_data_value"
-                }
-            ]
-        }
-        response = self.client.post(self.url, data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 424)
+        response = self.client.post('/api/objects/validate/', data=data, format='json')
+        # Test for successfull validation
+        self.assertEqual(response.json()[self.bco_1['object_id']]['number_of_errors'], 0)
+        # Test for failed validation: Empty object
+        self.assertEqual(response.json()['1']['number_of_errors'], 1)
+        # Test for failed validation: Blank object
+        self.assertEqual(response.json()['2']['number_of_errors'], 3)
+        self.assertEqual(response.status_code, 207)
