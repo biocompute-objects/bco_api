@@ -1228,7 +1228,7 @@ class ApiPrefixesCreate(APIView):
     """
 
     # Permissions - prefix admins only
-    permission_classes = [RequestorInPrefixAdminsGroup]
+    permission_classes = [RequestorInPrefixAdminsGroup, IsAuthenticated]
 
     # TYPE_ARRAY explanation
     # Source: https://stackoverflow.com/questions/53492889/drf-yasg-doesnt-take-type-array-as-a-valid-type

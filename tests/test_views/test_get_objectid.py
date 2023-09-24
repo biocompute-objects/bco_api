@@ -21,7 +21,6 @@ class BCOViewTestCase(TestCase):
         
         object_id = "TEST_000001"
         response = self.client.get(f'/{object_id}')
-        import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, 200)
 
     def test_view_published_bco_not_found(self):

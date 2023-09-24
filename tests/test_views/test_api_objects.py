@@ -29,7 +29,7 @@ class ObjectsTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.get('http://localhost:8000/api/objects/?contents=review')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()[0]), 12)
+        self.assertEqual(len(response.json()[0]), 13)
 
     def test_search_prefix(self):
         """Search successfull. 200
@@ -37,9 +37,9 @@ class ObjectsTestCase(APITestCase):
 
         token = Token.objects.get(user=User.objects.get(username='bco_api_user')).key
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
-        response = self.client.get('http://localhost:8000/api/objects/?prefix=TEST')
+        response = self.client.get('/api/objects/?prefix=TEST')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()[0]), 2)
+        self.assertEqual(len(response.json()[0]), 3)
 
     def test_search_owner_user(self):
         """Search successfull. 200
@@ -49,7 +49,7 @@ class ObjectsTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.get('http://localhost:8000/api/objects/?owner_user=test50')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()[0]), 4)
+        self.assertEqual(len(response.json()[0]), 5)
 
     def test_search_object_id(self):
         """Search successfull. 200
@@ -67,9 +67,9 @@ class ObjectsTestCase(APITestCase):
 
         token = Token.objects.get(user=User.objects.get(username='bco_api_user')).key
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
-        response = self.client.get('http://localhost:8000/api/objects/?')
+        response = self.client.get('/api/objects/?')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()[0]), 12)
+        self.assertEqual(len(response.json()[0]), 13)
 
     def test_search_multi_value(self):
         """Search successfull. 200

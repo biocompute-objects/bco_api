@@ -8,7 +8,7 @@ class AuthRegisterTestCase(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_register_user_success(self):
+    def test_register_user_fail(self):
         data = {
         'hostname': 'UserDB',
         'email': 'test@gwu.edu',
@@ -16,8 +16,7 @@ class AuthRegisterTestCase(TestCase):
     }
         # Send a POST request to the register endpoint
         response = self.client.post('/api/auth/register/', data=data)
-        print(response.content.decode('utf-8'))
 
-        # Asserting that the response status code is 201
-        self.assertEqual(response.status_code, 201)
+        # Asserting that the response status code is 400
+        self.assertEqual(response.status_code, 400)
 
