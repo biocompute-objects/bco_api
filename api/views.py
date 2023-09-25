@@ -410,25 +410,32 @@ class ApiGroupsDelete(APIView):
 
 
 class ApiGroupsModify(APIView):
-    """Modify group
+    """Bulk Modify groups
 
     --------------------
-    Modifies an already existing BCO group.  An array of objects are taken where each of these objects
-    represents the instructions to modify a specific group.  Within each of these objects, along with the
-    group name, the set of modifications to that group exists in a dictionary as defined below.
+    Modifies one or more existing BCO groups. An array of objects are taken
+    where each of these objects represents the instructions to modify a
+    specific group.  Within each of these objects, along with the group name,
+    the set of modifications to that group exists in a dictionary indecated by
+    the following 'actions': 'rename', 'redescribe', 'add_users',
+    'remove_users', and 'owner_user'.
 
-    Example request body which encodes renaming a group named `myGroup1` to `myGroup2`:
+    Example request body which encodes renaming a group named `myGroup1` to
+    `myGroup2`:
     ```
-    request_body = ['POST_api_groups_modify' : {
-                        'name': 'myGroup1',
-                        'actions': {
-                            'rename': 'myGroup2'
-                            }
-                        }
-                    ]
+   "POST_api_groups_modify": [
+        {
+            "name": "myGroup1",
+            "actions": {
+                "rename": "myGroup2"
+            }
+        }
+    ]
     ```
 
-    More than one action can be included for a specific group name.
+    More than one action can be included for a specific group name, and more
+    than one group can be modified with a request. To modify multiple groups
+    they must each have their own request object. 
     """
 
     POST_api_groups_modify_schema = openapi.Schema(

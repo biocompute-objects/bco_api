@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from api.scripts.utilities.DbUtils import DbUtils
 from api.scripts.utilities.UserUtils import UserUtils
+from api.models import BCO
 
 usr_utils = UserUtils()
 db_utils = DbUtils()
@@ -276,14 +277,20 @@ def post_api_groups_delete(request):
 
 
 def post_api_groups_modify(request):
-    """Instantiate any necessary imports."""
-
-    bulk_request = request.data["POST_api_groups_modify"]
+    """Instantiate any necessary imports.
+    TODO: This needs a serious revamp... Permissions and specific groups need
+    to be adjusted. IE no one should be able to change a group without GroupInfo.
+    """
+    try:
+        bulk_request = request.data["POST_api_groups_modify"]
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     requestor_info = usr_utils.user_from_request(request=request)
     groups = list(Group.objects.all().values_list("name", flat=True))
     return_data = []
     for modification_object in bulk_request:
         standardized = modification_object["name"].lower()
+
         if standardized in groups:
             grouped = Group.objects.get(name=standardized)
             if (
@@ -315,6 +322,12 @@ def post_api_groups_modify(request):
                         if action_set["rename"] not in groups:
                             grouped.name = action_set["rename"]
                             grouped.save()
+                            group_information.group = grouped
+                            group_information.save()
+                            bco_list = BCO.objects.filter(owner_group=standardized)
+                            for bco in bco_list:
+                                bco.owner_group = grouped
+                                bco.save()
 
                     # Change description of group if set in actions.
                     if "redescribe" in action_set:
