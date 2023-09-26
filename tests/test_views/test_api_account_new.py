@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
-"""Add Account
-Tests for 
+"""New Account 
+Test for '201: Account creation request is successful.', '400: Bad
+request format.', and '409: Account has already been authenticated or
+requested.'
 """
 
 from django.test import TestCase, Client

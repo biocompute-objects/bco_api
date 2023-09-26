@@ -29,7 +29,6 @@ def GET_activate_account(username, temp_identifier):
         An HttpResponse that allows its data to be rendered into
         arbitrary media types.
     """
-    # Activate an account that is stored in the temporary table.
 
     db_utils = DbUtils.DbUtils()
 
@@ -46,24 +45,9 @@ def GET_activate_account(username, temp_identifier):
         credential_try = db_utils.activate_account(p_email=username)
 
         if len(credential_try) > 0:
-            # Everything went fine.
-            return Response(
-                {
-                    "activation_success": True,
-                    "activation_url": settings.PUBLIC_HOSTNAME + "/login/",
-                    "username": credential_try[0],
-                    "status": status.HTTP_201_CREATED,
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            return Response(status=status.HTTP_200_OK,)
 
         # The credentials weren't good.
-        return Response(
-            {"activation_success": False, "status": status.HTTP_403_FORBIDDEN},
-            status=status.HTTP_403_FORBIDDEN,
-        )
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
-    return Response(
-        {"activation_success": False, "status": status.HTTP_424_FAILED_DEPENDENCY},
-        status=status.HTTP_424_FAILED_DEPENDENCY,
-    )
+    return Response(status=status.HTTP_403_FORBIDDEN)
