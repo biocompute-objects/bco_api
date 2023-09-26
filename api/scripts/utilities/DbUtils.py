@@ -352,14 +352,7 @@ class DbUtils:
         valid_username = False
 
         while not valid_username:
-            # TODO: We shoudl change this to a hash instead of random number
-            # # This can replace below (move import to top though) - Needs to be tested
-            # import hashlib
-            # email_base = p_email.split('@')[0]
-            # user_hash = hashlib.md5(b'{}'.format(email_base))
-            # new_username = email_base + "_" + user_hash.hexdigest()
-            new_username = p_email.split("@")[0] + str(random.randrange(1, 100))
-            # Does this username exist (not likely)?
+            new_username = p_email
             if User.objects.filter(username=new_username):
                 valid_username = False
             else:
@@ -384,7 +377,6 @@ class DbUtils:
 
         # Save the user.
         user.save()
-
         # Automatically add the user to the bco_drafter and bco_publisher groups.
         user.groups.add(Group.objects.get(name="bco_drafter"))
         user.groups.add(Group.objects.get(name="bco_publisher"))

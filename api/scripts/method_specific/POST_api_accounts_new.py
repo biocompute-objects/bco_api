@@ -33,107 +33,123 @@ import uuid
 
 def POST_api_accounts_new(request):
     # An e-mail is provided, and if the e-mail already exists
-    # as an account, then return 403.
+    # as an account, then return 409.
+    try:
+        # Instantiate any necessary imports.
+        db = DbUtils.DbUtils()
 
-    bulk_request = request.data
-    # Instantiate any necessary imports.
-    db = DbUtils.DbUtils()
+        # Does the account associated with this e-mail already
+        # exist in either a temporary or a permanent user profile?
+        if (
+            db.check_user_exists(
+                p_app_label="api", p_model_name="new_users", p_email=request.data["email"]
+            )
+            is None
+        ):
+            if User.objects.filter(email=request.data["email"]).exists():
+                # Account has already been activated.
+                return Response(
+                    status=status.HTTP_409_CONFLICT,
+                    data={"message": "Account has already been activated."},
+                )
 
-    # Does the account associated with this e-mail already
-    # exist in either a temporary or a permanent user profile?
-    if (
-        db.check_user_exists(
-            p_app_label="api", p_model_name="new_users", p_email=bulk_request["email"]
-        )
-        is None
-    ):
-        if User.objects.filter(email=bulk_request["email"]).exists():
-            # Account has already been activated.
-            return Response(
-                status=status.HTTP_409_CONFLICT,
-                data={"message": "Account has already been activated."},
+            # The email has not already been asked for and
+            # it has not been activated.
+
+            # Generate a temp ID to use so that the account can
+            # be activated.
+
+            # The data is based on whether or not a token was provided.
+
+            # Create a temporary identifier.
+            temp_identifier = uuid.uuid4().hex
+            if "token" in request.data and "hostname" in request.data:
+                p_data = {
+                    "email": request.data["email"],
+                    "temp_identifier": temp_identifier,
+                    "hostname": request.data["hostname"],
+                    "token": request.data["token"],
+                }
+
+            else:
+                p_data = {
+                    "email": request.data["email"],
+                    "temp_identifier": temp_identifier,
+                }
+
+            objects_written = db.write_object(
+                p_app_label="api",
+                p_model_name="new_users",
+                p_fields=["email", "temp_identifier", "hostname", "token"],
+                p_data=p_data,
             )
 
-        # The email has not already been asked for and
-        # it has not been activated.
+            if objects_written < 1:
+                # There is a problem with the write.
+                return Response(
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    data="Not able to save the new account.",
+                )
 
-        # Generate a temp ID to use so that the account can
-        # be activated.
+            # Send an e-mail to let the requestor know that they
+            # need to follow the activation link within 10 minutes.
 
-        # The data is based on whether or not a token was provided.
+            # Source: https://realpython.com/python-send-email/#sending-fancy-emails
 
-        # Create a temporary identifier.
-        temp_identifier = uuid.uuid4().hex
+            activation_link = ""
+            template = ""
 
-        if "token" in bulk_request and "hostname" in bulk_request:
-            p_data = {
-                "email": bulk_request["email"],
-                "temp_identifier": temp_identifier,
-                "hostname": bulk_request["hostname"],
-                "token": bulk_request["token"],
-            }
+            activation_link = (
+                settings.PUBLIC_HOSTNAME
+                + "/api/accounts/activate/"
+                + urllib.parse.quote(request.data["email"])
+                + "/"
+                + temp_identifier
+            )
+
+            template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(
+                activation_link, activation_link
+            )
+
+            try:
+                send_mail(
+                    subject="Registration for BioCompute Portal",
+                    message="Testing.",
+                    html_message=template,
+                    from_email="mail_sender@portal.aws.biochemistry.gwu.edu",
+                    recipient_list=[request.data["email"]],
+                    fail_silently=False,
+                )
+                print("Email signal sent")
+
+            except Exception as error:
+                print("activation_link", activation_link)
+                print('ERROR: ', error)
+                return Response(
+                    status=status.HTTP_201_CREATED, data={
+                        "message": f"Not able to send authentication email: {error}",
+                        "activation_link": f"{activation_link}"
+                    }
+                )
+
+            if request.data["token"] == "SampleToken":
+                print("testing with SampleToken")
+                return Response(
+                    status=status.HTTP_201_CREATED, data={
+                        "message": "Testing token received",
+                        "activation_link": f"{activation_link}"
+                    }
+                )
+
+            return Response(status=status.HTTP_201_CREATED)
 
         else:
-            p_data = {
-                "email": bulk_request["email"],
-                "temp_identifier": temp_identifier,
-            }
-
-        objects_written = db.write_object(
-            p_app_label="api",
-            p_model_name="new_users",
-            p_fields=["email", "temp_identifier", "hostname", "token"],
-            p_data=p_data,
-        )
-
-        if objects_written < 1:
-            # There is a problem with the write.
             return Response(
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                data="Not able to save the new account.",
+                status=status.HTTP_409_CONFLICT,
+                data={"message": "Account has already been requested."},
             )
-
-        # Send an e-mail to let the requestor know that they
-        # need to follow the activation link within 10 minutes.
-
-        # Source: https://realpython.com/python-send-email/#sending-fancy-emails
-
-        activation_link = ""
-        template = ""
-
-        activation_link = (
-            settings.PUBLIC_HOSTNAME
-            + "/api/accounts/activate/"
-            + urllib.parse.quote(bulk_request["email"])
-            + "/"
-            + temp_identifier
-        )
-
-        template = '<html><body><p>Please click this link within the next 10 minutes to activate your BioCompute Portal account: <a href="{}" target="_blank">{}</a>.</p></body></html>'.format(
-            activation_link, activation_link
-        )
-
-        try:
-            send_mail(
-                subject="Registration for BioCompute Portal",
-                message="Testing.",
-                html_message=template,
-                from_email="mail_sender@portal.aws.biochemistry.gwu.edu",
-                recipient_list=[bulk_request["email"]],
-                fail_silently=False,
-            )
-
-        except Exception as e:
-            print("activation_link", activation_link)
-            # print('ERROR: ', e)
-            # TODO: Should handle when the send_mail function fails?
-            # return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": "Not able to send authentication email: {}".format(e)})
-        return Response(status=status.HTTP_201_CREATED)
-
-    else:
-
-        # Account has already been asked for.
+    except:
         return Response(
-            status=status.HTTP_409_CONFLICT,
-            data={"message": "Account has already been requested."},
+            status=status.HTTP_400_BAD_REQUEST,
+            data={"message": "Bad request format."},
         )
