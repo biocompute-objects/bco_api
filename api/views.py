@@ -182,8 +182,6 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
         tags=["Account Management"],
     )
     def get(self, request, username: str, temp_identifier: str):
-        """Check the request to make sure it is valid - not sure what this is really doing though
-        Placeholder"""
         check_get(request)
         checked = None
         if checked is None:
@@ -567,11 +565,9 @@ class ApiAccountsNew(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "Account creation is successful.",
-            400: "Bad request.",
-            403: "Invalid token.",
+            201: "Account creation request is successful.",
+            400: "Bad request format.",
             409: "Account has already been authenticated or requested.",
-            500: "Unable to save the new account or send authentication email.",
         },
         tags=["Account Management"],
     )
