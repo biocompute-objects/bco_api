@@ -223,12 +223,12 @@ class RemoveAuthenticationApi(APIView):
         """"""
 
         result = validate_auth_service(request.data)
+        
         if result != 1:
             return Response(
                 status=status.HTTP_403_FORBIDDEN,
                 data=result
             )
-
         try:
             auth_object = Authentication.objects.get(username=request.user.username)
         except Authentication.DoesNotExist:
