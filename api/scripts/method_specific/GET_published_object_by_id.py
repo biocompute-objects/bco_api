@@ -1,16 +1,16 @@
-# The BCO model
-from ...models import BCO
+#!/usr/bin/env python3
 
-# Responses
+import re
+import json
+from api.models import BCO
+from django.forms.models import model_to_dict
 from rest_framework import status
 from rest_framework.response import Response
-
-# Below is helper code to deal with how we are allowing non standard versions (i.e. 1.2 instead of 1.2.0, etc).
-import re
 from semver import VersionInfo as Version
 from typing import Optional, Tuple
 
-# TODO: This should be put into a universal place to grab from - also duplicated in POST_api_objects_drafts_token.py
+# TODO: This should be put into a universal place to grab from - also
+# duplicated in POST_api_objects_drafts_token.py
 
 BASEVERSION = re.compile(
     r"""[vV]?
@@ -41,6 +41,7 @@ def coerce(version: str) -> Tuple[Version, Optional[str]]:
         belong to a basic version.
     :rtype: tuple(:class:`Version` | None, str)
     """
+  
     match = BASEVERSION.search(version)
     if not match:
         return (None, version)
@@ -79,7 +80,6 @@ def GET_published_object_by_id(oi_root):
             object_id__regex=rf"(.*?)/{oi_root}/", state="PUBLISHED"
         ).values_list("object_id", flat=True)
     )
-
     # Get the latest version for this object if we have any.
     if len(all_versions) > 0:
 
@@ -88,24 +88,24 @@ def GET_published_object_by_id(oi_root):
         # not a version was also passed.
 
         # First find the latest version of the object.
-        latest_version = [i.split("/")[-1:][0] for i in all_versions]
-        l_version, _ = coerce(max(latest_version, key=coerce))
-
+        latest_versions = [i.split("/")[-1:][0] for i in all_versions]
+        l_version, _ = coerce(max(latest_versions, key=coerce))
+        latest_version = latest_versions[-1]
         # Kick back the latest version.
         return Response(
-            data=BCO.objects.filter(
-                object_id__regex=rf"{oi_root}/{l_version.major}.{l_version.minor}?.?{l_version.patch}",
+            data=model_to_dict(BCO.objects.get(
+                # object_id__regex=rf"{oi_root}/{l_version.major}.{l_version.minor}?.?{l_version.patch}",
+                object_id__regex=f'{oi_root}/{latest_version}',
                 state="PUBLISHED",
-            ).values_list("contents", flat=True),
+            )),
             status=status.HTTP_200_OK,
         )
 
     else:
-
         # If all_versions has 0 length, then the
         # the root ID does not exist at all.
         print("No objects were found for the root ID provided.")
         return Response(
             data="No objects were found for the root ID provided.",
-            status=status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_404_NOT_FOUND,
         )

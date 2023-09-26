@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from api.scripts.utilities.DbUtils import DbUtils
 from api.scripts.utilities.UserUtils import UserUtils
+from api.models import BCO
 
 usr_utils = UserUtils()
 db_utils = DbUtils()
@@ -41,37 +42,41 @@ def post_api_groups_info(request):
     """Retrieve Group information by user"""
 
     user = usr_utils.user_from_request(request=request)
-    bulk_request = request.data["POST_api_groups_info"]
-    group_info = []
 
-    for index, value in enumerate(bulk_request["names"]):
-        group = Group.objects.get(name=value)
+    try:
+        bulk_request = request.data["POST_api_groups_info"]
+    
+        group_info = []
 
-        try:
-            admin = GroupInfo.objects.get(group=value).owner_user == user
-            description = GroupInfo.objects.get(group=value).description
-        except GroupInfo.DoesNotExist:
-            admin = False
-            description = "N/A"
+        for index, value in enumerate(bulk_request["names"]):
+            group = Group.objects.get(name=value)
 
-        group_permissions = list(
-            group.permissions.all().values_list("codename", flat=True)
+            try:
+                admin = GroupInfo.objects.get(group=value).owner_user == user
+                description = GroupInfo.objects.get(group=value).description
+            except GroupInfo.DoesNotExist:
+                admin = False
+                description = "N/A"
+
+            group_permissions = list(
+                group.permissions.all().values_list("codename", flat=True)
+            )
+            group_members = list(group.user_set.all().values_list("username", flat=True))
+            group_info.append(
+                {
+                    "name": group.name,
+                    "permissions": group_permissions,
+                    "members": group_members,
+                    "admin": admin,
+                    "description": description,
+                }
+            )
+    except Exception as error:
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST,
+            data={"message": "Bad request. Request is not formatted correctly."}
         )
-        group_members = list(group.user_set.all().values_list("username", flat=True))
-        group_info.append(
-            {
-                "name": group.name,
-                "permissions": group_permissions,
-                "members": group_members,
-                "admin": admin,
-                "description": description,
-            }
-        )
 
-    #  print(usr_utils.get_user_groups_by_username(un=username))
-    # user.get_all_permissions()
-    # user.get_group_permissions()
-    print(group_info)
     return Response(status=status.HTTP_200_OK, data=group_info)
 
 
@@ -276,14 +281,20 @@ def post_api_groups_delete(request):
 
 
 def post_api_groups_modify(request):
-    """Instantiate any necessary imports."""
-
-    bulk_request = request.data["POST_api_groups_modify"]
+    """Instantiate any necessary imports.
+    TODO: This needs a serious revamp... Permissions and specific groups need
+    to be adjusted. IE no one should be able to change a group without GroupInfo.
+    """
+    try:
+        bulk_request = request.data["POST_api_groups_modify"]
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     requestor_info = usr_utils.user_from_request(request=request)
     groups = list(Group.objects.all().values_list("name", flat=True))
     return_data = []
     for modification_object in bulk_request:
         standardized = modification_object["name"].lower()
+
         if standardized in groups:
             grouped = Group.objects.get(name=standardized)
             if (
@@ -315,6 +326,12 @@ def post_api_groups_modify(request):
                         if action_set["rename"] not in groups:
                             grouped.name = action_set["rename"]
                             grouped.save()
+                            group_information.group = grouped
+                            group_information.save()
+                            bco_list = BCO.objects.filter(owner_group=standardized)
+                            for bco in bco_list:
+                                bco.owner_group = grouped
+                                bco.save()
 
                     # Change description of group if set in actions.
                     if "redescribe" in action_set:

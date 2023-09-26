@@ -123,11 +123,11 @@ elif PUBLISH_ONLY == "False":
             name="schema-redoc",
         ),
         path("<str:object_id>/DRAFT", DraftObjectId.as_view()),
-        path("<str:object_id_root>", ObjectIdRootObjectId.as_view()),
         path(
             "<str:object_id_root>/<str:object_id_version>",
             ObjectIdRootObjectIdVersion.as_view(),
         ),
+        path("<str:object_id_root>", ObjectIdRootObjectId.as_view()),
         path(
             "api/accounts/activate/<str:username>/<str:temp_identifier>",
             ApiAccountsActivateUsernameTempIdentifier.as_view(),

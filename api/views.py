@@ -182,8 +182,6 @@ class ApiAccountsActivateUsernameTempIdentifier(APIView):
         tags=["Account Management"],
     )
     def get(self, request, username: str, temp_identifier: str):
-        """Check the request to make sure it is valid - not sure what this is really doing though
-        Placeholder"""
         check_get(request)
         checked = None
         if checked is None:
@@ -252,7 +250,17 @@ class ApiGroupsInfo(APIView):
     --------------------
 
     This API call checks a user's groups and permissions in ths system.  The User token is
-    required but all other parameters are optional.
+    required.
+    
+    ```JSON
+    {
+        "POST_api_groups_info": {
+            "names": [
+                "bco_drafter", "bco_publisher"
+            ]
+        }
+    }
+    ```
     """
 
     POST_api_groups_info_schema = openapi.Schema(
@@ -279,14 +287,13 @@ class ApiGroupsInfo(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "Authorization is successful. Group permissions returned",
-            400: "Bad request.  Authorization is not provided in the request headers.",
-            401: "Unauthorized. Authentication credentials were not valid.",
+            200: "Success. Group permissions returned",
+            400: "Bad request. Request is not formatted correctly.",
+            403: "Forbidden. Invalid token or authentication credentials were not provided.",
         },
         tags=["Group Management"],
     )
     def post(self, request):
-        """Post?"""
         return check_post_and_process(request, post_api_groups_info)
 
 
@@ -409,25 +416,32 @@ class ApiGroupsDelete(APIView):
 
 
 class ApiGroupsModify(APIView):
-    """Modify group
+    """Bulk Modify groups
 
     --------------------
-    Modifies an already existing BCO group.  An array of objects are taken where each of these objects
-    represents the instructions to modify a specific group.  Within each of these objects, along with the
-    group name, the set of modifications to that group exists in a dictionary as defined below.
+    Modifies one or more existing BCO groups. An array of objects are taken
+    where each of these objects represents the instructions to modify a
+    specific group.  Within each of these objects, along with the group name,
+    the set of modifications to that group exists in a dictionary indecated by
+    the following 'actions': 'rename', 'redescribe', 'add_users',
+    'remove_users', and 'owner_user'.
 
-    Example request body which encodes renaming a group named `myGroup1` to `myGroup2`:
+    Example request body which encodes renaming a group named `myGroup1` to
+    `myGroup2`:
     ```
-    request_body = ['POST_api_groups_modify' : {
-                        'name': 'myGroup1',
-                        'actions': {
-                            'rename': 'myGroup2'
-                            }
-                        }
-                    ]
+   "POST_api_groups_modify": [
+        {
+            "name": "myGroup1",
+            "actions": {
+                "rename": "myGroup2"
+            }
+        }
+    ]
     ```
 
-    More than one action can be included for a specific group name.
+    More than one action can be included for a specific group name, and more
+    than one group can be modified with a request. To modify multiple groups
+    they must each have their own request object. 
     """
 
     POST_api_groups_modify_schema = openapi.Schema(
@@ -551,11 +565,9 @@ class ApiAccountsNew(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "Account creation is successful.",
-            400: "Bad request.",
-            403: "Invalid token.",
+            201: "Account creation request is successful.",
+            400: "Bad request format.",
             409: "Account has already been authenticated or requested.",
-            500: "Unable to save the new account or send authentication email.",
         },
         tags=["Account Management"],
     )
@@ -627,12 +639,13 @@ class ApiObjectsDraftsCreate(APIView):
 
 class ApiObjectsDraftsModify(APIView):
     """
-    Modify a BCO Object
+    Bulk Modify BCO Objects
 
     --------------------
 
-    Modifies a BCO object.  The BCO object must be a draft in order to be modifiable.  The contents of the BCO will be replaced with the
-    new contents provided in the request body.
+    Modifies one or more BCO objects.  The BCO objects must be a draft in order
+    to be modifiable.  WARNING: The contents of the BCO will be replaced with
+    the new contents provided in the request body.
     """
 
     POST_api_objects_drafts_modify_schema = openapi.Schema(
@@ -644,7 +657,6 @@ class ApiObjectsDraftsModify(APIView):
             ),
             "contents": openapi.Schema(
                 type=openapi.TYPE_OBJECT,
-                additional_properties=True,
                 description="Contents of the BCO.",
             ),
         },
@@ -667,9 +679,24 @@ class ApiObjectsDraftsModify(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "Modification of BCO draft is successful.",
+            200: "All modifications of BCO drafts are successful.",
+            207: "Some or all BCO modifications failed. Each object submitted"
+                " will have it's own response object with it's own status"
+                " code and message:\n"
+                    "200: Success. The object with ID <'object_id'> was"
+                        "updated.\n"
+                    "400: Bad request. The request could not be processed with"
+                        "the parameters provided.\n "
+                    "401: Prefix unauthorized. The token provided does not "
+                        "have draft permissions for this prefix <'prefix'>.\n"
+                    "404: Not Found. The object ID <'object_id'> was not found "
+                    "on the server.\n"
+                    "409: Conflict. The provided object_id <'object_id'> does "
+                        "not match the saved draft object_id <'object_id'>. "
+                        "Once a draft is created you can not change the "
+                        "object_id.\n",
             400: "Bad request.",
-            403: "Invalid token.",
+            403: "Forbidden. Authentication credentials were not provided, or the token is invalid."
         },
         tags=["BCO Management"],
     )
@@ -1203,7 +1230,7 @@ class ApiPrefixesCreate(APIView):
     """
 
     # Permissions - prefix admins only
-    permission_classes = [RequestorInPrefixAdminsGroup]
+    permission_classes = [RequestorInPrefixAdminsGroup, IsAuthenticated]
 
     # TYPE_ARRAY explanation
     # Source: https://stackoverflow.com/questions/53492889/drf-yasg-doesnt-take-type-array-as-a-valid-type
@@ -1622,15 +1649,9 @@ class DraftObjectId(APIView):
 
     --------------------
 
-    Reads and returns and object based on a URI.
+    Reads and returns a single object from a given object_id.
 
     """
-
-    # For the success and error messages
-    # renderer_classes = [
-    #     TemplateHTMLRenderer
-    # ]
-    # template_name = 'api/account_activation_message.html'
 
     auth = []
     auth.append(
@@ -1645,10 +1666,12 @@ class DraftObjectId(APIView):
     @swagger_auto_schema(
         manual_parameters=auth,
         responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered.",
+            200: "Success. Object contents returned",
+            401: "The contents of the draft could not be sent back because"
+                " the requestor does not have appropriate permissions.",
+            403: "Forbidden. Authentication credentials were not provided, or"
+                " the token was invalid.",
+            404: "Not found. That draft could not be found on the server."
         },
         tags=["BCO Management"],
     )
@@ -1669,18 +1692,9 @@ class DraftObjectId(APIView):
 class ObjectIdRootObjectId(APIView):
     """
     View Published BCO by ID
-
     --------------------
-
-    Reads and returns a published BCO based on an object ID.
-
+    Reads and returns a published BCO based on an object ID. This will return the highest versioned object.
     """
-
-    # For the success and error messages
-    # renderer_classes = [
-    #     TemplateHTMLRenderer
-    # ]
-    # template_name = 'api/account_activation_message.html'
 
     auth = []
     auth.append(
@@ -1692,26 +1706,20 @@ class ObjectIdRootObjectId(APIView):
         )
     )
 
-    # Anyone can view a published object
     authentication_classes = []
     permission_classes = []
 
     @swagger_auto_schema(
         manual_parameters=auth,
         responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered.",
+            200: "Object returned.",
+            404: "Object not found."
         },
         tags=["BCO Management"],
     )
     def get(self, request, object_id_root):
         return GET_published_object_by_id(object_id_root)
 
-
-# Allow anyone to view published objects.
-# Source: https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
 class ObjectIdRootObjectIdVersion(APIView):
     """
     View Published BCO by ID and Version
@@ -1777,8 +1785,8 @@ class ValidateBCO(APIView):
     ```JSON
     {
         "POST_validate_bco": [
-            {...},
-            {...}
+            {...BCO CONTENTS...},
+            {...BCO CONTENTS...}
         ]
     }
 
@@ -1804,10 +1812,10 @@ class ValidateBCO(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            201: "Account has been authorized.",
-            208: "Account has already been authorized.",
-            403: "Requestor's credentials were rejected.",
-            424: "Account has not been registered.",
+            200: "All BCO validations are successful.",
+            207: "Some or all BCO validations failed. Each object submitted"
+                " will have it's own response object with it's own status"
+                " message:\n"
         },
         tags=["BCO Management"],
     )

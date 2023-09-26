@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+
+"""API- Accounts describe
+Tests for 'Authorization is successfull' (200), 
+'Forbidden. Authentication credentials were not provided' (403),
+'Invalid Token' (403)
+"""
+
+
 from django.test import TestCase
 from django.contrib.auth.models import  User
 from rest_framework.authtoken.models import Token
@@ -5,10 +14,7 @@ from rest_framework.test import APIClient
 
 class AccountDescribeTestCase(TestCase):
     fixtures = ['tests/fixtures/test_data']
-    # def setUp(self):
-    #     self.client = APIClient()
 
-    
     def test_success_response(self):
         """200: Authorization is successful.
         """

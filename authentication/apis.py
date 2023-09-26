@@ -123,9 +123,10 @@ class AddAuthenticationApi(APIView):
     @swagger_auto_schema(
         request_body=schema,
         responses={
-            200: "Add authentication is successful.",
-            201: "Authentication credentials were created and added.",
+            200: "New authentication credentials added to existing object.",
+            201: "Authentication object created and added to account.",
             400: "Bad request.",
+            403: "Authentication credentials were not provided.",
             409: "That object already exists for this account.",
         },
         tags=["Authentication"],
@@ -140,7 +141,6 @@ class AddAuthenticationApi(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data=result)
         try: 
             auth_object = Authentication.objects.get(username=request.user.username)
-
             if request.data in auth_object.auth_service:
                 return Response(
                     status=status.HTTP_409_CONFLICT,
@@ -150,7 +150,7 @@ class AddAuthenticationApi(APIView):
             auth_object.save()
             return Response(
                 status=status.HTTP_200_OK,
-                data={"message": "Authentication added to existing object"}
+                data={"message": "New authentication credentials added to existing object"}
             )
 
         except Authentication.DoesNotExist:
@@ -161,7 +161,7 @@ class AddAuthenticationApi(APIView):
             print('status=status.HTTP_201_CREATED')
             return Response(
                 status=status.HTTP_201_CREATED,
-                data={"message": "Authentication object added to account"}
+                data={"message": "Authentication object created and added to account"}
             )
 
         except Exception as err:
@@ -213,8 +213,8 @@ class RemoveAuthenticationApi(APIView):
         request_body=schema,
         responses={
             200: "Remove authentication is successful.",
-            400: "Bad request.",
-            409: "That object already exists for this account.",
+            403: "Authentication failed.",
+            404: "That object does not exist for this account.",
         },
         tags=["Authentication"],
     )
@@ -225,18 +225,21 @@ class RemoveAuthenticationApi(APIView):
         result = validate_auth_service(request.data)
         
         if result != 1:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data=result)
+            return Response(
+                status=status.HTTP_403_FORBIDDEN,
+                data=result
+            )
         try:
             auth_object = Authentication.objects.get(username=request.user.username)
         except Authentication.DoesNotExist:
             return Response(
-                status=status.HTTP_409_CONFLICT,
-                data={"message": "That object does not exists."}
+                status=status.HTTP_404_NOT_FOUND,
+                data={"message": "That object does not exists for this user."}
             )
         if request.data not in auth_object.auth_service:
             return Response(
-                status=status.HTTP_409_CONFLICT,
-                data={"message": "That object does not exists."}
+                status=status.HTTP_404_NOT_FOUND,
+                data={"message": "That object does not exists for this user."}
             )
         auth_object.auth_service.remove(request.data)
         auth_object.save()
@@ -268,7 +271,7 @@ class ResetTokenApi(APIView):
         manual_parameters=auth,
         responses={
             200: "Token reset is successful.",
-            400: "Bad request.",
+            403: "Invalid token.",
         },
         tags=["Authentication"],
     )

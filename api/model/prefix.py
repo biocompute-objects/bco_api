@@ -94,7 +94,16 @@ def post_api_prefixes_create(request):
     return_data = []
     any_failed = False
     for creation_object in bulk_request:
-        owner_user = User.objects.get(username=creation_object["owner_user"])
+        try:
+            owner_user = User.objects.get(username=creation_object["owner_user"])
+        except User.DoesNotExist:
+            return_data.append(
+                db_utils.messages(parameters={"username": creation_object["owner_user"]})[
+                    "404_user_not_found"
+                ]
+            )
+            any_failed = True
+            continue
         if creation_object["owner_group"] == "bco_drafter":
             is_public = True
         else:
@@ -119,18 +128,6 @@ def post_api_prefixes_create(request):
                 any_failed = True
                 continue
 
-            if (
-                user_utils.check_user_exists(user_name=creation_object["owner_user"])
-                is False
-            ):
-                return_data.append(
-                    db_utils.messages(parameters={creation_object["owner_user"]})[
-                        "404_user_not_found"
-                    ]
-                )
-                any_failed = True
-                continue
-
             if "expiration_date" in prfx:
                 if (
                     db_utils.check_expiration(dt_string=prfx["expiration_date"])
@@ -144,86 +141,79 @@ def post_api_prefixes_create(request):
                     any_failed = True
                     continue
 
-            # Did any check fail?
-            if any_failed is False:
-                draft = prfx["prefix"].lower() + "_drafter"
-                publish = prfx["prefix"].lower() + "_publisher"
+            draft = prfx["prefix"].lower() + "_drafter"
+            publish = prfx["prefix"].lower() + "_publisher"
 
-                if len(Group.objects.filter(name=draft)) != 0:
-                    drafters = Group.objects.get(name=draft)
-                    owner_user.groups.add(drafters)
-                else:
-                    Group.objects.create(name=draft)
-                    drafters = Group.objects.get(name=draft)
-                    owner_user.groups.add(drafters)
-                    GroupInfo.objects.create(
-                        delete_members_on_group_deletion=False,
-                        description=prfx["description"],
-                        group=drafters,
-                        max_n_members=-1,
-                        owner_user=owner_user,
-                    )
-
-                if len(Group.objects.filter(name=publish)) != 0:
-                    publishers = Group.objects.get(name=publish)
-                    owner_user.groups.add(publishers)
-                else:
-                    Group.objects.create(name=publish)
-                    publishers = Group.objects.get(name=publish)
-                    owner_user.groups.add(publishers)
-                    GroupInfo.objects.create(
-                        delete_members_on_group_deletion=False,
-                        description=prfx["description"],
-                        group=publishers,
-                        max_n_members=-1,
-                        owner_user=owner_user,
-                    )
-                if is_public is True:
-                    owner_group = "bco_drafter"
-                else:
-                    owner_group = publish
-
-                write_result = DbUtils.DbUtils().write_object(
-                    p_app_label="api",
-                    p_model_name="Prefix",
-                    p_fields=[
-                        "created_by",
-                        "description",
-                        "owner_group",
-                        "owner_user",
-                        "prefix",
-                    ],
-                    p_data={
-                        "created_by": user_utils.user_from_request(
-                            request=request
-                        ).username,
-                        "description": prfx["description"],
-                        "owner_group": owner_group,
-                        "owner_user": creation_object["owner_user"],
-                        "prefix": standardized,
-                    },
+            if len(Group.objects.filter(name=draft)) != 0:
+                drafters = Group.objects.get(name=draft)
+                owner_user.groups.add(drafters)
+            else:
+                Group.objects.create(name=draft)
+                drafters = Group.objects.get(name=draft)
+                owner_user.groups.add(drafters)
+                GroupInfo.objects.create(
+                    delete_members_on_group_deletion=False,
+                    description=prfx["description"],
+                    group=drafters,
+                    max_n_members=-1,
+                    owner_user=owner_user,
                 )
-                if write_result != 1:
-                    return_data.append(
-                        db_utils.messages(parameters={"prefix": standardized})[
-                            "409_prefix_conflict"
-                        ]
-                    )
-                    any_failed = True
-                    continue
 
+            if len(Group.objects.filter(name=publish)) != 0:
+                publishers = Group.objects.get(name=publish)
+                owner_user.groups.add(publishers)
+            else:
+                Group.objects.create(name=publish)
+                publishers = Group.objects.get(name=publish)
+                owner_user.groups.add(publishers)
+                GroupInfo.objects.create(
+                    delete_members_on_group_deletion=False,
+                    description=prfx["description"],
+                    group=publishers,
+                    max_n_members=-1,
+                    owner_user=owner_user,
+                )
+            if is_public is True:
+                owner_group = "bco_drafter"
+            else:
+                owner_group = publish
+
+            write_result = DbUtils.DbUtils().write_object(
+                p_app_label="api",
+                p_model_name="Prefix",
+                p_fields=[
+                    "created_by",
+                    "description",
+                    "owner_group",
+                    "owner_user",
+                    "prefix",
+                ],
+                p_data={
+                    "created_by": user_utils.user_from_request(
+                        request=request
+                    ).username,
+                    "description": prfx["description"],
+                    "owner_group": owner_group,
+                    "owner_user": creation_object["owner_user"],
+                    "prefix": standardized,
+                },
+            )
+            if write_result != 1:
                 return_data.append(
                     db_utils.messages(parameters={"prefix": standardized})[
-                        "201_prefix_create"
+                        "409_prefix_conflict"
                     ]
                 )
-                # Created the prefix.
-                # errors["201_prefix_create"] = db_utils.messages(
-                #     parameters={"prefix": standardized}
-                # )["201_prefix_create"]
+                any_failed = True
+                continue
 
-            # Append the possible "errors".
-    if any_failed and len(return_data) == 1:
+            return_data.append(
+                db_utils.messages(parameters={"prefix": standardized})[
+                    "201_prefix_create"
+                ]
+            )
+
+    if any_failed and len(return_data) == 1: 
         return Response(status=return_data[0]["status_code"], data=return_data)
 
     if any_failed and len(return_data) > 1:
