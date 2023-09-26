@@ -45,7 +45,7 @@ def controled_list(user: User) -> QuerySet:
     raw_prefixes = UserUtils().prefix_perms_for_user(user_object=user)
     for prefix in raw_prefixes :
         pre = prefix.split("_")[1]
-        if pre not in prefix_list and pre is not "prefix":
+        if pre not in prefix_list and pre != "prefix":
             prefix_list.append(pre)
 
     for prefix in prefix_list:
