@@ -3,12 +3,10 @@ import json
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from authentication.services import CustomJSONWebTokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from search.selectors import search_db, controled_list
-from api.models import BCO
 from itertools import chain
 
 class SearchObjectsAPI(APIView):
@@ -30,6 +28,7 @@ class SearchObjectsAPI(APIView):
     ```
     """
 
+    permission_classes = [IsAuthenticated]
     auth = openapi.Parameter('test', openapi.IN_QUERY, description="test manual param", type=openapi.TYPE_BOOLEAN)
 
     @swagger_auto_schema(
@@ -73,8 +72,7 @@ class SearchObjectsAPI(APIView):
           "schema",
           "state",
         ]
-
-        search = dict(self.request.GET)
+        search = dict(request.GET)
         result = controled_list(request.user)
         for query, value in search.items():
             for item in value:
