@@ -448,7 +448,10 @@ def associate_user_group(sender, instance, created, **kwargs):
     if the user isn't anon or the already existent bco_drafter or bco_publisher.
     """
 
-    if not 'test' in sys.argv:
+    if 'test' in sys.argv or 'loaddata' in sys.argv:
+        return
+
+    else:
         if created:
             print(instance)
             Group.objects.create(name=instance)

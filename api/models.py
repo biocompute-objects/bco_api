@@ -21,6 +21,7 @@ For token creation.
 Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
 """
 
+import sys
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group, User
@@ -125,15 +126,18 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
     """Link user creation to token generation.
     Source: https://www.django-rest-framework.org/api-guide/authentication/#generating-tokens
     """
-    if created:
-        # The anonymous user's token is hard-coded
-        # in server.conf.
-        if instance.username == "anon":
-            # Create anon's record with the hard-coded key.
-            Token.objects.create(user=instance, key=settings.ANON_KEY)
-        else:
-            # Create a normal user's record.
-            Token.objects.create(user=instance)
+    if 'loaddata' in sys.argv:
+        return
+    else:
+        if created:
+            # The anonymous user's token is hard-coded
+            # in server.conf.
+            if instance.username == "anon":
+                # Create anon's record with the hard-coded key.
+                Token.objects.create(user=instance, key=settings.ANON_KEY)
+            else:
+                # Create a normal user's record.
+                Token.objects.create(user=instance)
 
 
 # Link object deletion to object permissions deletion.
