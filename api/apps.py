@@ -20,5 +20,7 @@ class ApiConfig(AppConfig):
     def ready(self):
         """Create the anonymous user if they don't exist."""
 
-        if not 'test' in sys.argv:
-            post_migrate.connect(populate_models, sender=self)
+        if 'test' in sys.argv or 'loaddata' in sys.argv or 'flush' in sys.argv:
+            return
+        else:
+           post_migrate.connect(populate_models, sender=self)
