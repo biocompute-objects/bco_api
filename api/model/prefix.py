@@ -681,7 +681,10 @@ def create_permissions_for_prefix(sender, instance=None, **kwargs):
     #         owner_user=User.objects.get(username='wheel')
     #     )
     
-    if not 'test' in sys.argv:
+    if 'test' in sys.argv or 'loaddata' in sys.argv:
+        return
+
+    else:
         owner_user = User.objects.get(username=instance.owner_user)
         owner_group = Group.objects.get(name=instance.owner_group_id)
         drafters = Group.objects.get(name=instance.prefix.lower() + "_drafter")
