@@ -723,7 +723,9 @@ def create_counter_for_prefix(sender, instance=None, created=False, **kwargs):
         instance: api.model.prefix.Prefix
         created: bool
     """
-    if not 'test' in sys.argv:
+    if 'test' in sys.argv or 'loaddata' in sys.argv or 'flush' in sys.argv:
+            return
+    else:
         if created:
             prefix_table.objects.create(n_objects=1, prefix=instance.prefix)
 
