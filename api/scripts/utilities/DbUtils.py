@@ -731,7 +731,10 @@ class DbUtils:
                 "status_code": "409",
                 "message": "The provided object "
                 + parameters["object_id"]
-                + " has already been created on this server.",
+                + " has already been created on this server."
+                + " If you wish to publish a new version of this BCO try"
+                + " to save the DRAFT with a different version number, and"
+                + " then resubmit.",
             },
             "409_draft_object_id_conflict": {
                 "request_status": "FAILURE",
