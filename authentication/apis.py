@@ -43,17 +43,54 @@ class RegisterBcodbAPI(APIView):
 
     authentication_classes = []
     permission_classes = []
+    authentication_classes = []
+    permission_classes = []
+
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Account Creation Schema",
+        description="Account creation schema description.",
+        required=["hostname", "email", "token"],
+        properties={
+            "hostname": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Hostname of the User Database."
+            ),
+            "email": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Email address of user."
+            ),
+            "token": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Token returned with new user being "
+                "generated in the User Database.",
+            ),
+        },
+    )
+
+    @swagger_auto_schema(
+        request_body=request_body,
+        responses={
+            201: "Account creation is successful.",
+            400: "Bad request format.",
+            409: "A BCODB account with that email already exists.",
+        },
+        tags=["Authentication"],
+    )
 
     def post(self, request):
         """Register a new BCODB user.
 
-        Args:
-            request (Request): The request object containing the input data.
+        Create a new account.
 
-        Returns:
-            Response: A HTTP response indicating the result of the registration attempt.
+        ```JSON
+        {
+        "hostname": "http://localhost:8000/users/",
+        "email": "example_email@example.com",
+        "token": "eyJ1c2VyX2lkIjoyNCwidXNlcm5hbWUiOiJoYWRsZXlraW5nIiwiZXhwIjoxNjQwNzE5NTUwLCJlbWFpbCI6ImhhZGxleV9raW5nQGd3dS5lZHUiLCJvcmlnX2lhdCI6MTY0MDExNDc1MH0.7G3VPmxUBOWFfu-fMt1_UsWAcH_Gd1DfpQa83EwFwYY"
+        }
+        ```
         """
-
+        # import pdb; pdb.set_trace()
+        
         user_info = self.InputSerializer(data=request.data)
         user_info.is_valid(raise_exception=True)
         token = user_info.validated_data['token']
