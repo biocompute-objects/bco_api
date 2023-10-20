@@ -12,13 +12,13 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from authentication.models import Authentication
 
-class AuthenticationTestCase(TestCase):
+class RegistrationTestCase(TestCase):
     fixtures = ['tests/fixtures/test_data']
 
     def setUp(self):
         self.client = APIClient()
 
-    def test_credentials_created_response(self):
+    def test_registration_created_response(self):
         """Add authentication is successful (200)
         """
 
