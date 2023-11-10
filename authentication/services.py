@@ -55,16 +55,19 @@ def authenticate_portal(payload: dict, token:str)-> User:
     Custom function to authenticate BCO Portal credentials.
     """
     
-    response = requests.post(
-        payload['iss']+'/users/auth/verify/', json={"token":token}
-    )
-    if response.status_code == 201:
-        try:
-            return User.objects.get(email=payload['email'])
-        except User.DoesNotExist:
-            return None
-    else:
-        exceptions.AuthenticationFailed(response.reason)
+    try:
+        response = requests.post(
+            payload['iss']+'/users/auth/verify/', json={"token":token}
+        )
+        if response.status_code == 201:
+            try:
+                return User.objects.get(email=payload['email'])
+            except User.DoesNotExist:
+                return None
+        else:
+            exceptions.AuthenticationFailed(response.reason)
+    except Exception as error:
+        exceptions.AuthenticationFailed(error)
 
 def validate_auth_service(value):
         schema = {
@@ -130,7 +133,6 @@ def custom_jwt_handler(token, user=None, request=None, public_key=None):
     user information and return that along with the validated JWT
     """
 
-    print('hadley', token)
     return request
 
 def validate_token(token: str, url: str)-> bool:

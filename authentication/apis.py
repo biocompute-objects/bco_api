@@ -89,7 +89,6 @@ class RegisterBcodbAPI(APIView):
         }
         ```
         """
-        # import pdb; pdb.set_trace()
         
         user_info = self.InputSerializer(data=request.data)
         user_info.is_valid(raise_exception=True)
