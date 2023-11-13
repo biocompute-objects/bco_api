@@ -4,24 +4,66 @@ version: '3.4'
 
 services:
   bco-api:
-    platform: linux/amd64
-    build: .
-    image: ghcr.io/biocompute-objects/bco_api:23.07
-    container_name: bco-api
+    platform: linux/arm64/v8
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bco_api:23.12
+    container_name: bco_api
     volumes:
-       - ./data/db.sqlite3:/biocompute_api/db.sqlite3
-       - ./data/server.conf:/biocompute_api/server.conf
+       - /Users/hadley_king/Data/bco_api/db.sqlite3:/biocompute_api/db.sqlite3
+       - /Users/hadley_king/Data/bco_api/server.conf:/biocompute_api/server.conf
     environment:
       TZ: 'America/New_York'
-      ENV DJANGO_SUPERUSER_PASSWORD: "BioCompute123"
-      ENV DJANGO_SUPERUSER_USERNAME: "BioComputeSuperUser"
-      ENV DJANGO_SUPERUSER_EMAIL: "BioComputeSuperUser@gwu.edu"
-    ports:
-      - "8000:8000"
-    read_only: true
+    # networks:
+    #   - bco_portal_network
+    expose:
+      - 8000
+    # read_only: true
     tmpfs:
-      - /tmp
+      - /tmp/bco_api
     restart: unless-stopped
     stdin_open: true
     tty: true
 
+  # userdb:
+  #   platform: linux/arm64/v8
+  #   build: .
+  #   image: userdb:23.12
+  #   container_name: userdb
+  #   volumes:
+  #     - /Users/hadley_king/Data/userdb/db.sqlite3:/portal_userdb_server/db.sqlite3
+  #     - /Users/hadley_king/Data/userdb/.secrets:/portal_userdb_server/.secrets
+  #   environment:
+  #     TZ: 'America/New_York'
+  #   # networks:
+  #   #   - bco_portal_network
+  #   ports:
+  #     - "8080:8080"
+  #   tmpfs:
+  #     - /tmp/userdb
+  #   restart: unless-stopped
+  #   stdin_open: true
+  #   tty: true
+
+  # portal:
+  #   build: .
+  #   image: portal:23.12
+  #   container_name: portal
+  #   volumes:
+  #     - /Users/hadley_king/Data/portal/.env:/portal/.env
+  #   environment:
+  #     TZ: 'America/New_York'
+  #   ports:
+  #    - "3000:80"
+  #   # networks:
+  #   #   - bco_portal_network
+  #   tmpfs:
+  #   - /tmp/portal
+  #   restart: unless-stopped
+  #   stdin_open: true
+  #   tty: true
+
+networks:
+  bco_portal_network:
+    driver: bridge
