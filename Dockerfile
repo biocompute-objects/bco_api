@@ -5,18 +5,22 @@ LABEL org.opencontainers.image.description="The master repository for the JSON A
 LABEL org.opencontainers.image.licenses=MIT
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get -qq update && apt-get install -y python3.10 python3-dev python3-pip
+RUN apt-get -qq update && apt-get install -y python3 python3-dev python3-pip
 
 RUN python3 -m pip install --upgrade pip
 
-WORKDIR /biocompute_api
+WORKDIR /bco_api
 
-COPY . ./
+COPY requirements.txt ./requirements.txt
+COPY api ./api
+COPY authentication ./authentication
+COPY bcodb ./bcodb
+COPY search ./search
+COPY manage.py ./manage.py
 
-WORKDIR /biocompute_api/
+WORKDIR /bco_api/
 
 RUN python3 -m pip install -r requirements.txt
-
 
 EXPOSE 8000
 ENTRYPOINT ["python3", "manage.py", "runserver"]
