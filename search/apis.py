@@ -3,7 +3,7 @@ import json
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from search.selectors import search_db, controled_list
@@ -28,7 +28,7 @@ class SearchObjectsAPI(APIView):
     ```
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     auth = openapi.Parameter('test', openapi.IN_QUERY, description="test manual param", type=openapi.TYPE_BOOLEAN)
 
     @swagger_auto_schema(
