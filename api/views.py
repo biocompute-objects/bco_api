@@ -993,10 +993,11 @@ class ApiObjectsDraftsToken(APIView):
 
 
 class ApiObjectsPublish(APIView):
-    """Directly publish a BCO
+    """Bulk Publish BCO Objects
 
     --------------------
-    Take the bulk request and publish objects directly.
+
+    Directly publishes one or more BCO objects.
     """
 
     POST_api_objects_publish_schema = openapi.Schema(
@@ -1038,9 +1039,24 @@ class ApiObjectsPublish(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "BCO publication is successful.",
+            200: "All BCO publications were successful.",
+            207: "Some or all BCO publications failed. Each object submitted"
+                " will have it's own response object with it's own status"
+                " code and message:\n"
+                    "200: Success. The object with ID <'object_id'> was"
+                        "updated.\n"
+                    "400: Bad request. The request could not be processed with"
+                        "the parameters provided.\n "
+                    "401: Prefix unauthorized. The token provided does not "
+                        "have draft permissions for this prefix <'prefix'>.\n"
+                    "404: Not Found. The object ID <'object_id'> was not found "
+                    "on the server.\n"
+                    "409: Conflict. The provided object_id <'object_id'> does "
+                        "not match the saved draft object_id <'object_id'>. "
+                        "Once a draft is created you can not change the "
+                        "object_id.\n",
             400: "Bad request.",
-            403: "Invalid token.",
+            403: "Forbidden. Authentication credentials were not provided, or the token is invalid."
         },
         tags=["BCO Management"],
     )

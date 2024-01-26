@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Test Bulk Publish BCOs
+"""Test Bulk Publish BCO Drafts
 Tests for 'All BCO publications successful.' (200), 'Some or all publications
 failed.' (207), 'Bad request.' (400), and 'Authentication credentials were not
 provided.' (404)

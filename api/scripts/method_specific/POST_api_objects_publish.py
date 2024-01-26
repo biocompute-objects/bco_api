@@ -15,7 +15,6 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 
-
 def post_api_objects_publish(incoming):
     """
     Take the bulk request and publish objects directly.
