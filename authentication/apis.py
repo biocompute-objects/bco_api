@@ -67,28 +67,31 @@ class NewAccountApi(APIView):
     authentication_classes = []
     permission_classes = []
 
-    request_body = openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        title="Account Creation Schema",
-        description="Account creation schema description.",
-        required=["hostname", "email"],
-        properties={
-            "hostname": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Hostname of the User Database."
-            ),
-            "email": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Email address of user."
-            ),
-            "token": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Token returned with new user being "
-                "generated in the User Database.",
-            ),
-        },
-    )
-
     @swagger_auto_schema(
-        request_body=request_body,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            title="Account Creation Schema",
+            description="Account creation schema description.",
+            required=["hostname", "email"],
+            properties={
+                "hostname": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Hostname of the User Database.",
+                    example="http://localhost:8000/"
+                ),
+                "email": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Email address of user.",
+                    example="test@test.test"
+                ),
+                "token": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Token returned with new user being "
+                    "generated in the User Database.",
+                    example="testToken123456789"
+                ),
+            },
+        ),
         responses={
             201: "Account creation request is successful.",
             400: "Bad request format.",
@@ -100,22 +103,34 @@ class NewAccountApi(APIView):
     def post(self, request) -> Response:
         serializer = self.InputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        if check_user_email(request.data['email']) is True:
+        email = serializer.validated_data['email']
+        if email == "test@test.test":
+            return Response(
+                status=status.HTTP_201_CREATED,
+                data={"message":"Testing account request successful!!"}
+            )
+        if check_user_email(email) is True:
             return Response(
                 status=status.HTTP_409_CONFLICT,
-                data={"message":"CONFLICT: Account has already been authenticated or requested."}
+                data={
+                    "message":f"CONFLICT: That account, {email}, has already "\
+                    + "been requested. Please contact an admin with further "\
+                    + "questions."
+                }
             )
 
-        if check_new_user(request.data['email']) is True:
+        if check_new_user(email) is True:
             return Response(
                 status=status.HTTP_409_CONFLICT,
-                data={"message": "Account has already been requested."},
+                data={
+                    "message": f"That account, {email}, has already been "\
+                    + "requested. Please contact an admin with further questions."
+                }
             )
         
         try:
             new_user_email(serializer.validated_data)
-            return Response(status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_201_CREATED, data={"message":""})
         except Exception as error:
             return Response(
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -181,13 +196,6 @@ class RegisterUserNoVerificationAPI(APIView):
         if response.status_code == 200:
             return Response(status=status.HTTP_201_CREATED, data={"message": "user account created"})
 
-class AuthenticationInputSerializer(serializers.Serializer):
-    auth_service = serializers.JSONField(validators=[validate_auth_service])
-
-    class Meta:
-        model = Authentication
-        fields = ['username', 'auth_service']
-
 class AddAuthenticationApi(APIView):
     """
     Add Authentication Object
@@ -204,6 +212,13 @@ class AddAuthenticationApi(APIView):
     ```
     """
 
+    class InputSerializer(serializers.Serializer):
+        auth_service = serializers.JSONField(validators=[validate_auth_service])
+
+        class Meta:
+            model = Authentication
+            fields = ['username', 'auth_service']
+            
     permission_classes = [IsAuthenticated,]
 
     schema = openapi.Schema(
@@ -240,8 +255,8 @@ class AddAuthenticationApi(APIView):
     )
 
     def post(self, request):
-        """
-        """
+        """"""
+        
         result = validate_auth_service(request.data)
         
         if result != 1:
