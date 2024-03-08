@@ -3,7 +3,7 @@
 import jwt
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
-from authentication.models import Authentication
+from authentication.models import Authentication, NewUser
 from rest_framework.authtoken.models import Token
 
 
@@ -38,10 +38,23 @@ def check_user_email(email: str)-> bool:
 
     Using the provided email check for a user in the DB
     """
+
     try:
         if User.objects.get(email=email):
             return True
     except User.DoesNotExist:
+        return False
+    
+def check_new_user(email: str)-> bool:
+    """Check for new user
+
+    Using the provided email check for a new user in the DB
+    """
+
+    try:
+        if NewUser.objects.get(email=email):
+            return True
+    except NewUser.DoesNotExist:
         return False
 
 def get_user_info(user: User) -> dict:

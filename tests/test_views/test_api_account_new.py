@@ -19,7 +19,7 @@ class ApiAccountsNewTestCase(TestCase):
         """
 
         data = {
-            'hostname': 'UserDB',
+            'hostname': 'http://localhost:8000',
             'email': 'test@gwu.edu',
             'token': 'SampleToken'
         }
@@ -27,8 +27,6 @@ class ApiAccountsNewTestCase(TestCase):
         
         response = self.client.post('/api/accounts/new/', data=data)
         self.assertEqual(response.status_code, 201)
-        # response2 = self.client.get(response.json()['activation_link'])
-        # self.assertEqual(response2.status_code, 201)
     
     def test_creation_request_success_bad_request(self):
         """Test for '400: Bad request format.'
@@ -49,7 +47,7 @@ class ApiAccountsNewTestCase(TestCase):
         """
 
         data = {
-            'hostname': 'UserDB',
+            'hostname': 'http://localhost:8000',
             'email': 'test@gwu.edu',
             'token': 'SampleToken'
         }

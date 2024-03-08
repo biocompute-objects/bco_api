@@ -14,7 +14,7 @@ class ApiAccountsActivateTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         data = {
-            'hostname': 'UserDB',
+            'hostname': 'http://localhost:8000',
             'email': 'test@gwu.edu',
             'token': 'SampleToken'
         }

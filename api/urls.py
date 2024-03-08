@@ -20,7 +20,6 @@ from drf_yasg import openapi
 from api.views import (
     ApiAccountsActivateUsernameTempIdentifier,
     ApiAccountsDescribe,
-    ApiAccountsNew,
     ApiGroupsCreate,
     ApiGroupsInfo,
     ApiGroupsDelete,
@@ -133,7 +132,6 @@ elif PUBLISH_ONLY == "False":
             ApiAccountsActivateUsernameTempIdentifier.as_view(),
         ),
         path("api/accounts/describe/", ApiAccountsDescribe.as_view()),
-        path("api/accounts/new/", ApiAccountsNew.as_view()),
         path("api/groups/group_info/", ApiGroupsInfo.as_view()),
         path("api/groups/create/", ApiGroupsCreate.as_view()),
         path("api/groups/delete/", ApiGroupsDelete.as_view()),

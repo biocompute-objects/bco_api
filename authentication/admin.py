@@ -2,6 +2,13 @@
 """
 
 from django.contrib import admin
-from authentication.models import Authentication
+from authentication.models import Authentication, NewUser
 
-admin.site.register(Authentication)
+class AuthenticationAdmin(admin.ModelAdmin):
+    list_display = ["username", "auth_service"]
+
+class NewUserAdmin(admin.ModelAdmin):
+    list_display = ["email", "temp_identifier","token", "hostname", "created"]
+
+admin.site.register(Authentication, AuthenticationAdmin)
+admin.site.register(NewUser, NewUserAdmin)

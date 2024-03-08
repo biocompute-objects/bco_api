@@ -45,7 +45,6 @@ from api.model.prefix import (
 from api.scripts.method_specific.POST_api_accounts_describe import (
     POST_api_accounts_describe,
 )
-from api.scripts.method_specific.POST_api_accounts_new import POST_api_accounts_new
 from api.scripts.method_specific.POST_api_objects_drafts_create import (
     post_api_objects_drafts_create,
 )
@@ -515,67 +514,6 @@ class ApiGroupsModify(APIView):
     )
     def post(self, request):
         return check_post_and_process(request, post_api_groups_modify)
-
-
-class ApiAccountsNew(APIView):
-    """
-    Account creation request
-
-    --------------------
-
-    Ask for a new account.  Sends an e-mail to the provided e-mail, which must
-    then be clicked to activate the account.
-
-    The account create depends on creation of an account in the associated
-    user database.  The authentication as well as the user database host
-    information is used to make this request.
-
-    ```JSON
-    {
-      "hostname": "http://localhost:8000",
-      "email": "example_email@example.com",
-      "token": "eyJ1c2VyX2lkIjoyNCwidXNlcm5hbWUiOiJoYWRsZXlraW5nIiwiZXhwIjoxNjQwNzE5NTUwLCJlbWFpbCI6ImhhZGxleV9raW5nQGd3dS5lZHUiLCJvcmlnX2lhdCI6MTY0MDExNDc1MH0.7G3VPmxUBOWFfu-fMt1_UsWAcH_Gd1DfpQa83EwFwYY"
-    }
-    ```
-    """
-
-    # Anyone can ask for a new account
-    authentication_classes = []
-    permission_classes = []
-
-    request_body = openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        title="Account Creation Schema",
-        description="Account creation schema description.",
-        required=["hostname", "email", "token"],
-        properties={
-            "hostname": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Hostname of the User Database."
-            ),
-            "email": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Email address of user."
-            ),
-            "token": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Token returned with new user being "
-                "generated in the User Database.",
-            ),
-        },
-    )
-
-    @swagger_auto_schema(
-        request_body=request_body,
-        responses={
-            201: "Account creation request is successful.",
-            400: "Bad request format.",
-            409: "Account has already been authenticated or requested.",
-        },
-        tags=["Account Management"],
-    )
-    def post(self, request) -> Response:
-        print("Request: {}".format(request))
-        return check_post_and_process(request, POST_api_accounts_new)
-
 
 class ApiObjectsDraftsCreate(APIView):
     """

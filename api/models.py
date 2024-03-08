@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """Models
 
 Explanation of optional fields: 
@@ -70,43 +71,6 @@ class BCO(models.Model):
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""
         return str(self.object_id)
-
-
-# For registering new users.
-class new_users(models.Model):
-    """Instead of using the User model, just use
-    a crude table to store the temporary information
-    when someone asks for a new account."""
-
-    email = models.EmailField()
-    temp_identifier = models.TextField(max_length=100)
-    # In case we are writing back to UserDB.
-    token = models.TextField(blank=True, null=True)
-
-    # Which host to send the activation back to (i.e. UserDB).
-    hostname = models.TextField(blank=True, null=True)
-    # Issue with time zone, so implement the fix.
-    # Source: https://stackoverflow.com/a/32411560
-    created = models.DateTimeField(default=timezone.now)
-
-    def __email__(self):
-        return str(self.email)
-
-    def __token__(self):
-        return str(self.token)
-
-    def __hostname__(self):
-        return str(self.hostname)
-
-    def __temp_identifier__(self):
-        return str(self.temp_identifier)
-
-
-# def get_first_name(self):
-#     return self.first_name
-
-# User.add_to_class("__str__", get_first_name)
-
 
 # --- Receivers --- #
 

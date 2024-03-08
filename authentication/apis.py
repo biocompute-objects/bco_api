@@ -1,6 +1,7 @@
 # authentication/apis.py
 
 import json
+import uuid
 from django.contrib.auth.models import User
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -10,13 +11,120 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from api.scripts.utilities.UserUtils import UserUtils
-from authentication.selectors import check_user_email, get_user_info
-from authentication.services import validate_token, create_bcodb, send_bcodb, validate_auth_service
-from authentication.models import Authentication
+from authentication.models import Authentication, NewUser
+from authentication.selectors import check_user_email, get_user_info, check_new_user
+from authentication.services import (
+    validate_token,
+    create_bcodb_user,
+    send_bcodb,
+    validate_auth_service,
+    new_user_email
+)
 
-class RegisterBcodbAPI(APIView):
+class NewAccountApi(APIView):
+    """
+    Account creation request
+
+    --------------------
+
+    Ask for a new account.  Sends an e-mail to the provided e-mail, which must
+    then be clicked to activate the account.
+
+    The account create depends on creation of an account in the associated
+    user database.  The authentication as well as the user database host
+    information is used to make this request.
+
+    ```JSON
+    {
+      "hostname": "http://localhost:8000",
+      "email": "example_email@example.com",
+      "token": "eyJ1c2VyX2lkIjoyNCwidXNlcm5hbWUiOiJoYWRsZXlraW5nIiwiZXhwIjoxNjQwNzE5NTUwLCJlbWFpbCI6ImhhZGxleV9raW5nQGd3dS5lZHUiLCJvcmlnX2lhdCI6MTY0MDExNDc1MH0.7G3VPmxUBOWFfu-fMt1_UsWAcH_Gd1DfpQa83EwFwYY"
+    }
+    ```
+    """
+
+    class InputSerializer(serializers.Serializer):
+        """Serializer class for validating input data for registering a new BCODB user.
+
+        Fields:
+            hostname (str): The URL of the BCODB portal.
+            email (str): The email address of the user to register.
+            token (str): The authentication token for the BCODB portal.
+        """
+        
+        email = serializers.EmailField()
+        hostname= serializers.URLField()
+        token = serializers.CharField(required=False,default='')
+
+        def validate(self, attrs):
+            attrs['temp_identifier'] = uuid.uuid4().hex
+            return super().validate(attrs)
+
+        class Meta:
+            model = NewUser
+            fields = ["__all__"]
+
+    authentication_classes = []
+    permission_classes = []
+
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Account Creation Schema",
+        description="Account creation schema description.",
+        required=["hostname", "email"],
+        properties={
+            "hostname": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Hostname of the User Database."
+            ),
+            "email": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Email address of user."
+            ),
+            "token": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Token returned with new user being "
+                "generated in the User Database.",
+            ),
+        },
+    )
+
+    @swagger_auto_schema(
+        request_body=request_body,
+        responses={
+            201: "Account creation request is successful.",
+            400: "Bad request format.",
+            409: "Account has already been authenticated or requested.",
+        },
+        tags=["Authentication and Account Management"],
+    )
+ 
+    def post(self, request) -> Response:
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if check_user_email(request.data['email']) is True:
+            return Response(
+                status=status.HTTP_409_CONFLICT,
+                data={"message":"CONFLICT: Account has already been authenticated or requested."}
+            )
+
+        if check_new_user(request.data['email']) is True:
+            return Response(
+                status=status.HTTP_409_CONFLICT,
+                data={"message": "Account has already been requested."},
+            )
+        
+        try:
+            new_user_email(serializer.validated_data)
+            return Response(status=status.HTTP_201_CREATED)
+        except Exception as error:
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data={"message": str(error)}
+            )
+
+class RegisterUserNoVerificationAPI(APIView):
     """Register BCODB 
-    API View to register a new BCODB user.
+    API View to register a new BCODB user with out an email verification step.
 
     Methods:
         post(request): Register a new BCODB user.
@@ -65,7 +173,7 @@ class RegisterBcodbAPI(APIView):
                 status=status.HTTP_409_CONFLICT,
                 data={"message": "A BCODB account with that email already exists"}
             )
-        user = create_bcodb(user_info=user_info.validated_data)
+        user = create_bcodb_user(user_info=user_info.validated_data)
         data = json.dumps(get_user_info(user), default=str)
         response = send_bcodb(
             data=data, request_info=user_info.validated_data
@@ -79,7 +187,6 @@ class AuthenticationInputSerializer(serializers.Serializer):
     class Meta:
         model = Authentication
         fields = ['username', 'auth_service']
-
 
 class AddAuthenticationApi(APIView):
     """
@@ -129,7 +236,7 @@ class AddAuthenticationApi(APIView):
             403: "Authentication credentials were not provided.",
             409: "That object already exists for this account.",
         },
-        tags=["Authentication"],
+        tags=["Authentication and Account Management"],
     )
 
     def post(self, request):
@@ -216,7 +323,7 @@ class RemoveAuthenticationApi(APIView):
             403: "Authentication failed.",
             404: "That object does not exist for this account.",
         },
-        tags=["Authentication"],
+        tags=["Authentication and Account Management"],
     )
 
     def post(self, request):
@@ -273,7 +380,7 @@ class ResetTokenApi(APIView):
             200: "Token reset is successful.",
             403: "Invalid token.",
         },
-        tags=["Authentication"],
+        tags=["Authentication and Account Management"],
     )
     
     def post(self, request):

@@ -4,7 +4,10 @@ import jwt
 import json
 import requests
 import jsonschema
+from django.db import transaction
+from django.conf import settings
 from django.contrib.auth.models import User, Group
+from django.core.mail import send_mail
 from rest_framework import exceptions, status, serializers
 from rest_framework.response import Response
 from rest_framework_jwt.authentication import BaseAuthentication
@@ -13,7 +16,7 @@ from rest_framework_jwt.utils import jwt_get_secret_key
 from google.oauth2 import id_token
 from google.auth.transport import requests as g_requests
 from authentication.selectors import get_anon
-from authentication.models import Authentication
+from authentication.models import Authentication, NewUser
 
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
@@ -149,8 +152,37 @@ def validate_token(token: str, url: str)-> bool:
         return False
     return True
 
+@transaction.atomic
+def new_user_email(user_info: dict) -> 0:
+    """Send New User Email
+    
+    New BCODB user authentication email
+    """
 
-def create_bcodb(user_info: dict) -> User:
+    activation_link = str(
+        settings.PUBLIC_HOSTNAME
+        + "/api/accounts/activate/"
+        + user_info['email']
+        + "/"
+        + user_info['temp_identifier']
+    )
+    
+    send_mail(
+        subject="Registration for BioCompute Portal",
+        message="Testing.",
+        html_message='<html><body><p>Please click this link within the next' \
+            + ' 10 minutes to activate your BioCompute Portal account: ' \
+            + f'<a href={activation_link} target="_blank">{activation_link}' \
+            + '</a>.</p></body></html>',
+        from_email="mail_sender@portal.aws.biochemistry.gwu.edu",
+        recipient_list=[user_info['email']],
+        fail_silently=False,
+    )
+    NewUser.objects.create(**user_info)
+    print("Email signal sent")
+    return 0
+
+def create_bcodb_user(user_info: dict) -> User:
     """Create BCODB user
     """
 
