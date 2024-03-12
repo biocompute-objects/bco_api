@@ -45,14 +45,18 @@ def check_user_email(email: str)-> bool:
     except User.DoesNotExist:
         return False
     
-def check_new_user(email: str)-> bool:
+def check_new_user(email: str, temp_identifier:str=None):
     """Check for new user
 
-    Using the provided email check for a new user in the DB
+    Using the provided email check for a new user in the DB.
+    If the temp id is supplied and matches it will return the new user object.
     """
-
+    
     try:
-        if NewUser.objects.get(email=email):
+        new_user = NewUser.objects.get(email=email)
+        if new_user.temp_identifier == temp_identifier:
+            return new_user
+        else:
             return True
     except NewUser.DoesNotExist:
         return False

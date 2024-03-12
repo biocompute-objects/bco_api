@@ -153,7 +153,7 @@ def validate_token(token: str, url: str)-> bool:
     return True
 
 @transaction.atomic
-def new_user_email(user_info: dict) -> 0:
+def send_new_user_email(user_info: dict) -> 0:
     """Send New User Email
     
     New BCODB user authentication email
@@ -171,7 +171,7 @@ def new_user_email(user_info: dict) -> 0:
         subject="Registration for BioCompute Portal",
         message="Testing.",
         html_message='<html><body><p>Please click this link within the next' \
-            + ' 10 minutes to activate your BioCompute Portal account: ' \
+            + ' 24 hours to activate your BioCompute Portal account: ' \
             + f'<a href={activation_link} target="_blank">{activation_link}' \
             + '</a>.</p></body></html>',
         from_email="mail_sender@portal.aws.biochemistry.gwu.edu",
@@ -182,13 +182,13 @@ def new_user_email(user_info: dict) -> 0:
     print("Email signal sent")
     return 0
 
-def create_bcodb_user(user_info: dict) -> User:
+def create_bcodb_user(email: str) -> User:
     """Create BCODB user
     """
 
-    username = user_info["email"].split("@")[0]
+    username = email.split("@")[0]
     user = User.objects.create_user(
-        username=username, email=user_info["email"]
+        username=username, email=email
     )
     user.set_unusable_password()
     user.full_clean()
