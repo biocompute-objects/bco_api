@@ -44,7 +44,7 @@ def check_user_email(email: str)-> bool:
             return True
     except User.DoesNotExist:
         return False
-    
+
 def check_new_user(email: str) -> bool:
     """Check for new user
 

@@ -187,7 +187,6 @@ class AccountActivateApi(APIView):
             403: "Requestor's credentials were rejected.",
             404: "That account, {email}, was not found.",
             409: "CONFLICT: That account, {email}, has already been activated"
-
         },
         tags=["Authentication and Account Management"],
     )
