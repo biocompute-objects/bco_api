@@ -13,18 +13,38 @@ class ApiAccountsActivateTestCase(TestCase):
 
     def setUp(self):
         self.client = Client()
-        data = {
-            'hostname': 'http://localhost:8000',
-            'email': 'test@gwu.edu',
-            'token': 'SampleToken'
-        }
-        
-        self.initial_response = self.client.post('/api/accounts/new/', data=data).json()
+    
+    def test_account_activated_success(self):
+        """Test for '201: Account creation request is successful.'
+        """
+            
+        response = self.client.get(
+            '/api/accounts/activate/'\
+            +'test_new_user%40testing.com/sample_temp_identifier'
+        )
+        self.assertEqual(response.status_code, 200)
 
     def test_account_activated_forbidden(self):
         """Test for '403: Requestor's credentials were rejected.'
         """
-
-        bad_link = self.initial_response['activation_link']+ "bad_content"
-        response = self.client.get(bad_link)
+        
+        bad_link = "test_new_user%40testing.com/bad_temp_identifier"
+        response = self.client.get(f'/api/accounts/activate/{bad_link}')
         self.assertEqual(response.status_code, 403)
+
+    def test_account_activated_not_found(self):
+        """Test for '404: That account, {email}, was not found'
+        """
+        
+        bad_link = "test22%40testing.com/sample_temp_identifier"
+        response = self.client.get(f'/api/accounts/activate/{bad_link}')
+        self.assertEqual(response.status_code, 404)
+
+    def test_account_activated_conflict(self):
+        """Test for '409: CONFLICT: That account, {email},
+        has already been activated.'
+        """
+        
+        bad_link = "test%40testing.com/sample_temp_identifier"
+        response = self.client.get(f'/api/accounts/activate/{bad_link}')
+        self.assertEqual(response.status_code, 409)

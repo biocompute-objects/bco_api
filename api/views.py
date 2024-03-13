@@ -4,18 +4,13 @@
 Django views for BCODB API
 """
 
-import jwt
-from django.contrib.auth.models import User
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
 from api.permissions import RequestorInPrefixAdminsGroup
-from api.scripts.method_specific.GET_activate_account import GET_activate_account
 from api.scripts.method_specific.GET_draft_object_by_id import get_draft_object_by_id
 from api.scripts.method_specific.GET_published_object_by_id import (
     GET_published_object_by_id,
@@ -42,9 +37,6 @@ from api.model.prefix import (
     post_api_prefixes_token_flat,
 )
 
-from api.scripts.method_specific.POST_api_accounts_describe import (
-    POST_api_accounts_describe,
-)
 from api.scripts.method_specific.POST_api_objects_drafts_create import (
     post_api_objects_drafts_create,
 )
@@ -129,55 +121,6 @@ def check_get(request) -> Response:
 
     # Placeholder
     return Response(status=status.HTTP_200_OK)
-
-# Source: https://www.django-rest-framework.org/api-guide/authentication/#by-exposing-an-api-endpoint
-class ApiAccountsDescribe(APIView):
-    """
-    Account details
-
-    --------------------
-    No schema for this request since only the Authorization header is required.
-    The word 'Token' must be included in the header.
-    For example: 'Token 627626823549f787c3ec763ff687169206626149'
-    """
-
-    auth = [
-        openapi.Parameter(
-            "Authorization",
-            openapi.IN_HEADER,
-            description="Authorization Token",
-            type=openapi.TYPE_STRING,
-        )
-    ]
-
-    @swagger_auto_schema(
-        manual_parameters=auth,
-        responses={
-            200: "Authorization is successful.",
-            403: "Forbidden. Authentication credentials were not provided.",
-            403: "Invalid token"
-        },
-        tags=["Account Management"],
-    )
-    def post(self, request):
-        """
-        Pass the request to the handling function
-        Source: https://stackoverflow.com/a/31813810
-        """
-
-        if request.headers["Authorization"].split(" ")[0] == "Token" or request.headers["Authorization"].split(" ")[0] == "TOKEN":
-            return POST_api_accounts_describe(
-                token=request.META.get("HTTP_AUTHORIZATION")
-            )
-        if request.headers["Authorization"].split(" ")[0] == "Bearer":
-            jw_token=request.META.get("HTTP_AUTHORIZATION").split(" ")[1]
-            unverified_payload = jwt.decode(jw_token, None, False)
-            user = User.objects.get(email=unverified_payload['email'])
-            token = "Thing "+ str(Token.objects.get(user=user))
-            return POST_api_accounts_describe(token)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
 
 class ApiGroupsInfo(APIView):
     """Group Info
