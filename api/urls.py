@@ -18,7 +18,6 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from api.views import (
-    ApiAccountsDescribe,
     ApiGroupsCreate,
     ApiGroupsInfo,
     ApiGroupsDelete,
@@ -126,7 +125,6 @@ elif PUBLISH_ONLY == "False":
             ObjectIdRootObjectIdVersion.as_view(),
         ),
         path("<str:object_id_root>", ObjectIdRootObjectId.as_view()),
-        path("api/accounts/describe/", ApiAccountsDescribe.as_view()),
         path("api/groups/group_info/", ApiGroupsInfo.as_view()),
         path("api/groups/create/", ApiGroupsCreate.as_view()),
         path("api/groups/delete/", ApiGroupsDelete.as_view()),

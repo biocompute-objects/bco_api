@@ -127,15 +127,6 @@ def authenticate_google(token: str) -> bool:
     except User.DoesNotExist:
         return None
 
-def custom_jwt_handler(token, user=None, request=None, public_key=None):
-    """Custom JWT Handler
-    Triggered by any user authentication. This will gater all the associated
-    user information and return that along with the validated JWT
-    """
-
-    print('hadley', token)
-    return request
-
 def validate_token(token: str, url: str)-> bool:
     """
     """

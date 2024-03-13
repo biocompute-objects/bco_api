@@ -1,6 +1,7 @@
 # authentication/apis.py
 
 import json
+import jwt
 import uuid
 from django.contrib.auth.models import User
 from drf_yasg import openapi
@@ -12,7 +13,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from api.scripts.utilities.UserUtils import UserUtils
 from authentication.models import Authentication, NewUser
-from authentication.selectors import check_user_email, get_user_info, check_new_user
+from authentication.selectors import (
+    check_user_email,
+    get_user_info,
+    check_new_user
+)
 from authentication.services import (
     validate_token,
     create_bcodb_user,
@@ -99,7 +104,10 @@ class NewAccountApi(APIView):
         if email == "test@test.test":
             return Response(
                 status=status.HTTP_201_CREATED,
-                data={"message":"Testing account request successful!!"}
+                data={
+                    "message":"Testing account request successful. Check" \
+                    + " your email fro the activation link."
+                    }
             )
  
         if check_user_email(email) is True:
@@ -155,9 +163,9 @@ class AccountActivateApi(APIView):
     auth = []
     auth.append(
         openapi.Parameter(
-            "username",
+            "email",
             openapi.IN_PATH,
-            description="Username to be authenticated.",
+            description="Email to be authenticated.",
             type=openapi.TYPE_STRING,
             default="test@test.test"
         )
@@ -177,28 +185,50 @@ class AccountActivateApi(APIView):
         responses={
             200: "Account has been activated.",
             403: "Requestor's credentials were rejected.",
+            404: "That account, {email}, was not found.",
+            409: "CONFLICT: That account, {email}, has already been activated"
+
         },
         tags=["Authentication and Account Management"],
     )
 
-    def get(self, request, username: str, temp_identifier: str) -> Response:
-        if check_user_email(username) is True:
+    def get(self, request, email: str, temp_identifier: str) -> Response:
+        if email == "test@test.test":
+            return Response(
+                    status=status.HTTP_200_OK,
+                    data={"message":f"Account for {email} has been activated"}
+                )
+        if check_user_email(email) is True:
             return Response(
                 status=status.HTTP_409_CONFLICT,
                 data={
-                    "message":f"CONFLICT: That account, {username}, has already "\
+                    "message":f"CONFLICT: That account, {email}, has already "\
                     + "been activated."
                 }
             )
-        new_user = check_new_user(username, temp_identifier)
-        print(new_user)
-        create_bcodb_user(new_user.email)
-        new_user.delete()
-        return Response(
-            status=status.HTTP_200_OK,
-            data={"message":f"Account for {username} has been activated"}
-        )
-
+        if check_new_user(email) == False:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND,
+                data={
+                    "message":f"That account, {email}, was not found."\
+                }
+            )
+        try:
+            new_user = NewUser.objects.get(
+                email=email,
+                temp_identifier=temp_identifier
+            )
+            create_bcodb_user(new_user.email)
+            new_user.delete()
+            return Response(
+                status=status.HTTP_200_OK,
+                data={"message":f"Account for {email} has been activated"}
+            )
+        except NewUser.DoesNotExist:
+            return Response(
+                status=status.HTTP_403_FORBIDDEN,
+                data={"message": "Requestor's credentials were rejected."}
+            )
 
 class RegisterUserNoVerificationAPI(APIView):
     """Register BCODB 
@@ -260,6 +290,43 @@ class RegisterUserNoVerificationAPI(APIView):
         if response.status_code == 200:
             return Response(status=status.HTTP_201_CREATED, data={"message": "user account created"})
 
+class AccountDescribeApi(APIView):
+    """
+    Account details
+
+    --------------------
+    The word 'Token' or 'Bearer' must be included in the header.
+    For example: 'Token 627626823549f787c3ec763ff687169206626149'
+    'Bearer' indicates a JWT that will be verified with another service.
+    'Token' is the API token for this service.
+    """
+
+    auth = [
+        openapi.Parameter(
+            "Authorization",
+            openapi.IN_HEADER,
+            description="Authorization Token",
+            type=openapi.TYPE_STRING,
+            default="Token 627626823549f787c3ec763ff687169206626149"
+        )
+    ]
+
+    @swagger_auto_schema(
+        manual_parameters=auth,
+        responses={
+            200: "Authorization is successful.",
+            403: "Forbidden. Authentication credentials were not provided.",
+            403: "Invalid token"
+        },
+        tags=["Authentication and Account Management"],
+    )
+
+    def post(self, request):
+        user = request._user
+        user_info = get_user_info(user)
+        
+        return Response(status=status.HTTP_200_OK, data=user_info)
+
 class AddAuthenticationApi(APIView):
     """
     Add Authentication Object
@@ -319,7 +386,6 @@ class AddAuthenticationApi(APIView):
     )
 
     def post(self, request):
-        """"""
         
         result = validate_auth_service(request.data)
         

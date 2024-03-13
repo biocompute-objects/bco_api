@@ -33,10 +33,8 @@ class ApiAccountsNewTestCase(TestCase):
         """
         data = {
             'hostname': 'UserDB',
-            'email': 'test@gwu.edu',
-            # 'token': 'SampleToken'
+            'email': 'test@gwu.edu'
         }
-
         
         response = self.client.post('/api/accounts/new/', data=data)
         self.assertEqual(response.status_code, 400)
