@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.core.mail import send_mail
 from rest_framework import exceptions, status, serializers
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework_jwt.authentication import BaseAuthentication
 from rest_framework_jwt.settings import api_settings
@@ -173,6 +174,7 @@ def send_new_user_email(user_info: dict) -> 0:
     print("Email signal sent")
     return 0
 
+@transaction.atomic
 def create_bcodb_user(email: str) -> User:
     """Create BCODB user
     """
@@ -183,10 +185,9 @@ def create_bcodb_user(email: str) -> User:
     )
     user.set_unusable_password()
     user.full_clean()
+    Token.objects.create(user=user)
     user.save()
-    user.groups.add(Group.objects.get(name="bco_drafter"))
-    user.groups.add(Group.objects.get(name="bco_publisher"))
-
+    
     return user
 
 

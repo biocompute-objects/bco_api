@@ -45,6 +45,6 @@ class ApiAccountsActivateTestCase(TestCase):
         has already been activated.'
         """
         
-        bad_link = "test%40testing.com/sample_temp_identifier"
+        bad_link = "tester%40testing.com/sample_temp_identifier"
         response = self.client.get(f'/api/accounts/activate/{bad_link}')
         self.assertEqual(response.status_code, 409)

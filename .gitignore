@@ -143,3 +143,4 @@ server.conf
 static/
 # JetBrains IDEs
 .idea/
+backups
