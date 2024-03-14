@@ -22,7 +22,7 @@ class AuthenticationTestCase(TestCase):
         """Add authentication is successful (200)
         """
 
-        token = Token.objects.get(user=User.objects.get(username='test50')).key
+        token = Token.objects.get(user=User.objects.get(username='tester')).key
         data = {"iss": "Reeya1","sub": "ReeyaGupta1"}
         
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
@@ -43,7 +43,7 @@ class AuthenticationTestCase(TestCase):
         """Bad request (400)
         """
 
-        token = Token.objects.get(user=User.objects.get(username='test50')).key
+        token = Token.objects.get(user=User.objects.get(username='tester')).key
         data = {"Missing required fields"}
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/auth/add/', data=data, format='json')

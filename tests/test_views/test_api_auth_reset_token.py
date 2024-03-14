@@ -19,16 +19,15 @@ class ResetTokenTestCase(TestCase):
         """Token reset is successful. 200
         """
 
-        token = Token.objects.get(user=User.objects.get(username='test50')).key
+        token = Token.objects.get(user=User.objects.get(username='tester')).key
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/auth/reset_token/')
         self.assertEqual(response.status_code, 200)
 
     def test_invalid_token(self):
-        """Inclid token. 403
+        """Invalid token. 403
         """
 
-        # token = Token.objects.get(user=User.objects.get(username='test50')).key
         token = 'this-is-an-invalid-token'
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/auth/reset_token/')

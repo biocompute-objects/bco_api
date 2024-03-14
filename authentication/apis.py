@@ -11,7 +11,6 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from api.scripts.utilities.UserUtils import UserUtils
 from authentication.models import Authentication, NewUser
 from authentication.selectors import (
     check_user_email,
@@ -534,7 +533,7 @@ class ResetTokenApi(APIView):
             Token.objects.create(user=request.user)            
             return Response(
                 status=status.HTTP_200_OK,
-                data=UserUtils().get_user_info(username=request.user)
+                data=get_user_info(user=request.user)
             )
 
         except Exception as error:
