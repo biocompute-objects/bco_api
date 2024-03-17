@@ -38,3 +38,4 @@
         on_delete=models.CASCADE, 
 - need tests for token
 - unwanted swagger endpoints
+- need tests for token
