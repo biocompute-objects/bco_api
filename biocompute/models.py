@@ -29,8 +29,10 @@ class Bco(models.Model):
         BCO JSON contents
     owner = ForeignKey(User)
         String representing the django.contrib.auth.models.User that 'owns' the object
+    authorized_users: ManyToManyField(User)
+        String representing the User that has access to the object
     authorized_group: ManyToManyField(Group)
-        String representing the django.contrib.auth.models.Group that 'owns' the object
+        String representing the Group that has access to the object
     prefix: str
         Prefix for the BCO
     state:str
