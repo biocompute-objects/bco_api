@@ -1,7 +1,8 @@
-"""Prefix Admin Pannel
+#!/usr/bin/env python3
+
+"""Prefix URLs
 """
 
-from django.contrib import admin
-from prefix.models import Prefix
 
-admin.site.register(Prefix)
+from biocompute.apis import DraftsCreateApi
+

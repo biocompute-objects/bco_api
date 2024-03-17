@@ -27,16 +27,20 @@ class Bco(models.Model):
         BCO Object Identifier, and primary key
     contents: JSONField
         BCO JSON contents
-    authorized_group: ManyToManyField(Group)
-        String representing the django.contrib.auth.models.Group that 'owns' the object
-    owner_user = ForeignKey(User)
+    owner = ForeignKey(User)
         String representing the django.contrib.auth.models.User that 'owns' the object
+    authorized_users: ManyToManyField(User)
+        String representing the User that has access to the object
+    authorized_group: ManyToManyField(Group)
+        String representing the Group that has access to the object
     prefix: str
         Prefix for the BCO
     state:str
         State of object. REFERENCED, PUBLISHED, DRAFT, and DELETE are currently accepted values.
     last_update: DateTime
         Date Time object for the last database change to this object
+    access_count: Int
+        number of times this object has been downloaded
 
     """
 
