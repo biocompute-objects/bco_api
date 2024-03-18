@@ -130,6 +130,7 @@ class DraftsCreateApi(APIView):
                 status=status.HTTP_207_MULTI_STATUS,
                 data=response_data
             )
+
         if accepted_requests is True and rejected_requests is False:
             return Response(
                 status=status.HTTP_200_OK,

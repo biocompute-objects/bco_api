@@ -74,6 +74,7 @@ class BcoDraftSerializer(serializers.Serializer):
         # return validated data
         if errors:
             raise serializers.ValidationError(errors)
+
         return attrs
 
     @transaction.atomic
