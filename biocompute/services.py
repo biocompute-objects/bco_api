@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # biocopmute/services.py
 
+import re
+from urllib.parse import urlparse
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from biocompute.models import Bco
 from prefix.models import Prefix
+from prefix.services import prefix_counter_increment
 from django.contrib.auth.models import Group, User
 from rest_framework import serializers
 
@@ -12,6 +16,8 @@ from rest_framework import serializers
 
 Service functions for working with BCOs
 """
+
+HOSTNAME = settings.PUBLIC_HOSTNAME
 
 class BcoDraftSerializer(serializers.Serializer):
     object_id = serializers.URLField(required=False)
@@ -21,6 +27,9 @@ class BcoDraftSerializer(serializers.Serializer):
     authorized_users = serializers.ListField(child=serializers.CharField(), required=False)
 
     def validate(self, attrs):
+        """BCO Draft Validator
+        """
+
         errors = {}
         request = self.context.get('request')
         attrs["owner"] = request.user
@@ -43,36 +52,37 @@ class BcoDraftSerializer(serializers.Serializer):
 
         # Validate Prefix
         try:
-            attrs['prefix_instance'] = Prefix.objects.get(prefix=attrs['prefix'])
+            #set a name and instance for Prefix
+            attrs['prefix'] = Prefix.objects.get(prefix=attrs['prefix'])
+            attrs['prefix_name'] = attrs['prefix'].prefix
         except Prefix.DoesNotExist as err:
             errors['prefix'] = 'Invalid prefix.'
-
-        # Validate object_id match
-        if 'object_id' in attrs and attrs['object_id'] != attrs['contents'].get('object_id', ''):
-            errors["object_id"] = "object_id does not match object_id in contents."
-
-        # Validate that object_id is unique
-        object_id = attrs['contents'].get('object_id', '')
-        
-        if not Bco.objects.filter(object_id=object_id).exists():
-            pass
-        else:
-            errors["object_id"] = f"That object_id, {attrs['object_id']}, already exists."
-
-        if errors:
             raise serializers.ValidationError(errors)
 
+        # Validate or create object_id
+        if 'object_id' in attrs:
+            id_errors = validate_bco_object_id(
+                attrs['object_id'],
+                attrs['prefix_name']
+            )
+            if id_errors != 0:
+                errors["object_id"] = id_errors
+        else:
+            attrs['object_id'] = create_bco_id(attrs['prefix'])
+
+        # If erros exist than raise and exception and return it, otherwise
+        # return validated data
+        if errors:
+            raise serializers.ValidationError(errors)
         return attrs
 
     @transaction.atomic
     def create(self, validated_data):
-        # Remove the non-model field 'prefix' and use 'prefix_instance' instead
-        prefix_instance = validated_data.pop('prefix_instance', None)
-        validated_data.pop('prefix')
+        # Remove the non-model field 'prefix_name' and use 'prefix' instance instead
+        validated_data.pop('prefix_name')
         authorized_group_names = validated_data.pop('authorized_groups', [])
         authorized_usernames = validated_data.pop('authorized_users', [])
-
-        bco_instance = Bco.objects.create(**validated_data, prefix=prefix_instance, last_update=timezone.now())
+        bco_instance = Bco.objects.create(**validated_data, last_update=timezone.now())
 
         # Set ManyToMany relations
         if authorized_group_names:
@@ -84,3 +94,44 @@ class BcoDraftSerializer(serializers.Serializer):
             bco_instance.authorized_users.set(authorized_users)
 
         return bco_instance
+
+
+def validate_bco_object_id(object_id: str, prefix_name: str):
+    """Validate BCO object ID
+
+    Function to validate a proposed BCO object_id. Will reject the ID if the 
+    following constraints are not met:
+      1. Correct hostname for this BCODB instance
+      2. Prefix submitted is not in the object_id
+      3. The object_id already exists
+    """
+    errors = []
+    
+    if HOSTNAME not in object_id:
+        errors.append("Object ID does not conform to the required format. "\
+            + f"The hostname {HOSTNAME} is not in {object_id}")
+    if prefix_name not in object_id:
+        errors.append(f"Object ID, {object_id}, does not contain the "\
+         + f"submitted prefix, {prefix_name}.")
+
+    if not Bco.objects.filter(object_id=object_id).exists():
+        pass
+    else:
+        errors.append(f"That object_id, {object_id}, already exists.")
+
+    if errors:
+        return errors
+    return 0
+
+def create_bco_id(prefix: Prefix) -> str:
+    """Create BCO object_id
+
+    Function to construct BCO object_id. Takes a Prefix model instance and 
+    returns a bco.object_id.
+    """
+
+    count = prefix_counter_increment(prefix)
+    bco_identifier = format(count, "06d")
+    bco_id = f"{HOSTNAME}/{prefix}_{bco_identifier}/DRAFT"
+    
+    return bco_id

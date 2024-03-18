@@ -6,17 +6,18 @@
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from django.db import utils
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from tests.fixtures.example_bco import BCO_000001
-from config.services import legacy_api_converter
+from config.services import legacy_api_converter, response_constructor
 from biocompute.services import BcoDraftSerializer
 
 class DraftsCreateApi(APIView):
     """
-    Create BCO Draft
+    Create BCO Draft [Bulk Enabled]
 
     --------------------
 
@@ -63,49 +64,74 @@ class DraftsCreateApi(APIView):
     @swagger_auto_schema(
         request_body=request_body,
         responses={
-            200: "Creation of BCO draft is successful.",
-            300: "Some requests failed and some succeeded.",
-            400: "Bad request.",
+            200: "All requests were accepted.",
+            207: "Some requests failed and some succeeded. Each object submitted"
+                " will have it's own response object with it's own status"
+                " code and message.\n",
+            400: "All requests were rejected.",
             403: "Invalid token.",
         },
         tags=["BCO Management"],
     )
 
     def post(self, request) -> Response:
-        response_data = {}
+        response_data = []
         owner = request.user
         data = request.data
-        all_good = True
+        rejected_requests = False
+        accepted_requests = False
         if 'POST_api_objects_draft_create' in request.data:
             data = legacy_api_converter(request.data)
         
         for index, object in enumerate(data):
-            list_id = object.get("object_id", index)
+            response_id = object.get("object_id", index)
             bco = BcoDraftSerializer(data=object, context={'request': request})
         
             if bco.is_valid():
-                bco.create(bco.validated_data)
-                response_data[list_id] = "bco valid"
+                try:
+                    bco.create(bco.validated_data)
+                    response_data.append(response_constructor(
+                        identifier=bco['object_id'].value,
+                        status = "SUCCESS",
+                        code= 200,
+                        message= f"BCO {bco['object_id'].value} created",
+                    ))
+                    accepted_requests = True
+
+                except Exception as err:
+                    print(err)
+                    response_data.append(response_constructor(
+                        identifier=bco['object_id'].value,
+                        status = "SERVER ERROR",
+                        code= 500,
+                        message= f"BCO {bco['object_id'].value} failed",
+                    ))
 
             else:
-                response_data[list_id] = bco.errors
-                all_good = False
+                response_data.append(response_constructor(
+                    identifier=response_id,
+                    status = "REJECTED",
+                    code= 400,
+                    message= f"BCO {response_id} rejected",
+                    data=bco.errors
+                ))
+                rejected_requests = True
 
-        if all_good is False:
+            print(accepted_requests, rejected_requests )
+
+        if accepted_requests is False and rejected_requests == True:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=response_data
+            )
+        
+        if accepted_requests is True and rejected_requests is True:
             return Response(
                 status=status.HTTP_207_MULTI_STATUS,
                 data=response_data
             )
-
-        return Response(status=status.HTTP_200_OK, data=response_data)
-        
-        # def create(self, validated_data):
-        #     # Custom creation logic here, if needed
-        #     return Bco.objects.create(**validated_data)
-        
-        # def update(self, instance, validated_data):
-        #     # Custom update logic here, if needed
-        #     for attr, value in validated_data.items():
-        #         setattr(instance, attr, value)
-        #     instance.save()
-        #     return instance
+        if accepted_requests is True and rejected_requests is False:
+            return Response(
+                status=status.HTTP_200_OK,
+                data=response_data
+            )

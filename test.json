@@ -855,7 +855,8 @@
             "created": "2024-03-14T13:53:59Z",
             "description": "Default prefix for all BioCompute Objects",
             "owner": "AnonymousUser",
-            "authorized_groups": []
+            "authorized_groups": [],
+            "counter": 0
         }
     }
 ]
