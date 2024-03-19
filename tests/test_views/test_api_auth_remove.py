@@ -27,7 +27,6 @@ class AuthenticationRemovetestcase(APITestCase):
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/auth/remove/', data=data, format='json')
-        print(response.json())
         self.assertEqual(response.status_code, 200)
 
     def test_bad_authentication(self):

@@ -55,4 +55,5 @@ urlpatterns = [
     path("api/", include("authentication.urls")),
     path("api/", include("search.urls")),
     path("api/", include("biocompute.urls")),
+    path("api/", include("prefix.urls")),
 ]
