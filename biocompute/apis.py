@@ -99,7 +99,6 @@ class DraftsCreateApi(APIView):
                     accepted_requests = True
 
                 except Exception as err:
-                    print(err)
                     response_data.append(response_constructor(
                         identifier=bco['object_id'].value,
                         status = "SERVER ERROR",
@@ -116,8 +115,6 @@ class DraftsCreateApi(APIView):
                     data=bco.errors
                 ))
                 rejected_requests = True
-
-            print(accepted_requests, rejected_requests )
 
         if accepted_requests is False and rejected_requests == True:
             return Response(

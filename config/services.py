@@ -10,9 +10,22 @@ def legacy_api_converter(data:dict) ->dict:
     """Legacy API converter
 
     Used to remove the `POST_` object from requests.
+    Prefix APIs require a little more cleaning. 
     """
- 
     _, new_data = data.popitem()
+
+    if "prefixes" in new_data[0]:
+        return_data =[]
+        for object in new_data:
+            owner_group = object["owner_group"]
+            for prefix in object['prefixes']:
+                return_data.append({
+                    "prefix": prefix["prefix"],
+                    "description": prefix["description"],
+                    "authorized_groups": [owner_group]
+                })
+        return return_data
+        
     return new_data
 
 def response_constructor(
