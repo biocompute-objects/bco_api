@@ -131,7 +131,7 @@ dmypy.json
 # --- USER-ADDED IGNORES --- #
 
 # The settings file.
-bcodb/settings.py
+config/settings.py
 
 # The server configuration file.
 server.conf
@@ -143,3 +143,4 @@ server.conf
 static/
 # JetBrains IDEs
 .idea/
+backups

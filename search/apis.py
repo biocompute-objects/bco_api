@@ -57,7 +57,7 @@ class SearchObjectsAPI(APIView):
         responses={
             200: "Search successfull"
         },
-        tags=["BCO Management"],
+        tags=["BCO Search"],
     )
     
     def get(self, request) -> Response:

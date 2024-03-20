@@ -4,13 +4,10 @@
 Set of selector functions to handle searching the BCODB
 """
 
-from api.models import BCO
+from biocompute.models import Bco
 from django.db.models import QuerySet
 from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
-from guardian.shortcuts import get_objects_for_user
-from itertools import chain
-from api.scripts.utilities.UserUtils import UserUtils
 
 return_values = [
           "contents",
