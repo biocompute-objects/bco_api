@@ -15,16 +15,7 @@ from tests.fixtures.example_bco import BCO_000001
 from config.services import legacy_api_converter, response_constructor
 from biocompute.services import BcoDraftSerializer
 
-class DraftsCreateApi(APIView):
-    """
-    Create BCO Draft [Bulk Enabled]
-
-    --------------------
-
-    Creates a new BCO draft object.
-    """
-    
-    request_body = openapi.Schema(
+BCO_DRAFT_SCHEMA = openapi.Schema(
         type=openapi.TYPE_ARRAY,
         title="Create BCO Draft Schema",
         items=openapi.Schema(
@@ -60,6 +51,17 @@ class DraftsCreateApi(APIView):
         ),
         description="BCO Drafts to create.",
     )
+
+class DraftsCreateApi(APIView):
+    """
+    Create BCO Draft [Bulk Enabled]
+
+    --------------------
+
+    Creates a new BCO draft object.
+    """
+    
+    request_body = BCO_DRAFT_SCHEMA
 
     @swagger_auto_schema(
         request_body=request_body,

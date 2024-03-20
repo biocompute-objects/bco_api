@@ -38,7 +38,7 @@ PREFIX_SCHEMA = openapi.Schema(
 
 class PrefixesCreateApi(APIView):
     """
-    Create a Prefix
+    Create a Prefix [Bulk Enabled]
 
     --------------------
     Create a prefix to be used to classify BCOs and to determine permissions
@@ -119,7 +119,7 @@ class PrefixesCreateApi(APIView):
 
 class PrefixesDeleteApi(APIView):
     """
-    Delete a Prefix
+    Delete a Prefix [Bulk Enabled]
 
     # Deletes a prefix for BCOs.
     --------------------
@@ -209,7 +209,7 @@ class PrefixesDeleteApi(APIView):
 
 class PrefixesModifyApi(APIView):
     """
-    Modify a Prefix
+    Modify a Prefix [Bulk Enabled]
 
     --------------------
 
