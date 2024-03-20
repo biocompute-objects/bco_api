@@ -736,54 +736,6 @@
         }
     },
     {
-        "model": "contenttypes.contenttype",
-        "pk": 10,
-        "fields": {
-            "app_label": "guardian",
-            "model": "groupobjectpermission"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 11,
-        "fields": {
-            "app_label": "guardian",
-            "model": "userobjectpermission"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 12,
-        "fields": {
-            "app_label": "authentication",
-            "model": "newuser"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 13,
-        "fields": {
-            "app_label": "authentication",
-            "model": "authentication"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 14,
-        "fields": {
-            "app_label": "biocompute",
-            "model": "bco"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 15,
-        "fields": {
-            "app_label": "prefix",
-            "model": "prefix"
-        }
-    },
-    {
         "model": "sessions.session",
         "pk": "mpq9r3ogmf3pel91gaqfvhzaf0pmdl4f",
         "fields": {

@@ -1,5 +1,29 @@
 [
     {
+        "model": "auth.group",
+        "pk": 1,
+        "fields": {
+            "name": "bco_publisher",
+            "permissions": []
+        }
+    },
+    {
+        "model": "auth.group",
+        "pk": 2,
+        "fields": {
+            "name": "bco_drafter",
+            "permissions": []
+        }
+    },
+    {
+        "model": "auth.group",
+        "pk": 3,
+        "fields": {
+            "name": "test_drafter",
+            "permissions": []
+        }
+    },
+    {
         "model": "auth.permission",
         "pk": 1,
         "fields": {
@@ -855,6 +879,18 @@
             "created": "2024-03-14T13:53:59Z",
             "description": "Default prefix for all BioCompute Objects",
             "owner": "AnonymousUser",
+            "authorized_groups": [],
+            "counter": 0
+        }
+    },
+    {
+        "model": "prefix.prefix",
+        "pk": "TEST",
+        "fields": {
+            "certifying_key": "12345",
+            "created": "2024-03-14T13:53:59Z",
+            "description": "Test prefix",
+            "owner": "tester",
             "authorized_groups": [],
             "counter": 0
         }

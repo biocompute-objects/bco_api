@@ -31,11 +31,20 @@ class PrefixSerializer(serializers.Serializer):
         attrs['prefix'] = attrs['prefix'].upper()
         prefix_name = attrs['prefix']
 
-        # Validate Prefix
-        if not Prefix.objects.filter(prefix=prefix_name).exists():
-            pass
-        else:
-            errors["prefix_name"] = f"That Prefix, {prefix_name}, already exists."
+        # Validate Prefix name and owner
+        try:
+            attrs["prefix"] = Prefix.objects.get(prefix=prefix_name)
+            if "create" in request.path_info:
+                raise serializers.ValidationError({"prefix_name": f"That Prefix, {prefix_name}, already exists."})
+            attrs["owner"] = attrs["prefix"].owner
+        except Prefix.DoesNotExist:
+            if "create" in request.path_info:
+                pass
+            else:
+                errors["prefix_name"] = f"That Prefix, {prefix_name}, was not found."
+
+
+
         # remove blank 'authorized_groups' relic from legacy conversion
         if attrs['authorized_groups'][0] == "":
             attrs.pop("authorized_groups")
@@ -66,7 +75,31 @@ class PrefixSerializer(serializers.Serializer):
             authorized_groups = Group.objects.filter(name__in=authorized_group_names)
             prefix_instance.authorized_groups.set(authorized_groups)
         return prefix_instance
-    
+
+    @transaction.atomic
+    def update(self, validated_data):
+        """Update function for Prefix."""
+        prefix_instance = Prefix.objects.get(prefix=validated_data['prefix'])
+        if prefix_instance.owner != validated_data['owner']:
+            # import pdb; pdb.set_trace()
+            return "denied"
+        prefix_instance.description = validated_data.get('description', prefix_instance.description)
+        prefix_instance.save()
+
+        if 'authorized_groups' in validated_data:
+            authorized_group_names = validated_data['authorized_groups']
+            # If the list is empty or contains only an empty string, clear the groups
+            if not authorized_group_names or authorized_group_names == [""]:
+                prefix_instance.authorized_groups.clear()
+
+            else:
+                # Filter groups that exist in the database
+                authorized_groups = Group.objects.filter(name__in=authorized_group_names)
+                
+                # Set the new groups, which automatically handles adding, keeping, or removing
+                prefix_instance.authorized_groups.set(authorized_groups)
+
+        return prefix_instance
 
 def prefix_counter_increment(prefix: Prefix) -> int:
     """Prefix Counter Increment 
@@ -78,3 +111,16 @@ def prefix_counter_increment(prefix: Prefix) -> int:
     Prefix.objects.update(counter=F("counter") + 1)
     count = prefix.counter
     return count
+
+def delete_prefix(prefix: str, user: User) -> bool:
+    """Delete Prefix
+    """
+    try:
+        prefix_instance = Prefix.objects.get(prefix=prefix)
+    except Prefix.DoesNotExist:
+        return f"That prefix, {prefix}, does not exist."
+    if prefix_instance.owner == user:
+        prefix_instance.delete()
+        return True
+    
+    return f"You do not have permissions to delete that prefix, {prefix}."
