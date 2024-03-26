@@ -4,6 +4,8 @@
 import re
 from urllib.parse import urlparse
 from django.conf import settings
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from prefix.models import Prefix
 from django.db import transaction
@@ -20,6 +22,7 @@ class PrefixSerializer(serializers.Serializer):
     prefix = serializers.CharField(min_length=3, max_length=5)
     description = serializers.CharField()
     authorized_groups = serializers.ListField(child=serializers.CharField(allow_blank=True), required=False)
+    public = serializers.BooleanField(required=False)
     
     def validate(self, attrs):
         """Prefix Validator
@@ -41,26 +44,7 @@ class PrefixSerializer(serializers.Serializer):
             if "create" in request.path_info:
                 pass
             else:
-                errors["prefix_name"] = f"That Prefix, {prefix_name}, was not found."
-
-
-
-        # remove blank 'authorized_groups' relic from legacy conversion
-        if attrs['authorized_groups'][0] == "":
-            attrs.pop("authorized_groups")
-
-        #check for groups
-        if 'authorized_groups' in attrs:
-            for group in attrs['authorized_groups']:
-                try:
-                    Group.objects.get(name=group)
-                except Group.DoesNotExist as err:
-                    errors['authorized_groups'] = f"Invalid group: {group}"
-
-        # If erros exist than raise and exception and return it, otherwise
-        # return validated data
-        if errors:
-            raise serializers.ValidationError(errors)
+               raise serializers.ValidationError({"prefix_name": f"That Prefix, {prefix_name}, was not found."})
 
         return attrs
 
@@ -68,12 +52,10 @@ class PrefixSerializer(serializers.Serializer):
     def create(self, validated_data):
         """Create function for Prefix
         """
-        authorized_group_names = validated_data.pop('authorized_groups', [])
+        public = validated_data.pop('public', [])
+        import pdb; pdb.set_trace()
         prefix_instance = Prefix.objects.create(**validated_data, created=timezone.now())
-        # Set ManyToMany relations
-        if authorized_group_names:
-            authorized_groups = Group.objects.filter(name__in=authorized_group_names)
-            prefix_instance.authorized_groups.set(authorized_groups)
+
         return prefix_instance
 
     @transaction.atomic
@@ -81,25 +63,33 @@ class PrefixSerializer(serializers.Serializer):
         """Update function for Prefix."""
         prefix_instance = Prefix.objects.get(prefix=validated_data['prefix'])
         if prefix_instance.owner != validated_data['owner']:
-            # import pdb; pdb.set_trace()
             return "denied"
         prefix_instance.description = validated_data.get('description', prefix_instance.description)
         prefix_instance.save()
 
-        if 'authorized_groups' in validated_data:
-            authorized_group_names = validated_data['authorized_groups']
-            # If the list is empty or contains only an empty string, clear the groups
-            if not authorized_group_names or authorized_group_names == [""]:
-                prefix_instance.authorized_groups.clear()
-
-            else:
-                # Filter groups that exist in the database
-                authorized_groups = Group.objects.filter(name__in=authorized_group_names)
-                
-                # Set the new groups, which automatically handles adding, keeping, or removing
-                prefix_instance.authorized_groups.set(authorized_groups)
-
         return prefix_instance
+
+def create_permissions_for_prefix(instance=None, owner=User):
+    """Prefix Permission Creation
+
+    Creates permissions for a Prefix if it is not public. Owner is assigned
+     all permissions and then can add permissions to other users.
+    
+	'view' -> View/download Prefix drafts
+    'add' -> create new drafts for Prefix
+	'change' -> Change existing drafts for Prefix
+	'delete' -> Delete drafts for Prefix
+	'publish' -> Publish drafts for Prefix
+    """
+    try:
+        for perm in [ "view", "add", "change", "delete", "publish"]:
+            print(instance)
+            Permission.objects.create(
+                name="Can " + perm + " BCOs with prefix " + instance.prefix,
+                content_type=ContentType.objects.get(app_label="api", model="bco"),
+                codename=perm + "_" + instance.prefix,)
+    except:
+        return 0
 
 def prefix_counter_increment(prefix: Prefix) -> int:
     """Prefix Counter Increment 

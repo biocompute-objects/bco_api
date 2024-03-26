@@ -27,10 +27,15 @@ PREFIX_SCHEMA = openapi.Schema(
                 description="A description of what this prefix should represent.  For example, the prefix 'GLY' would be related to BCOs which were derived from GlyGen workflows.",
                 example="Test prefix description."
             ),
-            "authorized_groups": openapi.Schema(
-                type=openapi.TYPE_ARRAY,
-                description="Groups which can access the BCOs using this prefix. If it is none then anyone can access.",
-                items=openapi.Schema(type=openapi.TYPE_STRING, example="")
+            "certifying_key": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Hash of server and date-time of creation.",
+                example="12345678910"
+            ),
+            "public": openapi.Schema(
+                type=openapi.TYPE_BOOLEAN,
+                description="Flag to set permissions.",
+                example=True
             )
         },
     )

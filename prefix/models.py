@@ -19,11 +19,6 @@ class Prefix(models.Model):
         on_delete=models.CASCADE,
         to_field="username"
     )
-    authorized_groups = models.ManyToManyField(
-        Group,
-        blank=True,
-        related_name='authorized_prefix'
-    )
     counter = models.IntegerField(
         default=0,
         help_text="Counter for object_id asignment"

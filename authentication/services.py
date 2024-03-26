@@ -190,7 +190,6 @@ def create_bcodb_user(email: str) -> User:
     
     return user
 
-
 def send_bcodb(data: str, request_info: dict):
     """
     """
