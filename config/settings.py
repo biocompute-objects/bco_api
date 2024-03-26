@@ -123,18 +123,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Object-level permissions with django-guardian
-# Source: https://github.com/django-guardian/django-guardian#configuration
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "guardian.backends.ObjectPermissionBackend",
 ]
 
 # --- APPLICATION --- #
 # Application definition
 
-# Token-based authentication.
-# Source: https://www.django-rest-framework.org/api-guide/authentication/#tokenau thentication
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.admindocs",
@@ -150,8 +145,6 @@ INSTALLED_APPS = [
     'rest_framework_jwt.blacklist',
     "rest_framework_swagger",
     "reset_migrations",
-    "guardian",
-    # "api",
     "authentication",
     "biocompute",
     "prefix"
