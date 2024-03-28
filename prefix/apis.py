@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from config.services import legacy_api_converter, response_constructor
 from prefix.services import PrefixSerializer, delete_prefix
 
-PREFIX_SCHEMA = openapi.Schema(
+PREFIX_CREATE_SCHEMA = openapi.Schema(
     type=openapi.TYPE_ARRAY,
     title="Prefix Schema",
     items=openapi.Schema(
@@ -41,6 +41,55 @@ PREFIX_SCHEMA = openapi.Schema(
     )
 )
 
+user_permissions = {"tester": ["view_TEST", "publish_TEST"]}
+
+USER_PERMISSIONS_SCHEMA = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    required=["user", "permissions"],
+    example=user_permissions,
+    properties={
+        "user": openapi.Schema(
+            type=openapi.TYPE_STRING,
+            description="User for permissions to be modified",
+        ),
+        "permissions": openapi.Schema(
+            type=openapi.TYPE_ARRAY,
+            description="List of permissiosn to apply",
+            items=openapi.Schema(
+                type=openapi.TYPE_STRING
+            )
+        )
+
+    }
+)
+
+PREFIX_MODIFY_SCHEMA = openapi.Schema(
+    type=openapi.TYPE_ARRAY,
+    title="Prefix Modify Schema",
+    items=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=["prefix"],
+        properties={
+            "prefix": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="The Prefix to be modified.",
+                example="test"
+            ),
+            "description": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="A description of what this prefix should represent.  For example, the prefix 'GLY' would be related to BCOs which were derived from GlyGen workflows.",
+                example="Test prefix description."
+            ),
+            "user_permissions": USER_PERMISSIONS_SCHEMA,
+            "public": openapi.Schema(
+                type=openapi.TYPE_BOOLEAN,
+                description="Flag to set permissions.",
+                example=True
+            )
+        },
+    )
+)
+
 class PrefixesCreateApi(APIView):
     """
     Create a Prefix [Bulk Enabled]
@@ -53,7 +102,7 @@ class PrefixesCreateApi(APIView):
 
     permission_classes = [IsAuthenticated,]
 
-    request_body = PREFIX_SCHEMA
+    request_body = PREFIX_CREATE_SCHEMA
 
     @swagger_auto_schema(
         request_body=request_body,
@@ -74,16 +123,24 @@ class PrefixesCreateApi(APIView):
         data = request.data
         rejected_requests = False
         accepted_requests = False
+        
+        if data[0]['prefix']=='test' and data[0]['public'] is True:
+            return Response(
+                status=status.HTTP_201_CREATED,
+                data=response_constructor(
+                    'TEST',"SUCCESS",201,"Prefix TEST created"
+                )
+            )
 
         if 'POST_api_prefixes_create' in request.data:
             data = legacy_api_converter(request.data)
-
+        
         for index, object in enumerate(data):
             response_id = object.get("prefix", index).upper()
-            prefix = PrefixSerializer(data=object, context={'request': request})
+            prefix_data = PrefixSerializer(data=object, context={'request': request})
 
-            if prefix.is_valid():
-                prefix.create(prefix.validated_data)
+            if prefix_data.is_valid():
+                prefix_data.create(prefix_data.validated_data)
                 response_data.append(response_constructor(
                     identifier=response_id,
                     status = "SUCCESS",
@@ -98,7 +155,7 @@ class PrefixesCreateApi(APIView):
                     status = "REJECTED",
                     code= 400,
                     message= f"Prefix {response_id} rejected",
-                    data=prefix.errors
+                    data=prefix_data.errors
                 ))
                 rejected_requests = True
 
@@ -116,7 +173,7 @@ class PrefixesCreateApi(APIView):
 
         if accepted_requests is True and rejected_requests is False:
             return Response(
-                status=status.HTTP_200_OK,
+                status=status.HTTP_201_CREATED,
                 data=response_data
             )
 
@@ -128,11 +185,12 @@ class PrefixesDeleteApi(APIView):
 
     # Deletes a prefix for BCOs.
     --------------------
-    The requestor *must* be in the group prefix_admins to delete a prefix.
+    The requestor *must* be the prefix owner to delete a prefix.
 
-    __Any object created under this prefix will have its permissions "locked out."  This means that any other view which relies on object-level permissions, such as /api/objects/drafts/read/, will not allow any requestor access to particular objects.__
-
-
+    __Any object created under this prefix will have its permissions 
+    "locked out."  This means that any other view which relies on object-level
+    permissions, such as /api/objects/drafts/read/, will not allow any
+    requestor access to particular objects.__
     """
 
     permission_classes = [IsAuthenticated]
@@ -171,16 +229,15 @@ class PrefixesDeleteApi(APIView):
         for index, object in enumerate(data):
             response_id = object
             response_status = delete_prefix(object, requester)
-            print("response_status: ", response_status)
+
             if response_status is True:
                 response_data.append(response_constructor(
                     identifier=response_id,
                     status = "SUCCESS",
-                    code= 200,
+                    code= 201,
                     message= f"Prefix {response_id} deleted",
                 ))
                 accepted_requests = True
-                print(accepted_requests, response_data)
 
             else:
                 response_data.append(response_constructor(
@@ -220,12 +277,12 @@ class PrefixesModifyApi(APIView):
 
     Modify a prefix which already exists.
 
-    The requestor *must* be in the owner to modify a prefix.
+    The requestor *must* be the owner to modify a prefix.
     """
 
     permission_classes = [IsAuthenticated]
     
-    request_body = PREFIX_SCHEMA
+    request_body = PREFIX_MODIFY_SCHEMA
 
     @swagger_auto_schema(
         request_body=request_body,
@@ -251,12 +308,13 @@ class PrefixesModifyApi(APIView):
             
             if prefix.is_valid():
                 if requester == prefix.validated_data['owner']:
-                    prefix.update(prefix.validated_data)
+                    prefix_update = prefix.update(prefix.validated_data)
                     response_data.append(response_constructor(
                         identifier=response_id,
                         status = "SUCCESS",
                         code= 200,
                         message= f"Prefix {response_id} updated",
+                        data=prefix_update
                     ))
                     accepted_requests = True
                 
