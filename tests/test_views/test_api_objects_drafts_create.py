@@ -42,10 +42,10 @@ class BcoDraftCreateTestCase(TestCase):
                 "prefix": "BCO",
                 "authorized_users": ["hivelab"],
                 "contents": {
-                "object_id": "https://test.portal.biochemistry.gwu.edu/BCO_000001/DRAFT",
-                "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                }
+                    "object_id": "https://test.portal.biochemistry.gwu.edu/BCO_000001/DRAFT",
+                    "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
+                    "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
+                    }
             },
             {
                 "object_id": "http://127.0.0.1:8000/TEST_000001",

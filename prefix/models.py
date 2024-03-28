@@ -19,15 +19,15 @@ class Prefix(models.Model):
         on_delete=models.CASCADE,
         to_field="username"
     )
-    authorized_groups = models.ManyToManyField(
-        Group,
-        blank=True,
-        related_name='authorized_prefix'
-    )
     counter = models.IntegerField(
         default=0,
         help_text="Counter for object_id asignment"
     )
+    public = models.BooleanField(
+        default=True,
+        help_text= "Boolean field to indicate if there are restrictions on "\
+            + "the use of this prefix"
+        )
 
     def __str__(self):
         """String for representing the BCO model (in Admin site etc.)."""

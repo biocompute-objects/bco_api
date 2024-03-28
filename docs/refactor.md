@@ -27,6 +27,11 @@
 ### Refactor the BCO permission system
 - same situation as prefix
 
+## Permissions
+
+- BCO has `owner`, `auth_group` and `auth_user`
+- Prefix has `owner`, and `auth_group` 
+
 ## Items to look at later
 - `authentication.apis.RegisterUserNoVerificationAPI` has no swagger or tests
 - fix email and secrets
@@ -40,3 +45,11 @@
 - unwanted swagger endpoints
 - need tests for token
 - prefix api documentation and portal docs for prefix
+
+Prefix Perms:
+	add -> create new DRAFT
+	edit -> Change existing Draft
+	delete -> Delete Draft
+	publish -> Publish Draft
+	view -> View/download 
+   ONLY if private

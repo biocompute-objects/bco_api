@@ -21,8 +21,7 @@ def legacy_api_converter(data:dict) ->dict:
             for prefix in object['prefixes']:
                 return_data.append({
                     "prefix": prefix["prefix"],
-                    "description": prefix["description"],
-                    "authorized_groups": [owner_group]
+                    "description": prefix["description"]
                 })
         return return_data
         

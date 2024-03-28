@@ -49,6 +49,7 @@ class Bco(models.Model):
     prefix = models.ForeignKey(Prefix, on_delete=models.CASCADE, to_field="prefix")
     owner = models.ForeignKey(
         User,
+        to_field="username",
         on_delete=models.CASCADE, 
         related_name="owned_bcos"
     )
