@@ -11,6 +11,26 @@ from django.contrib.auth.models import User
 from django.db import utils 
 from prefix.models import Prefix
 
+def get_user_prefixes(user: User) -> dict:
+    """Get User Prefixes
+
+    Returns a dictionary with the users associated Prefix permisssions.
+    """
+    prefix_permissions = {
+        "public_permissions":[],
+        "not_public_permissions": []
+    }
+
+    public_prefixes = Prefix.objects.filter(public=True)
+    for prefix_instance in public_prefixes:
+        prefix_permissions["public_permissions"].append(prefix_instance.pk)
+    for permission in user.user_permissions.all():
+        print(permission)
+        prefix_permissions["not_public_permissions"].append(permission.name)
+
+    return  prefix_permissions
+
+
 def get_prefix_object(prefix_name:str) -> dict:
     """Get Prefix Object
 
@@ -19,7 +39,10 @@ def get_prefix_object(prefix_name:str) -> dict:
     be included.
     """
 
-    prefix_instance = Prefix.objects.get(prefix=prefix_name)
+    try:
+        prefix_instance = Prefix.objects.get(prefix=prefix_name)
+    except Prefix.DoesNotExist:
+        return None
     prefix_object = serialize('python', [prefix_instance])[0]
     if prefix_instance.public is False:
         prefix_permissions = get_prefix_permissions(prefix_name)
