@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from config.services import legacy_api_converter, response_constructor
 from prefix.services import PrefixSerializer, delete_prefix
+from prefix.selectors import get_prefix_object, get_user_prefixes
 
 PREFIX_CREATE_SCHEMA = openapi.Schema(
     type=openapi.TYPE_ARRAY,
@@ -180,11 +181,8 @@ class PrefixesCreateApi(APIView):
         return Response(status=status.HTTP_201_CREATED, data=response_data)
 
 class PrefixesDeleteApi(APIView):
-    """
-    Delete a Prefix [Bulk Enabled]
+    """Delete a Prefix [Bulk Enabled]
 
-    # Deletes a prefix for BCOs.
-    --------------------
     The requestor *must* be the prefix owner to delete a prefix.
 
     __Any object created under this prefix will have its permissions 
@@ -210,7 +208,7 @@ class PrefixesDeleteApi(APIView):
         responses={
             200: "Deleting a prefix was successful.",
             401: "Unauthorized. Authentication credentials were not provided.",
-            403: "Forbidden. User doesnot have permission to perform this action",
+            403: "Forbidden. User does not have permission to perform this action",
             404: "The prefix couldn't be found so therefore it could not be deleted.",
         },
         tags=["Prefix Management"],
@@ -234,7 +232,7 @@ class PrefixesDeleteApi(APIView):
                 response_data.append(response_constructor(
                     identifier=response_id,
                     status = "SUCCESS",
-                    code= 201,
+                    code= 200,
                     message= f"Prefix {response_id} deleted",
                 ))
                 accepted_requests = True
@@ -270,10 +268,7 @@ class PrefixesDeleteApi(APIView):
         return Response(status=status.HTTP_201_CREATED, data=response_data)
 
 class PrefixesModifyApi(APIView):
-    """
-    Modify a Prefix [Bulk Enabled]
-
-    --------------------
+    """Modify a Prefix [Bulk Enabled]
 
     Modify a prefix which already exists.
 
@@ -357,3 +352,134 @@ class PrefixesModifyApi(APIView):
             )
 
         return Response(status=status.HTTP_201_CREATED, data=response_data)
+
+class PrefixGetInfoApi(APIView):
+    """Get Prefix Info [Bulk Enabled]
+
+    Returns a serialized Prefix instance. If the Prefix is not public and the
+    requestor has the apropirate permissions then a dictionary with users 
+    and the associated Prefix permisssions will also be included. 
+    """
+
+    permission_classes = [IsAuthenticated]
+    
+    request_body = openapi.Schema(
+        type=openapi.TYPE_ARRAY,
+        title="Prefix Info Schema",
+        description="Retrieve a serialized Prefix instance.",
+        items=openapi.Schema(
+            type=openapi.TYPE_STRING,
+            example="TEST"
+        )
+    )
+
+    @swagger_auto_schema(
+        request_body=request_body,
+        responses={
+            200: "Retrieving prefix info was successful.",
+            401: "Unauthorized. Authentication credentials were not provided.",
+            403: "Forbidden. User does not have permission to perform this action",
+            404: "That prefix could not be found.",
+        },
+        tags=["Prefix Management"],
+    )
+
+    def post(self, request) -> Response:
+        response_data = []
+        requester = request.user
+        data = request.data
+        rejected_requests = False
+        accepted_requests = False
+
+        for index, object in enumerate(data):
+            response_id = object
+            response_object = get_prefix_object(object)
+            
+            try: 
+                if response_object['fields']['public'] is True or \
+                    requester.username in response_object['user_permissions']:
+                    response_data.append(response_constructor(
+                        identifier=response_id,
+                        status = "SUCCESS",
+                        code= 200,
+                        message= f"Prefix {response_id} retrieved",
+                        data=response_object
+                    ))
+                    accepted_requests = True
+                else:
+                    response_data.append(response_constructor(
+                        identifier=response_id,
+                        status = "FORBIDDEN",
+                        code= 403,
+                        message= f"User, {requester}, does not have permissions for this Prefix, {response_id}.",
+                    ))
+                    rejected_requests = True
+            
+            except TypeError:
+                if response_object is None:
+                    response_data.append(response_constructor(
+                        identifier=response_id,
+                        status = "NOT FOUND",
+                        code= 404,
+                        message= f"That Prefix, {response_id}, does not exist.",
+                    ))
+                    rejected_requests = True
+                else:
+                    response_data.append(response_constructor(
+                        identifier=response_id,
+                        status = "BAD REQUEST",
+                        code= 400,
+                        message= f"There was a problem with that Prefix, {response_id}.",
+                    ))
+                    rejected_requests = True
+
+        if accepted_requests is False:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=response_data
+            )
+        
+        if accepted_requests is True and rejected_requests is True:
+            return Response(
+                status=status.HTTP_207_MULTI_STATUS,
+                data=response_data
+            )
+
+        if accepted_requests is True and rejected_requests is False:
+            return Response(
+                status=status.HTTP_200_OK,
+                data=response_data
+            )
+
+        return Response(status=status.HTTP_201_CREATED, data=response_data)
+
+class PrefixesForUserApi(APIView):
+    """Get Prefixes for User
+
+    Returns a list of prefixes the requestor is permitted to use.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "Authorization",
+                openapi.IN_HEADER,
+                description="Authorization Token",
+                type=openapi.TYPE_STRING,
+                default="Token 627626823549f787c3ec763ff687169206626149"
+            )
+        ],
+        responses={
+            200: "Authorization is successful.",
+            403: "Forbidden. Authentication credentials were not provided.",
+            403: "Invalid token"
+        },
+        tags=["Prefix Management"],
+    )
+
+    def post(self, request) -> Response:
+        return Response(
+            status=status.HTTP_200_OK, data=get_user_prefixes(request.user)
+        )
