@@ -50,7 +50,6 @@ class BcoDraftCreateTestCase(TestCase):
             {
                 "object_id": "http://127.0.0.1:8000/TEST_000001",
                 "prefix": "TEST",
-                # "authorized_groups": ["testing"],
                 "contents": {
                     "object_id": "https://biocomputeobject.org/TEST_000001",
                     "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
@@ -105,7 +104,6 @@ class BcoDraftCreateTestCase(TestCase):
             {
                 "object_id": "http://127.0.0.1:8000/TEST_000001",
                 "prefix": "TEST",
-                "authorized_groups": ["testing"],
                 "contents": {
                     "object_id": "https://biocomputeobject.org/TEST_000001",
                     "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
