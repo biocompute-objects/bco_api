@@ -478,7 +478,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 54,
+        "pk": 67,
         "fields": {
             "name": "Can add BCOs with prefix NOPUB",
             "content_type": 13,
@@ -487,7 +487,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 55,
+        "pk": 68,
         "fields": {
             "name": "Can change BCOs with prefix NOPUB",
             "content_type": 13,
@@ -496,7 +496,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 56,
+        "pk": 69,
         "fields": {
             "name": "Can delete BCOs with prefix NOPUB",
             "content_type": 13,
@@ -505,7 +505,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 57,
+        "pk": 70,
         "fields": {
             "name": "Can publish BCOs with prefix NOPUB",
             "content_type": 13,
@@ -514,7 +514,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 58,
+        "pk": 71,
         "fields": {
             "name": "Can add new user",
             "content_type": 11,
@@ -523,7 +523,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 59,
+        "pk": 72,
         "fields": {
             "name": "Can change new user",
             "content_type": 11,
@@ -532,7 +532,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 60,
+        "pk": 73,
         "fields": {
             "name": "Can delete new user",
             "content_type": 11,
