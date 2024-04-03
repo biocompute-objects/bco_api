@@ -1,6 +1,9 @@
 
+from django.conf import settings
+
+hostname = settings.PUBLIC_HOSTNAME
 BCO_000000 = {
-        "object_id": "https://test.portal.biochemistry.gwu.edu/BCO_000000/DRAFT",
+        "object_id": f"{hostname}/BCO_000000/DRAFT",
         "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
         "etag": "0275321b6011324035289a5624c635ce5490fbdec588aa5f3bcaf63b85369b4a",
         "provenance_domain": {
@@ -198,7 +201,7 @@ BCO_000000 = {
     }
 
 BCO_000001 = {
-        "object_id": "https://test.portal.biochemistry.gwu.edu/BCO_000001/DRAFT",
+        "object_id": f"{hostname}/BCO_000001/DRAFT",
         "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
         "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea",
         "provenance_domain": {
