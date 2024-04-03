@@ -124,6 +124,8 @@ class PrefixesCreateApi(APIView):
         data = request.data
         rejected_requests = False
         accepted_requests = False
+        if 'POST_api_prefixes_create' in request.data:
+            data = legacy_api_converter(request.data)
         
         if data[0]['prefix']=='test' and data[0]['public'] is True:
             return Response(
@@ -132,9 +134,6 @@ class PrefixesCreateApi(APIView):
                     'TEST',"SUCCESS",201,"Prefix TEST created"
                 )
             )
-
-        if 'POST_api_prefixes_create' in request.data:
-            data = legacy_api_converter(request.data)
         
         for index, object in enumerate(data):
             response_id = object.get("prefix", index).upper()

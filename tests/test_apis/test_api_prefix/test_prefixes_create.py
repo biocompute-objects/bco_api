@@ -63,8 +63,8 @@ class CreatePrefixeTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         legacy_response = self.client.post('/api/prefixes/create/', data=self.legacy_data, format='json')
         response = self.client.post('/api/prefixes/create/', data=self.data, format='json')
-        self.assertEqual(legacy_response.status_code, 200)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(legacy_response.status_code, 201)
+        self.assertEqual(response.status_code, 201)
 
     def test_create_multi_status(self):
         """Tests for 'Some prefix creations failed. 207.'
@@ -100,7 +100,7 @@ class CreatePrefixeTestCase(APITestCase):
                     "prefixes": [
                         {
                             "description": "Just a test prefix.",
-                            "prefix": "testR"
+                            "prefix": "test2"
                         },
                         
                     ]
@@ -121,7 +121,7 @@ class CreatePrefixeTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/prefixes/create/', data=data, format='json')
         # 201: The prefix * was successfully created.
-        self.assertEqual(response.data[2]['TESTR']['status_code'], 201)
+        self.assertEqual(response.data[2]['TEST2']['status_code'], 201)
 
         # 400: Bad Request. The prefix * does not follow the naming rules for a prefix.
         self.assertIn('prefix', response.data[0]['INVALID-PREFIX']['data'])

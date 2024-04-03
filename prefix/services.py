@@ -105,7 +105,12 @@ class PrefixSerializer(serializers.Serializer):
         """
 
         validated_data.pop('user_permissions')
-        public = validated_data['public']
+
+        try: 
+            public = validated_data['public']
+        except KeyError:
+            public, validated_data['public'] = True, True
+
         prefix_instance = Prefix.objects.create(**validated_data, created=timezone.now())
         
         if public is False:
