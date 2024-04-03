@@ -53,3 +53,12 @@ Prefix Perms:
 	publish -> Publish Draft
 	view -> View/download 
    ONLY if private
+   
+  If prefix is public anyone can view, but only auth users can modify.
+  
+  Things to look for when reviewing code:
+  - variable names are consistant and make sense
+  - all functions have documentation. This shoudl include:
+	- descriptions
+	- explicit parameters/inputs and outputs/returns
+	-  hoverover should display function documentation

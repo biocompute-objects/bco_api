@@ -478,7 +478,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 54,
+        "pk": 67,
         "fields": {
             "name": "Can add BCOs with prefix NOPUB",
             "content_type": 13,
@@ -487,7 +487,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 55,
+        "pk": 68,
         "fields": {
             "name": "Can change BCOs with prefix NOPUB",
             "content_type": 13,
@@ -496,7 +496,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 56,
+        "pk": 69,
         "fields": {
             "name": "Can delete BCOs with prefix NOPUB",
             "content_type": 13,
@@ -505,7 +505,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 57,
+        "pk": 70,
         "fields": {
             "name": "Can publish BCOs with prefix NOPUB",
             "content_type": 13,
@@ -514,7 +514,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 58,
+        "pk": 71,
         "fields": {
             "name": "Can add new user",
             "content_type": 11,
@@ -523,7 +523,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 59,
+        "pk": 72,
         "fields": {
             "name": "Can change new user",
             "content_type": 11,
@@ -532,7 +532,7 @@
     },
     {
         "model": "auth.permission",
-        "pk": 60,
+        "pk": 73,
         "fields": {
             "name": "Can delete new user",
             "content_type": 11,
@@ -755,110 +755,6 @@
                 57,
                 53
             ]
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 1,
-        "fields": {
-            "app_label": "admin",
-            "model": "logentry"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 2,
-        "fields": {
-            "app_label": "auth",
-            "model": "permission"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 3,
-        "fields": {
-            "app_label": "auth",
-            "model": "group"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 4,
-        "fields": {
-            "app_label": "auth",
-            "model": "user"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 5,
-        "fields": {
-            "app_label": "contenttypes",
-            "model": "contenttype"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 6,
-        "fields": {
-            "app_label": "sessions",
-            "model": "session"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 7,
-        "fields": {
-            "app_label": "authtoken",
-            "model": "token"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 8,
-        "fields": {
-            "app_label": "authtoken",
-            "model": "tokenproxy"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 9,
-        "fields": {
-            "app_label": "blacklist",
-            "model": "blacklistedtoken"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 10,
-        "fields": {
-            "app_label": "authentication",
-            "model": "authentication"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 11,
-        "fields": {
-            "app_label": "authentication",
-            "model": "newuser"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 12,
-        "fields": {
-            "app_label": "biocompute",
-            "model": "bco"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 13,
-        "fields": {
-            "app_label": "prefix",
-            "model": "prefix"
         }
     },
     {
