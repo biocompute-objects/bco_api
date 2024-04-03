@@ -31,8 +31,6 @@ class Bco(models.Model):
         String representing the django.contrib.auth.models.User that 'owns' the object
     authorized_users: ManyToManyField(User)
         String representing the User that has access to the object
-    authorized_group: ManyToManyField(Group)
-        String representing the Group that has access to the object
     prefix: str
         Prefix for the BCO
     state:str
@@ -58,7 +56,6 @@ class Bco(models.Model):
         related_name="authorized_bcos",
         blank=True
     )
-    authorized_groups = models.ManyToManyField(Group,blank=True)
     state = models.CharField(max_length=20, choices=STATE_CHOICES, default="DRAFT")
     last_update = models.DateTimeField()
     access_count = models.IntegerField(default=0)

@@ -21,14 +21,52 @@ Service functions for working with BCO Prefixes
 """
 
 class PrefixSerializer(serializers.Serializer):
+    """Serializer for Prefix instances.
+
+    For validation and serialization of Prefix data. 
+    
+    Fields:
+    - prefix (CharField): 
+        A unique identifier for the Prefix, with a length constraint between 3 to 5 characters. It is automatically converted to upper case.
+    - description (CharField): 
+        A textual description of the Prefix.
+    - user_permissions (JSONField): 
+        A JSON structure detailing specific user permissions related to the Prefix. This field is optional.
+    - public (BooleanField): A flag indicating whether the Prefix is public or private. 
+      This field is not required and defaults to `False` if not provided.
+
+    Methods:
+    - validate(self, attrs): Validates the Prefix data. 
+    - create(self, validated_data): Creates a new Prefix instance from the validated data. 
+    - update(self, instance, validated_data): Updates an existing Prefix instance based 
+      on the validated data. 
+    
+    Note: The create and update operations are performed within a database transaction to 
+    ensure data integrity.
+    """
+
     prefix = serializers.CharField(min_length=3, max_length=5)
     description = serializers.CharField()
-    authorized_groups = serializers.ListField(child=serializers.CharField(allow_blank=True), required=False)
     user_permissions = serializers.JSONField(required=False, default={})
     public = serializers.BooleanField(required=False)
     
     def validate(self, attrs):
         """Prefix Validator
+
+        Validates incoming Prefix data against business rules and integrity constraints.
+        
+        It ensures the prefix is unique (for creation), exists (for updates), and assigns
+        the Prefix's owner based on the current request's user. It also converts the prefix
+        to upper case for consistency.
+        
+        Parameters:
+        - attrs (dict): The incoming Prefix data to validate.
+        
+        Returns:
+        - dict: The validated Prefix data, potentially modified (e.g., upper-cased prefix).
+        
+        Raises:
+        - serializers.ValidationError: If the prefix violates uniqueness or existence constraints.
         """
 
         request = self.context.get('request')
@@ -52,6 +90,18 @@ class PrefixSerializer(serializers.Serializer):
     @transaction.atomic
     def create(self, validated_data):
         """Create function for Prefix
+
+        Creates a Prefix instance from the validated data.
+        
+        It handles the 'public' attribute specifically to manage permissions associated 
+        with the Prefix. The 'user_permissions' field is ignored as it does not correspond 
+        to a model field.
+        
+        Parameters:
+        - validated_data (dict): The data that has passed validation checks.
+        
+        Returns:
+        - Prefix: The newly created Prefix instance.
         """
 
         validated_data.pop('user_permissions')
@@ -67,6 +117,20 @@ class PrefixSerializer(serializers.Serializer):
     def update(self, validated_data):
         """Update function for Prefix
 
+        Updates an existing Prefix instance based on the validated data.
+        
+        It checks the ownership before applying changes, updates the Prefix's public status,
+        and manages user permissions accordingly. 
+        
+        Parameters:
+        - instance (Prefix): The Prefix instance to update.
+        - validated_data (dict): The data that has passed validation checks.
+        
+        Returns:
+        - Prefix: The updated Prefix instance.
+        
+        Raises:
+        - PermissionError: If the current user does not own the Prefix.
         """
 
         prefix_instance = Prefix.objects.get(prefix=validated_data['prefix'])
@@ -130,7 +194,6 @@ def update_user_permissions(prefix_name: str, user_permissions: dict):
             # Handle case where user doesn't exist if necessary
             pass
 
-
 def create_permissions_for_prefix(instance=Prefix):
     """Prefix Permission Creation
 
@@ -163,9 +226,12 @@ def prefix_counter_increment(prefix_instance: Prefix) -> int:
     Counter for BCO object_id asignment.
     """
     
-    Prefix.objects.update(counter=F("counter") + 1)
-    count = prefix_instance.counter
-    return count
+    prefix_instance.counter = F('counter') + 1
+    prefix_instance.save()
+
+    prefix_instance.refresh_from_db()
+
+    return prefix_instance.counter
 
 @transaction.atomic
 def delete_prefix(prefix_name: str, user: User) -> bool:

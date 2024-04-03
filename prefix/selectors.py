@@ -6,27 +6,67 @@ Functions to query the database related to Prefixes
 """
 
 from django.core.serializers import serialize
-from django.contrib.auth.models import Permission
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.db import utils 
 from prefix.models import Prefix
 
-def get_user_prefixes(user: User) -> dict:
-    """Get User Prefixes
+def user_can_draft(user: User, prefix_name:str) -> bool:
+    """User Can Draft
 
-    Returns a dictionary with the users associated Prefix permisssions.
+    Takes a prefix name and user. Returns a bool if the user can draft a BCO
+    with the prefix if it exists. If the prefix does not exist `None` 
+    is returned.
     """
-    prefix_permissions = {
-        "public_permissions":[],
-        "not_public_permissions": []
-    }
+
+    try:
+        Prefix.objects.get(prefix=prefix_name)
+    except Prefix.DoesNotExist:
+        return None
+    codename = f"add_{prefix_name}"
+    user_prefixes = get_user_prefixes(user)
+
+    return codename in user_prefixes 
+
+def user_can_view(prefix_name:str, user: User) -> bool:
+    """User Can View
+
+    Takes a prefix name and user. Returns a bool if the user can view a BCO
+    with the prefix if it exists. If the prefix does not exist `None` 
+    is returned.
+    """
+
+    try:
+        prefix_instance = Prefix.objects.get(prefix=prefix_name)
+        if prefix_instance.public is True:
+            return True
+    except Prefix.DoesNotExist:
+        return None
+    codename = f"view_{prefix_name}"
+    user_prefixes = get_user_prefixes(user)
+
+    return codename in user_prefixes 
+
+def get_user_prefixes(user: User) -> list:
+    """Get User Prefixes
+    Retrieves a User's Prefix Permissions
+
+    Compiles a list of permissions associated with prefixes that a given user
+    has access to, including permissions for public prefixes.
+
+    Note:
+    This function fetches permissions for public prefixes as well as those
+    directly assigned to the user via user permissions.
+    """
+
+    prefix_permissions = []
 
     public_prefixes = Prefix.objects.filter(public=True)
     for prefix_instance in public_prefixes:
-        prefix_permissions["public_permissions"].append(prefix_instance.pk)
+        for perm in [ "view", "add", "change", "delete", "publish"]:
+            codename = f"{perm}_{prefix_instance.prefix}"
+            prefix_permissions.append(codename)
     for permission in user.user_permissions.all():
-        print(permission)
-        prefix_permissions["not_public_permissions"].append(permission.name)
+        prefix_permissions.append(permission.codename)
 
     return  prefix_permissions
 
@@ -61,19 +101,14 @@ def get_prefix_permissions(prefix_name:str) -> dict:
         codename = f"{perm}_{prefix_name}"
         try:
             perms.append(Permission.objects.get(codename__exact=codename))
-        except utils.IntegrityError:
-            # The permissions doesn't exist.
+        except Permission.DoesNotExist:
             pass
-
 
     for perm in perms:
         users_with_perm = User.objects.filter(user_permissions=perm).prefetch_related('user_permissions')
         for user in users_with_perm:
-            # Initialize the user entry in the dictionary if not already present
             if user.username not in users_permissions:
                 users_permissions[user.username] = []
-
-            # Add the permission codename to the user's permissions list, avoiding duplicates
             if perm.codename not in users_permissions[user.username]:
                 users_permissions[user.username].append(perm.codename)
     

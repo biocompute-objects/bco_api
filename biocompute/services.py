@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 # biocopmute/services.py
 
-import re
-from urllib.parse import urlparse
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from biocompute.models import Bco
 from prefix.models import Prefix
 from prefix.services import prefix_counter_increment
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
 """BioCompute Services
@@ -20,46 +18,71 @@ Service functions for working with BCOs
 HOSTNAME = settings.PUBLIC_HOSTNAME
 
 class BcoDraftSerializer(serializers.Serializer):
+    """Serializer for drafting BioCompute Objects (BCO).
+
+    This serializer is used to validate and serialize data related to the
+    creation or update of BCO drafts. It handles the initial data validation
+    including the existence of users specified as authorized users, the
+    validity of the prefix, and the construction or validation of the object_id
+    if provided.
+
+    Attributes:
+    - object_id (URLField, optional): 
+        The unique identifier of the BCO, which should be a URL. This field is
+        not required for creation as it can be generated.
+    - contents (JSONField): 
+        The contents of the BCO in JSON format.
+    - prefix (CharField): 
+        A short alphanumeric prefix related to the BCO. Defaults to 'BCO'.
+    - authorized_users (ListField): 
+        A list of usernames authorized to access the BCO, besides the owner.
+
+    Methods:
+    - validate: Validates the incoming data for creating or updating a BCO draft.
+    - create: Creates a new BCO instance based on the validated data.
+    """
+
     object_id = serializers.URLField(required=False)
     contents = serializers.JSONField()
     prefix = serializers.CharField(max_length=5, min_length=3, default="BCO")
-    authorized_groups = serializers.ListField(child=serializers.CharField(), required=False)
     authorized_users = serializers.ListField(child=serializers.CharField(), required=False)
 
     def validate(self, attrs):
         """BCO Draft Validator
+
+        Validates the presence and correctness of 'authorized_users' and
+        'prefix'. If 'object_id' is provided, it validates the format and 
+        uniqueness of it. Adds the request's user as the owner of the BCO.
+
+        Parameters:
+        - attrs (dict): The incoming data to be validated.
+
+        Returns:
+        - dict: The validated data with additional fields such as 'owner' and
+        potentially modified 'prefix'.
+
+        Raises:
+        - serializers.ValidationError: If any validation checks fail.
         """
 
         errors = {}
         request = self.context.get('request')
         attrs["owner"] = request.user
 
-        #check for groups
-        if 'authorized_groups' in attrs:
-            for group in attrs['authorized_groups']:
-                try:
-                    Group.objects.get(name=group)
-                except Exception as err:
-                    errors['authorized_groups'] = f"Invalid group: {group}"
-        # check for users
         if 'authorized_users' in attrs:
             for user in attrs['authorized_users']:
                 try:
-                    # import pdb; pdb.set_trace()
                     User.objects.get(username=user)
                 except Exception as err:
                     errors['authorized_users'] =f"Invalid user: {user}"
 
-        # Validate Prefix
         try:
-            #set a name and instance for Prefix
             attrs['prefix'] = Prefix.objects.get(prefix=attrs['prefix'])
             attrs['prefix_name'] = attrs['prefix'].prefix
         except Prefix.DoesNotExist as err:
             errors['prefix'] = 'Invalid prefix.'
             raise serializers.ValidationError(errors)
 
-        # Validate or create object_id
         if 'object_id' in attrs:
             id_errors = validate_bco_object_id(
                 attrs['object_id'],
@@ -67,11 +90,7 @@ class BcoDraftSerializer(serializers.Serializer):
             )
             if id_errors != 0:
                 errors["object_id"] = id_errors
-        else:
-            attrs['object_id'] = create_bco_id(attrs['prefix'])
 
-        # If erros exist than raise and exception and return it, otherwise
-        # return validated data
         if errors:
             raise serializers.ValidationError(errors)
 
@@ -79,19 +98,33 @@ class BcoDraftSerializer(serializers.Serializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        # Remove the non-model field 'prefix_name' and use 'prefix' instance instead
-        validated_data.pop('prefix_name')
-        authorized_group_names = validated_data.pop('authorized_groups', [])
-        authorized_usernames = validated_data.pop('authorized_users', [])
-        bco_instance = Bco.objects.create(**validated_data, last_update=timezone.now())
+        """Creates a new BCO instance based on the validated data.
 
-        # Set ManyToMany relations
-        if authorized_group_names:
-            authorized_groups = Group.objects.filter(name__in=authorized_group_names)
-            bco_instance.authorized_groups.set(authorized_groups)
+        If 'object_id' is not provided in the validated data, it generates one.
+        It also handles the creation of the BCO instance and setting up the
+        many-to-many relationships for 'authorized_users'.
+
+        Parameters:
+        - validated_data (dict): The validated data used to create the BCO.
+
+        Returns:
+        - Bco: The newly created Bco instance.
+        """
+
+        validated_data.pop('prefix_name')
+        authorized_usernames = validated_data.pop('authorized_users', [])
+        if 'object_id' not in validated_data:
+            validated_data['object_id'] = create_bco_id(
+                validated_data['prefix']
+            )
+        bco_instance = Bco.objects.create(
+            **validated_data, last_update=timezone.now()
+        )
 
         if authorized_usernames:
-            authorized_users = User.objects.filter(username__in=authorized_usernames)
+            authorized_users = User.objects.filter(
+                username__in=authorized_usernames
+            )
             bco_instance.authorized_users.set(authorized_users)
 
         return bco_instance
@@ -100,7 +133,7 @@ class BcoDraftSerializer(serializers.Serializer):
 def validate_bco_object_id(object_id: str, prefix_name: str):
     """Validate BCO object ID
 
-    Function to validate a proposed BCO object_id. Will reject the ID if the 
+    Function to validate a proposed BCO object_id. Will reject the ID if the
     following constraints are not met:
       1. Correct hostname for this BCODB instance
       2. Prefix submitted is not in the object_id
@@ -124,15 +157,22 @@ def validate_bco_object_id(object_id: str, prefix_name: str):
         return errors
     return 0
 
-def create_bco_id(prefix: Prefix) -> str:
+def create_bco_id(prefix_instance: Prefix) -> str:
     """Create BCO object_id
 
-    Function to construct BCO object_id. Takes a Prefix model instance and 
-    returns a bco.object_id.
+    Constructs a BCO object_id using a Prefix model instance.
+    Ensures uniqueness by incrementing the prefix's counter until a unique ID
+    is found.
     """
 
-    count = prefix_counter_increment(prefix)
-    bco_identifier = format(count, "06d")
-    bco_id = f"{HOSTNAME}/{prefix}_{bco_identifier}/DRAFT"
+    unique_id_found = False
+    
+    while not unique_id_found:
+        count = prefix_counter_increment(prefix_instance)
+        bco_identifier = format(count, "06d")
+        bco_id = f"{HOSTNAME}/{prefix_instance.prefix}_{bco_identifier}/DRAFT"
+
+        if not Bco.objects.filter(object_id=bco_id).exists():
+            unique_id_found = True
     
     return bco_id

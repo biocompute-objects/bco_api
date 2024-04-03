@@ -8,5 +8,6 @@ from biocompute.apis import (
 )
 
 urlpatterns = [
-    path("objects/drafts/create/", DraftsCreateApi.as_view())
+    path("objects/drafts/create/", DraftsCreateApi.as_view()),
+    
 ]
