@@ -69,6 +69,7 @@ class DraftsCreateApi(APIView):
     request_body = BCO_DRAFT_SCHEMA
 
     @swagger_auto_schema(
+        operation_id="api_objects_drafts_create",
         request_body=request_body,
         responses={
             200: "All requests were accepted.",
@@ -183,6 +184,7 @@ class DraftRetrieveApi(APIView):
     """
 
     @swagger_auto_schema(
+        operation_id="api_get_draft",
         manual_parameters=[
             openapi.Parameter(
                 "bco_accession",
@@ -211,6 +213,83 @@ class DraftRetrieveApi(APIView):
                 status=status.HTTP_403_FORBIDDEN,
                 data={"message": f"User, {requester}, does not have draft permissions"\
                         + f" for {bco_accession}."})
-        else:
-            bco_counter_increment(bco_instance)
-            return Response(status=status.HTTP_200_OK, data=bco_instance.contents)
+        if bco_instance is None:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND,
+                data={"message": f"{bco_accession}/DRAFT, could "\
+                      + "not be found on the server."
+                }
+            )
+
+        bco_counter_increment(bco_instance)
+        return Response(status=status.HTTP_200_OK, data=bco_instance.contents)
+
+class PublishedRetrieveApi(APIView):
+    """Get Published BCO
+    
+    API view for retrieving a specific version of a published BioCompute
+    Object (BCO).
+
+    Retrieve the contents of a published BCO by specifying its accession
+    number and version. Authentication is not required to access most
+    published BCOs, reflecting the public nature of these objects. If
+    the prefix is not public than the user's ability to view this BCO
+    is verified. 
+
+    Parameters:
+    - `bco_accession`:
+        Specifies the accession number of the BCO to be retrieved.
+
+    - `bco_version`:
+        Specifies the version of the BCO to be retrieved.
+    """
+
+    @swagger_auto_schema(
+        operation_id="api_get_published",
+        manual_parameters=[
+            openapi.Parameter(
+                "bco_accession",
+                openapi.IN_PATH,
+                description="BCO accession to be viewed.",
+                type=openapi.TYPE_STRING,
+                default="BCO_000000"
+            ),
+            openapi.Parameter(
+                "bco_version",
+                openapi.IN_PATH,
+                description="BCO version to be viewed.",
+                type=openapi.TYPE_STRING,
+                default="1.0"
+            )
+        ],
+        responses={
+            200: "Success. Object contents returned",
+            401: "Authentication credentials were not provided, or"
+                " the token was invalid.",
+            403: "Forbidden. The requestor does not have appropriate permissions.",
+            404: "Not found. That BCO could not be found on the server."
+        },
+        tags=["BCO Management"],
+    )
+
+    def get(self, request, bco_accession, bco_version):
+        requester = request.user
+        print(requester)
+        bco_instance = retrieve_bco(bco_accession, requester, bco_version)
+        if bco_instance is False:
+            return Response(
+                status=status.HTTP_403_FORBIDDEN,
+                data={"message": f"User, {requester}, does not have draft permissions"\
+                        + f" for {bco_accession}."})
+
+        if bco_instance is None:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND,
+                data={"message": f"{bco_accession}/{bco_version}, could "\
+                      + "not be found on the server."
+                }
+            )
+    
+        bco_counter_increment(bco_instance)
+        return Response(status=status.HTTP_200_OK, data=bco_instance.contents)
+

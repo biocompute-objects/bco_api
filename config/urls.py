@@ -10,7 +10,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token
-from biocompute.apis import DraftRetrieveApi
+from biocompute.apis import DraftRetrieveApi, PublishedRetrieveApi
 
 # Load the server config file.
 server_config = configparser.ConfigParser()
@@ -58,4 +58,9 @@ urlpatterns = [
     path("api/", include("biocompute.urls")),
     path("api/", include("prefix.urls")),
     path("<str:bco_accession>/DRAFT", DraftRetrieveApi.as_view()),
+    path(
+        "<str:bco_accession>/<str:bco_version>",
+        PublishedRetrieveApi.as_view()
+    ),
+    # path("<str:object_id_root>", ObjectIdRootObjectId.as_view()),
 ]
