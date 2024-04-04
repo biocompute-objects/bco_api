@@ -14,10 +14,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from tests.fixtures.example_bco import BCO_000001
 from config.services import legacy_api_converter, response_constructor
-from biocompute.services import BcoDraftSerializer
+from biocompute.services import BcoDraftSerializer, bco_counter_increment
 from biocompute.selectors import retrieve_bco
 from prefix.selectors import user_can_draft
-
 
 hostname = settings.PUBLIC_HOSTNAME
 
@@ -171,13 +170,16 @@ class DraftRetrieveApi(APIView):
 
     API View to Retrieve a Draft Object
 
-    This view allows authenticated users to retrieve the contents of a specific draft object
-    identified by its BioCompute Object (BCO) accession number. The operation ensures that
-    only users with appropriate permissions can access the draft contents.
+    This view allows authenticated users to retrieve the contents of a specific
+    draft object identified by its BioCompute Object (BCO) accession number.
+    The operation ensures that only users with appropriate permissions can
+    access the draft contents. Upo successfull retrieval of object the
+    `access_count` is for this object is incremented.
 
     Parameters:
-    - bco_accession (str): A string parameter passed in the URL path that uniquely identifies
-      the draft object to be retrieved.
+    - bco_accession (str):
+        A string parameter passed in the URL path that uniquely identifies the
+        draft object to be retrieved.
     """
 
     @swagger_auto_schema(
@@ -210,4 +212,5 @@ class DraftRetrieveApi(APIView):
                 data={"message": f"User, {requester}, does not have draft permissions"\
                         + f" for {bco_accession}."})
         else:
+            bco_counter_increment(bco_instance)
             return Response(status=status.HTTP_200_OK, data=bco_instance.contents)
