@@ -23,12 +23,12 @@ class BcoDraftCreateTestCase(TestCase):
         self.legacy_data = {
             "POST_api_objects_draft_create": [
                 {
-                    "prefix": "BCO",
+                    "prefix": "NOPUB",
                     "owner_group": "tester",
-                    "object_id": "http://127.0.0.1:8000/BCO_000002/DRAFT",
+                    "object_id": "http://127.0.0.1:8000/NOPUB_000002/DRAFT",
                     "schema": "IEEE",
                     "contents": {
-                        "object_id": "https://test.portal.biochemistry.gwu.edu/BCO_000001/DRAFT",
+                        "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000002/DRAFT",
                         "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                         "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
                     }
