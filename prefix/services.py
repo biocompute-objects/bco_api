@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 # prefix/services.py
 
-import re
-from urllib.parse import urlparse
 from django.conf import settings
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db import utils 
+from django.db import transaction, utils 
+from django.db.models import F
 from django.utils import timezone
 from prefix.models import Prefix
-from django.db import transaction
-from django.contrib.auth.models import User
-from django.db.models import F
+from prefix.selectors import get_prefix_object
 from rest_framework import serializers
-from prefix.selectors import get_prefix_permissions, get_prefix_object
 
 """Prefix Services
 

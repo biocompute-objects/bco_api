@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # biocopmute/services.py
 
-from django.conf import settings
-from django.db import transaction
-from django.utils import timezone
 from biocompute.models import Bco
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.db import transaction
+from django.db.models import F
+from django.utils import timezone
 from prefix.models import Prefix
 from prefix.services import prefix_counter_increment
-from django.contrib.auth.models import User
 from rest_framework import serializers
 
 """BioCompute Services
@@ -176,3 +177,17 @@ def create_bco_id(prefix_instance: Prefix) -> str:
             unique_id_found = True
     
     return bco_id
+
+def bco_counter_increment(bco_instance: Bco) -> int:
+    """BCO Counter Increment 
+    
+    Simple incrementing function.
+    Counter for BCO object_id asignment.
+    """
+    
+    bco_instance.access_count = F('access_count') + 1
+    bco_instance.save()
+
+    bco_instance.refresh_from_db()
+
+    return bco_instance.access_count
