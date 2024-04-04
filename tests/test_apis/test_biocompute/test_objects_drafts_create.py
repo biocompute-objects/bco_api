@@ -75,8 +75,8 @@ class BcoDraftCreateTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_partial_failure(self):
-        # Test case for partial failure (response code 300)
-        ##Returns 207(Multi status) instead of 300(Partial faliure)
+        '''Test case for partial failure (response code 300)
+        Returns 207(Multi status) instead of 300(Partial faliure)'''
         data = {
             'POST_api_objects_draft_create': [
                 {
@@ -98,16 +98,16 @@ class BcoDraftCreateTestCase(TestCase):
         self.assertEqual(response.status_code, 207)
 
     def test_bad_request(self):
-        # Test case for bad request (response code 400)
-        #Gives 403 forbidden request instead of 400
+        '''Test case for bad request (response code 400)
+        Gives 403 forbidden request instead of 400'''
         data =  [
             {
                 "object_id": "http://127.0.0.1:8000/TEST_000001",
-                "prefix": "TEST",
+                # "prefix": "TEST",
                 "contents": {
                     "object_id": "https://biocomputeobject.org/TEST_000001",
                     "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                    "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
+                    "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea",
                 }
             }
         ]
@@ -116,8 +116,8 @@ class BcoDraftCreateTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_invalid_token(self):
-        # Test case for invalid token (response code 403)
-        # Setting authentication token to an invalid value
+        '''Test case for invalid token (response code 403)
+        Setting authentication token to an invalid value'''
         
         data = {
             'POST_api_objects_draft_create': [
