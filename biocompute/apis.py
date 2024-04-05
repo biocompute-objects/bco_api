@@ -14,8 +14,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from tests.fixtures.example_bco import BCO_000001
 from config.services import legacy_api_converter, response_constructor
-from biocompute.services import BcoDraftSerializer, bco_counter_increment
-from biocompute.selectors import retrieve_bco
+from biocompute.services import BcoDraftSerializer, bco_counter_increment, ModifyBcoDraftSerializer
+from biocompute.selectors import retrieve_bco, user_can_modify_bco
 from prefix.selectors import user_can_draft
 
 hostname = settings.PUBLIC_HOSTNAME
@@ -66,11 +66,10 @@ class DraftsCreateApi(APIView):
     """
 
     permission_classes = [IsAuthenticated,]
-    request_body = BCO_DRAFT_SCHEMA
 
     @swagger_auto_schema(
         operation_id="api_objects_drafts_create",
-        request_body=request_body,
+        request_body=BCO_DRAFT_SCHEMA,
         responses={
             200: "All requests were accepted.",
             207: "Some requests failed and some succeeded. Each object submitted"
@@ -136,6 +135,138 @@ class DraftsCreateApi(APIView):
                         status = "SERVER ERROR",
                         code= 500,
                         message= f"BCO {bco['object_id'].value} failed",
+                    ))
+
+            else:
+                response_data.append(response_constructor(
+                    identifier=response_id,
+                    status = "REJECTED",
+                    code= 400,
+                    message= f"BCO {response_id} rejected",
+                    data=bco.errors
+                ))
+                rejected_requests = True
+
+        if accepted_requests is False and rejected_requests == True:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=response_data
+            )
+        
+        if accepted_requests is True and rejected_requests is True:
+            return Response(
+                status=status.HTTP_207_MULTI_STATUS,
+                data=response_data
+            )
+
+        if accepted_requests is True and rejected_requests is False:
+            return Response(
+                status=status.HTTP_200_OK,
+                data=response_data
+            )
+
+class DraftsModifyApi(APIView):
+    """Modify BCO Draft [Bulk Enabled]
+
+    API endpoint for modifying BioCompute Object (BCO) drafts, with support
+    for bulk operations.
+
+    This endpoint allows authenticated users to modify existing BCO drafts
+    individually or in bulk by submitting a list of BCO drafts. The operation
+    can be performed for one or more drafts in a single request. Each draft is
+    validated and processed independently, allowing for mixed response
+    statuses (HTTP_207_MULTI_STATUS) in the case of bulk submissions.
+    """
+
+    permission_classes = [IsAuthenticated,]
+
+    @swagger_auto_schema(
+        operation_id="api_objects_drafts_modify",
+        request_body=openapi.Schema(
+        type=openapi.TYPE_ARRAY,
+        title="Modify BCO Draft Schema",
+        items=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=[],
+            properties={
+                "authorized_users": openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    description="Users which can access the BCO draft.",
+                    items=openapi.Schema(type=openapi.TYPE_STRING, example="tester")
+                ),
+                "contents": openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    description="Contents of the BCO.",
+                    example=BCO_000001
+                ),
+            },
+        ),
+        description="BCO Drafts to create.",
+    ),
+        responses={
+            200: "All requests were accepted.",
+            207: "Some requests failed and some succeeded. Each object submitted"
+                " will have it's own response object with it's own status"
+                " code and message.\n",
+            400: "All requests were rejected.",
+            403: "Invalid token.",
+        },
+        tags=["BCO Management"],
+    )
+
+    def post(self, request) -> Response:
+        response_data = []
+        requester = request.user
+        data = request.data
+        rejected_requests = False
+        accepted_requests = False
+        if 'POST_api_objects_drafts_modify' in request.data:
+            data = legacy_api_converter(request.data)
+        
+        for index, object in enumerate(data):
+            response_id = object.get("object_id", index)
+            modify_permitted = user_can_modify_bco(response_id, requester)
+            
+            if modify_permitted is None:
+                response_data.append(response_constructor(
+                    identifier=response_id,
+                    status = "NOT FOUND",
+                    code= 404,
+                    message= f"Invalid BCO: {response_id}.",
+                ))
+                rejected_requests = True
+                continue
+
+            if modify_permitted is False:
+                response_data.append(response_constructor(
+                    identifier=response_id,
+                    status = "FORBIDDEN",
+                    code= 400,
+                    message= f"User, {requester}, does not have draft permissions"\
+                        + f" for BCO {response_id}.",
+                ))
+                rejected_requests = True
+                continue
+            
+            bco = ModifyBcoDraftSerializer(data=object)
+        
+            if bco.is_valid():
+                try:
+                    bco.update(bco.validated_data)
+                    response_data.append(response_constructor(
+                        identifier=response_id,
+                        status = "SUCCESS",
+                        code= 200,
+                        message= f"BCO {response_id} updated",
+                    ))
+                    accepted_requests = True
+
+                except Exception as err:
+                    response_data.append(response_constructor(
+                        identifier=response_id,
+                        status = "SERVER ERROR",
+                        code= 500,
+                        message= f"BCO {response_id} failed",
                     ))
 
             else:

@@ -10,6 +10,23 @@ from django.contrib.auth.models import User, Permission
 from django.db import utils 
 from prefix.models import Prefix
 
+def user_can_modify(user: User, prefix_name:str) -> bool:
+    """User Can Modify
+
+    Takes a prefix name and user. Returns a bool if the user can modify a BCO
+    with the prefix if it exists. If the prefix does not exist `None` is
+    returned.
+    """
+
+    try:
+        Prefix.objects.get(prefix=prefix_name)
+    except Prefix.DoesNotExist:
+        return None
+    codename = f"change_{prefix_name}"
+    user_prefixes = get_user_prefixes(user)
+
+    return codename in user_prefixes 
+
 def user_can_draft(user: User, prefix_name:str) -> bool:
     """User Can Draft
 

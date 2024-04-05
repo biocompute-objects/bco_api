@@ -4,10 +4,11 @@
 
 from django.urls import path
 from biocompute.apis import (
-    DraftsCreateApi
+    DraftsCreateApi,
+    DraftsModifyApi,
 )
 
 urlpatterns = [
     path("objects/drafts/create/", DraftsCreateApi.as_view()),
-    
+    path("objects/drafts/modify/", DraftsModifyApi.as_view()),
 ]

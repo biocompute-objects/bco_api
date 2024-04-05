@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # biocopmute/services.py
 
+import json
+from hashlib import sha256
 from biocompute.models import Bco
+from copy import deepcopy
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -17,6 +20,78 @@ Service functions for working with BCOs
 """
 
 HOSTNAME = settings.PUBLIC_HOSTNAME
+
+class ModifyBcoDraftSerializer(serializers.Serializer):
+    """Serializer for modifying draft BioCompute Objects (BCO).
+
+    This serializer is used to validate and serialize data related to the
+    update of BCO drafts.
+
+    Attributes:
+    - contents (JSONField): 
+        The contents of the BCO in JSON format.
+    - authorized_users (ListField): 
+        A list of usernames authorized to access the BCO, besides the owner.
+
+    Methods:
+    - validate: Validates the incoming data for updating a BCO draft.
+    - update: Updates a BCO instance based on the validated data.
+    """
+    contents = serializers.JSONField()
+    authorized_users = serializers.ListField(child=serializers.CharField(), required=False)
+
+    def validate(self, attrs):
+        """BCO Modify Draft Validator
+
+        Parameters:
+        - attrs (dict): 
+            The incoming data to be validated.
+
+        Returns:
+        - dict:
+            The validated data.
+
+        Raises:
+        - serializers.ValidationError: If any validation checks fail.
+        """
+
+        errors = {}
+        request = self.context.get('request')
+
+        if 'authorized_users' in attrs:
+            for user in attrs['authorized_users']:
+                try:
+                    User.objects.get(username=user)
+                except Exception as err:
+                    errors['authorized_users'] =f"Invalid user: {user}"
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return attrs
+
+    @transaction.atomic
+    def update(self, validated_data):
+        """
+        """
+
+        authorized_usernames = validated_data.pop('authorized_users', [])
+        bco_instance = Bco.objects.get(
+            object_id = validated_data['contents']['object_id']
+        )
+        bco_instance.contents = validated_data['contents']
+        bco_instance.last_update=timezone.now()
+        bco_contents = deepcopy(bco_instance.contents)
+        etag = generate_etag(bco_contents)
+        bco_instance.contents['etag'] = etag
+        bco_instance.save()
+        if authorized_usernames:
+            authorized_users = User.objects.filter(
+                username__in=authorized_usernames
+            )
+            bco_instance.authorized_users.set(authorized_users)
+
+        return bco_instance
 
 class BcoDraftSerializer(serializers.Serializer):
     """Serializer for drafting BioCompute Objects (BCO).
@@ -102,6 +177,7 @@ class BcoDraftSerializer(serializers.Serializer):
         """Creates a new BCO instance based on the validated data.
 
         If 'object_id' is not provided in the validated data, it generates one.
+        The `etag` is then generated after the BCO is created. 
         It also handles the creation of the BCO instance and setting up the
         many-to-many relationships for 'authorized_users'.
 
@@ -115,12 +191,18 @@ class BcoDraftSerializer(serializers.Serializer):
         validated_data.pop('prefix_name')
         authorized_usernames = validated_data.pop('authorized_users', [])
         if 'object_id' not in validated_data:
-            validated_data['object_id'] = create_bco_id(
-                validated_data['prefix']
-            )
+            object_id = create_bco_id(validated_data['prefix'])
+            validated_data['object_id'] = object_id
+            validated_data['contents']['object_id'] = object_id
+
+        
         bco_instance = Bco.objects.create(
             **validated_data, last_update=timezone.now()
         )
+        bco_contents = deepcopy(bco_instance.contents)
+        etag = generate_etag(bco_contents)
+        bco_instance.contents['etag'] = etag
+        bco_instance.save()
 
         if authorized_usernames:
             authorized_users = User.objects.filter(
@@ -129,7 +211,6 @@ class BcoDraftSerializer(serializers.Serializer):
             bco_instance.authorized_users.set(authorized_users)
 
         return bco_instance
-
 
 def validate_bco_object_id(object_id: str, prefix_name: str):
     """Validate BCO object ID
@@ -181,8 +262,19 @@ def create_bco_id(prefix_instance: Prefix) -> str:
 def bco_counter_increment(bco_instance: Bco) -> int:
     """BCO Counter Increment 
     
-    Simple incrementing function.
-    Counter for BCO object_id asignment.
+    Increments the access count for a BioCompute Object (BCO).
+
+    This function is designed to track the number of times a specific BCO has
+    been accessed or viewed. It increments the `access_count` field of the
+    provided BCO instance by one and saves the update to the database.
+
+    Parameters:
+    - bco_instance (Bco):
+        An instance of the BCO model whose access count is to be incremented.
+
+    Returns:
+    - int:
+        The updated access count of the BCO instance after incrementing.
     """
     
     bco_instance.access_count = F('access_count') + 1
@@ -191,3 +283,28 @@ def bco_counter_increment(bco_instance: Bco) -> int:
     bco_instance.refresh_from_db()
 
     return bco_instance.access_count
+
+def generate_etag(bco_contents: dict) -> str:
+    """Genreate ETag
+
+    Generates a SHA-256 hash etag for a BioCompute Object (BCO).
+
+    The etag serves as a string-type, read-only value that protects the BCO
+    from internal or external alterations without proper validation. It is
+    generated by hashing the contents of the BCO using the SHA-256 hash
+    function. To ensure the integrity and uniqueness of the etag, the
+    'object_id', 'spec_version', and 'etag' fields are excluded from the hash
+    generation process.
+
+    Parameters:
+    - bco_contents (dict):
+        The contents of the BCO, from which the etag will be generated.
+
+    Returns:
+    - str: 
+        A SHA-256 hash string acting as the etag for the BCO.
+    """
+
+    del bco_contents['object_id'], bco_contents['spec_version'], bco_contents['etag']
+    bco_etag = sha256(json.dumps(bco_contents).encode('utf-8')).hexdigest()
+    return bco_etag
