@@ -83,7 +83,11 @@ class BcoDraftCreateTestCase(TestCase):
                     'prefix': 'BCO',
                     'owner_group': 'bco_drafter',
                     'schema': 'IEEE',
-                    'contents': {}
+                    'contents': {
+                        "object_id": "https://biocomputeobject.org/BCO_000005",
+                        "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
+                        "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
+                    }
                 },
                 {
                     'prefix': 'Reeyaa',
