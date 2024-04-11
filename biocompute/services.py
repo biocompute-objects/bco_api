@@ -281,7 +281,10 @@ class ModifyBcoDraftSerializer(serializers.Serializer):
         )
         bco_instance.contents = validated_data['contents']
         bco_instance.last_update=timezone.now()
-        bco_contents = deepcopy(bco_instance.contents)
+        bco_contents = bco_instance.contents
+        bco_contents["provenance_domain"]["modified"] = datetime_converter(
+            timezone.now()
+        )
         etag = generate_etag(bco_contents)
         bco_instance.contents['etag'] = etag
         bco_instance.save()
@@ -563,7 +566,8 @@ def publish_draft(bco_instance: Bco, user: User, object: dict):
         timezone.now()
     )
     contents["etag"] = generate_etag(contents)
-    new_bco_instance.save()
+    thingk = bco_score(bco_instance=new_bco_instance)
+    import pdb; pdb.set_trace()
 
     if object["delete_draft"] is True:
         deleted = delete_draft(bco_instance=bco_instance, user=user)
@@ -581,4 +585,20 @@ def delete_draft(bco_instance:Bco, user:User,):
         bco_instance.save()
 
     return "deleted"
-  
+
+def bco_score(bco_instance: Bco) -> Bco:
+    """BCO Score 
+
+    Process and score BioCompute Objects (BCOs).
+
+    """
+
+    contents = bco_instance.contents
+    try:
+        usability_domain_length = sum(len(s) for s in contents['usability_domain'])
+        score = {"usability_domain_length": usability_domain_length}
+    except TypeError:
+        score = {"usability_domain_length": 0}
+    bco_instance.score = usability_domain_length
+    
+    return bco_instance

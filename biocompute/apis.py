@@ -15,7 +15,6 @@ from biocompute.selectors import (
     retrieve_bco,
     user_can_modify_bco,
     user_can_publish_bco,
-    object_id_deconstructor,
 )
 from config.services import (
     legacy_api_converter,
@@ -347,7 +346,7 @@ class DraftsModifyApi(APIView):
             data = legacy_api_converter(request.data)
         
         for index, object in enumerate(data):
-            response_id = object.get("object_id", index)
+            response_id = object["contents"].get("object_id", index)
             modify_permitted = user_can_modify_bco(response_id, requester)
             
             if modify_permitted is None:
@@ -617,11 +616,12 @@ class DraftsPublishApi(APIView):
                 else:
                     published_bco = publish_draft(bco_instance, requester, object)
                     identifier=published_bco.object_id
+                    score = published_bco.score
                     response_data.append(response_constructor(
                         identifier=identifier,
                         status = "SUCCESS",
                         code= 201,
-                        message= f"BCO {identifier} has been published.",
+                        message= f"BCO {identifier} has been published and assigned {score} as a score.",
                     ))
                     accepted_requests = True
 
