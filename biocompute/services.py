@@ -221,6 +221,78 @@ class ModifyBcoDraftSerializer(serializers.Serializer):
 
         return bco_instance
 
+class ModifyBcoDraftSerializer(serializers.Serializer):
+    """Serializer for modifying draft BioCompute Objects (BCO).
+
+    This serializer is used to validate and serialize data related to the
+    update of BCO drafts.
+
+    Attributes:
+    - contents (JSONField): 
+        The contents of the BCO in JSON format.
+    - authorized_users (ListField): 
+        A list of usernames authorized to access the BCO, besides the owner.
+
+    Methods:
+    - validate: Validates the incoming data for updating a BCO draft.
+    - update: Updates a BCO instance based on the validated data.
+    """
+    contents = serializers.JSONField()
+    authorized_users = serializers.ListField(child=serializers.CharField(), required=False)
+
+    def validate(self, attrs):
+        """BCO Modify Draft Validator
+
+        Parameters:
+        - attrs (dict): 
+            The incoming data to be validated.
+
+        Returns:
+        - dict:
+            The validated data.
+
+        Raises:
+        - serializers.ValidationError: If any validation checks fail.
+        """
+
+        errors = {}
+        request = self.context.get('request')
+
+        if 'authorized_users' in attrs:
+            for user in attrs['authorized_users']:
+                try:
+                    User.objects.get(username=user)
+                except Exception as err:
+                    errors['authorized_users'] =f"Invalid user: {user}"
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return attrs
+
+    @transaction.atomic
+    def update(self, validated_data):
+        """
+        """
+
+        authorized_usernames = validated_data.pop('authorized_users', [])
+        bco_instance = Bco.objects.get(
+            object_id = validated_data['contents']['object_id']
+        )
+        bco_instance.contents = validated_data['contents']
+        bco_instance.last_update=timezone.now()
+        bco_contents = deepcopy(bco_instance.contents)
+        etag = generate_etag(bco_contents)
+        bco_instance.contents['etag'] = etag
+        bco_instance.save()
+        if authorized_usernames:
+            authorized_users = User.objects.filter(
+                username__in=authorized_usernames
+            )
+            bco_instance.authorized_users.set(authorized_users)
+
+        return bco_instance
+
 class BcoDraftSerializer(serializers.Serializer):
     """Serializer for drafting BioCompute Objects (BCO).
 
@@ -509,3 +581,4 @@ def delete_draft(bco_instance:Bco, user:User,):
         bco_instance.save()
 
     return "deleted"
+  
