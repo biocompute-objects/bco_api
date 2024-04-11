@@ -13,6 +13,71 @@
         }
     },
     {
+        "model": "admin.logentry",
+        "pk": 2,
+        "fields": {
+            "action_time": "2024-04-11T12:43:08.498Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/DRAFT",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/DRAFT",
+            "action_flag": 2,
+            "change_message": "[{\"changed\": {\"fields\": [\"Contents\"]}}]"
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 3,
+        "fields": {
+            "action_time": "2024-04-11T13:34:58.678Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "action_flag": 3,
+            "change_message": ""
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 4,
+        "fields": {
+            "action_time": "2024-04-11T15:01:33.676Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "action_flag": 3,
+            "change_message": ""
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 5,
+        "fields": {
+            "action_time": "2024-04-11T20:49:34.241Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "action_flag": 3,
+            "change_message": ""
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 6,
+        "fields": {
+            "action_time": "2024-04-11T20:52:33.448Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "action_flag": 3,
+            "change_message": ""
+        }
+    },
+    {
         "model": "auth.permission",
         "pk": 1,
         "fields": {
@@ -751,7 +816,7 @@
         "pk": 7,
         "fields": {
             "password": "pbkdf2_sha256$260000$srfwJ6ZrNVTgwiJkjQcKe5$c5V7Bp58Ad7+SwZdUlFiHAI66ArV1fREWg/h/6flpa8=",
-            "last_login": "2024-04-03T10:58:13.425Z",
+            "last_login": "2024-04-10T22:06:48.972Z",
             "is_superuser": true,
             "username": "bco_api_user",
             "first_name": "",
@@ -768,6 +833,15 @@
                 57,
                 53
             ]
+        }
+    },
+
+    {
+        "model": "sessions.session",
+        "pk": "0gv8wnnng15dgqxaysg8vs194c96ux2x",
+        "fields": {
+            "session_data": ".eJxVjEEOwiAQRe_C2hAcKAWX7j0DGZhBqgaS0q6Md7dNutDtf-_9twi4LiWsnecwkbiIUZx-t4jpyXUH9MB6bzK1usxTlLsiD9rlrRG_rof7d1Cwl632Hny2PCqHenAUWWeljIsKjMpOG8WIvPFEDASG0HqfXAQYEHO0Z_H5AuH2ODg:1rug5g:BEIA7KC4h5LRM3Nqo-163CC0oUR-Fw_QdB3aMV0UAaY",
+            "expire_date": "2024-04-24T22:06:48.974Z"
         }
     },
     {
@@ -1061,6 +1135,7 @@
             "prefix": "BCO",
             "owner": "bco_api_user",
             "state": "PUBLISHED",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 7,
             "authorized_users": []
@@ -1293,6 +1368,7 @@
             "prefix": "BCO",
             "owner": "bco_api_user",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 23,
             "authorized_users": []
@@ -1525,6 +1601,7 @@
             "prefix": "BCO",
             "owner": "tester",
             "state": "PUBLISHED",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 0,
             "authorized_users": []
@@ -1535,114 +1612,161 @@
         "pk": "http://127.0.0.1:8000/BCO_000001/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "http://127.0.0.1:8000/BCO_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
+                "etag": "eb8ac2d04b2d3204b88e0bc6e3a66dcfac4af934c1ebe7ce629f8f584d5f3d7a",
                 "provenance_domain": {
-                    "name": "ARGOSdb QC related annotation data property list",
-                    "version": "1.21",
-                    "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
-                    "created": "2022-02-07T17:36:05.872Z",
-                    "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "name": "HCV1a ledipasvir resistance SNP detection",
+                    "version": "1.0",
+                    "created": "2017-01-24T09:40:17-0500",
+                    "modified": "2024-04-11T16:44:51.054Z",
+                    "review": [
+                        {
+                            "status": "approved",
+                            "reviewer_comment": "Approved by GW staff. Waiting for approval from FDA Reviewer",
+                            "date": "2017-11-12T12:30:48-0400",
+                            "reviewer": {
+                                "name": "Charles Hadley King",
+                                "affiliation": "George Washington University",
+                                "email": "hadley_king@gwu.edu",
+                                "contribution": [
+                                    "curatedBy"
+                                ],
+                                "orcid": "https://orcid.org/0000-0003-1409-4549"
+                            }
+                        },
+                        {
+                            "status": "approved",
+                            "reviewer_comment": "The revised BCO looks fine",
+                            "date": "2017-12-12T12:30:48-0400",
+                            "reviewer": {
+                                "name": "Eric Donaldson",
+                                "affiliation": "FDA",
+                                "email": "Eric.Donaldson@fda.hhs.gov",
+                                "contribution": [
+                                    "curatedBy"
+                                ]
+                            }
+                        }
+                    ],
                     "contributors": [
                         {
-                            "contribution": [
-                                "createdBy",
-                                "authoredBy",
-                                "contributedBy"
-                            ],
                             "name": "Charles Hadley King",
                             "affiliation": "George Washington University",
                             "email": "hadley_king@gwu.edu",
-                            "orcid": "https://orcid.org/0000-0003-1409-4549"
-                        },
-                        {
-                            "contribution": [
-                                "curatedBy",
-                                "contributedBy"
-                            ],
-                            "name": "Stephanie Singleton",
-                            "affiliation": "The George Washington University ",
-                            "email": "ssingleton@gwu.edu"
-                        },
-                        {
                             "contribution": [
                                 "createdBy",
                                 "curatedBy"
                             ],
-                            "name": "Jonathon Keeney",
-                            "affiliation": "The George Washington University ",
-                            "email": "keeneyjg@gwu.edu"
+                            "orcid": "https://orcid.org/0000-0003-1409-4549"
                         },
                         {
-                            "name": "Raja Mazumder",
+                            "name": "Eric Donaldson",
+                            "affiliation": "FDA",
+                            "email": "Eric.Donaldson@fda.hhs.gov",
                             "contribution": [
-                                "curatedBy"
-                            ],
-                            "affiliation": "The George Washington University ",
-                            "email": "mazumder@gwu.edu",
-                            "orcid": "https://orcid.org/0000-0001-8823-9945"
+                                "authoredBy"
+                            ]
                         }
                     ],
-                    "review": []
+                    "license": "https://spdx.org/licenses/CC-BY-4.0.html"
                 },
                 "usability_domain": [
-                    "List of controlled vocabulary terms for ARGOSdb annotation and metadata table data properties.",
-                    "This sheet was created to aid in the integration of ARGOS data from many disparate sources. Each of the column headers in each of the respective data sheets displayed on www.data.argosdb.org was recommended by project members and collaborators from the FDA. The resulting list was manually curated to combine similar terms, and provide a consistent representation across all datasets in ARGOSdb.",
-                    "The final result here is a list of properties and descriptive information about the property. The following are the column headers and their meaning: Property - consensus name for data property described in row. Data Object Type - The dataset this property is used in. Optional/Required - indicates if the property is REQUIRED to hava a valid data row. $id - For JSON schema conversion. Title - Human readable name for property. Default is the same as property. Type - property type as defined by JSON types. default - a default value for property. examples - and example for the property. pattern - the regular expression evaluation for this property. description - A definition and additional information about the property.",
-                    "The primary use case for this property definition list is to ensure all data submitted to data.argosdb.org is following a consistent representation, and adhears to a controlled vocabulary of data properties."
+                    "Identify baseline single nucleotide polymorphisms (SNPs)[SO:0000694], (insertions)[SO:0000667], and (deletions)[SO:0000045] that correlate with reduced (ledipasvir)[pubchem.compound:67505836] antiviral drug efficacy in (Hepatitis C virus subtype 1)[taxonomy:31646]",
+                    "Identify treatment emergent amino acid (substitutions)[SO:1000002] that correlate with antiviral drug treatment failure",
+                    "Determine whether the treatment emergent amino acid (substitutions)[SO:1000002] identified correlate with treatment failure involving other drugs against the same virus",
+                    "GitHub CWL example: https://github.com/mr-c/hive-cwl-examples/blob/master/workflow/hive-viral-mutation-detection.cwl#L20"
                 ],
                 "description_domain": {
                     "keywords": [
-                        "curation",
-                        "definitions",
-                        "ontology",
-                        "controlled vocabulary"
+                        "HCV1a",
+                        "Ledipasvir",
+                        "antiviral resistance",
+                        "SNP",
+                        "amino acid substitutions"
                     ],
-                    "platform": [],
+                    "platform": [
+                        "HIVE"
+                    ],
                     "pipeline_steps": [
                         {
                             "step_number": 1,
-                            "name": "Header download",
-                            "description": "Create a text file with the headers from each data sheet published for v0.3. Using the command `head -1 > ~/headers.txt`",
-                            "prerequisite": [],
+                            "name": "HIVE-hexagon",
+                            "description": "Alignment of reads to a set of references",
+                            "version": "1.3",
+                            "prerequisite": [
+                                {
+                                    "name": "Hepatitis C virus genotype 1",
+                                    "uri": {
+                                        "uri": "http://www.ncbi.nlm.nih.gov/nuccore/22129792",
+                                        "access_time": "2017-01-24T09:40:17-0500"
+                                    }
+                                },
+                                {
+                                    "name": "Hepatitis C virus type 1b complete genome",
+                                    "uri": {
+                                        "uri": "http://www.ncbi.nlm.nih.gov/nuccore/5420376",
+                                        "access_time": "2017-01-24T09:40:17-0500"
+                                    }
+                                },
+                                {
+                                    "name": "Hepatitis C virus (isolate JFH-1) genomic RNA",
+                                    "uri": {
+                                        "uri": "http://www.ncbi.nlm.nih.gov/nuccore/13122261",
+                                        "access_time": "2017-01-24T09:40:17-0500"
+                                    }
+                                },
+                                {
+                                    "name": "Hepatitis C virus clone J8CF, complete genome",
+                                    "uri": {
+                                        "uri": "http://www.ncbi.nlm.nih.gov/nuccore/386646758",
+                                        "access_time": "2017-01-24T09:40:17-0500"
+                                    }
+                                },
+                                {
+                                    "name": "Hepatitis C virus S52 polyprotein gene",
+                                    "uri": {
+                                        "uri": "http://www.ncbi.nlm.nih.gov/nuccore/295311559",
+                                        "access_time": "2017-01-24T09:40:17-0500"
+                                    }
+                                }
+                            ],
                             "input_list": [
                                 {
-                                    "uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/SRA_ngsQC.tsv",
-                                    "filename": "SRA_ngsQC.tsv"
+                                    "uri": "http://example.com/dna.cgi?cmd=objFile&ids=514683",
+                                    "access_time": "2017-01-24T09:40:17-0500"
                                 },
                                 {
-                                    "uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/PRJNA231221_AssemblyUpdated.tsv",
-                                    "filename": "PRJNA231221_AssemblyUpdated.tsv"
-                                },
-                                {
-                                    "uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/sars-cov-2_lineage_mutations.tsv",
-                                    "filename": "sars-cov-2_lineage_mutations.tsv"
+                                    "uri": "http://example.com/dna.cgi?cmd=objFile&ids=514682",
+                                    "access_time": "2017-01-24T09:40:17-0500"
                                 }
                             ],
                             "output_list": [
                                 {
-                                    "uri": "https://argosdb-vm-dev/software/argosdb/home/headers.txt",
-                                    "filename": "headers.txt"
+                                    "uri": "http://example.com/data/514769/allCount-aligned.csv",
+                                    "access_time": "2017-01-24T09:40:17-0500"
                                 }
                             ]
                         },
                         {
                             "step_number": 2,
-                            "name": "Manual Curation",
-                            "description": "Manual curation of headers.txt into a curated list of terms with definitions.",
-                            "prerequisite": [],
+                            "name": "HIVE-heptagon",
+                            "description": "variant calling",
+                            "version": "1.3",
                             "input_list": [
                                 {
-                                    "uri": "https://argosdb-vm-dev/software/argosdb/home/headers.txt"
+                                    "uri": "http://example.com/data/514769/dnaAccessionBased.csv",
+                                    "access_time": "2017-01-24T09:40:17-0500"
                                 }
                             ],
                             "output_list": [
                                 {
-                                    "uri": "https://data.argosdb.org/ ln2data/02_15_2022/annotation_property_list.tsv",
-                                    "access_time": "2022-02-03T13:42:44-0500",
-                                    "filename": "annotation_property_list.tsv"
+                                    "uri": "http://example.com/data/514801/SNPProfile.csv",
+                                    "access_time": "2017-01-24T09:40:17-0500"
+                                },
+                                {
+                                    "uri": "http://example.com/data/14769/allCount-aligned.csv",
+                                    "access_time": "2017-01-24T09:40:17-0500"
                                 }
                             ]
                         }
@@ -1652,104 +1776,190 @@
                     "script": [
                         {
                             "uri": {
-                                "uri": "https://docs.google.com/spreadsheets/d/1EbHiGSmv6ZTGk6erQCl1oH8ye7EFuQPwKfWS5_7Cn60/edit#gid=0",
-                                "filename": "FINAL_v0.3_argos_dict"
+                                "uri": "https://example.com/workflows/antiviral_resistance_detection_hive.py"
                             }
                         }
                     ],
-                    "script_driver": "Google Drive/Sheets",
+                    "script_driver": "shell",
                     "software_prerequisites": [
                         {
-                            "name": "Microsof Excel",
-                            "version": "16.57",
+                            "name": "HIVE-hexagon",
+                            "version": "babajanian.1",
                             "uri": {
-                                "uri": "https://www.microsoft.com/en-us/microsoft-365/excel"
+                                "uri": "http://example.com/dna.cgi?cmd=dna-hexagon&cmdMode=-",
+                                "access_time": "2017-01-24T09:40:17-0500",
+                                "sha1_checksum": "d60f506cddac09e9e816531e7905ca1ca6641e3c"
+                            }
+                        },
+                        {
+                            "name": "HIVE-heptagon",
+                            "version": "albinoni.2",
+                            "uri": {
+                                "uri": "http://example.com/dna.cgi?cmd=dna-heptagon&cmdMode=-",
+                                "access_time": "2017-01-24T09:40:17-0500"
                             }
                         }
                     ],
                     "external_data_endpoints": [
                         {
-                            "name": "data.ARGOSdb.org",
-                            "url": "data.ARGOSdb.org"
+                            "name": "HIVE",
+                            "url": "http://example.com/dna.cgi?cmd=login"
                         },
                         {
-                            "name": "Google Drive",
-                            "url": "https://drive.google.com/drive/u/3/folders/1uUa4UYG3dd6yTOdxiyoav6qktit4-J-9"
+                            "name": "access to e-utils",
+                            "url": "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
                         }
                     ],
-                    "environment_variables": {}
+                    "environment_variables": {
+                        "HOSTTYPE": "x86_64-linux",
+                        "EDITOR": "vim"
+                    }
                 },
                 "io_domain": {
                     "input_subdomain": [
                         {
                             "uri": {
-                                "uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/SRA_ngsQC.tsv",
-                                "filename": "SRA_ngsQC.tsv"
+                                "filename": "Hepatitis C virus genotype 1",
+                                "uri": "http://www.ncbi.nlm.nih.gov/nuccore/22129792",
+                                "access_time": "2017-01-24T09:40:17-0500"
                             }
                         },
                         {
                             "uri": {
-                                "uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/PRJNA231221_AssemblyUpdated.tsv",
-                                "filename": "PRJNA231221_AssemblyUpdated.tsv"
+                                "filename": "Hepatitis C virus type 1b complete genome",
+                                "uri": "http://www.ncbi.nlm.nih.gov/nuccore/5420376",
+                                "access_time": "2017-01-24T09:40:17-0500"
                             }
                         },
                         {
                             "uri": {
-                                "uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/sars-cov-2_lineage_mutations.tsv",
-                                "filename": "sars-cov-2_lineage_mutations.tsv"
+                                "filename": "Hepatitis C virus (isolate JFH-1) genomic RNA",
+                                "uri": "http://www.ncbi.nlm.nih.gov/nuccore/13122261",
+                                "access_time": "2017-01-24T09:40:17-0500"
+                            }
+                        },
+                        {
+                            "uri": {
+                                "uri": "http://www.ncbi.nlm.nih.gov/nuccore/386646758",
+                                "access_time": "2017-01-24T09:40:17-0500"
+                            }
+                        },
+                        {
+                            "uri": {
+                                "filename": "Hepatitis C virus S52 polyprotein gene",
+                                "uri": "http://www.ncbi.nlm.nih.gov/nuccore/295311559",
+                                "access_time": "2017-01-24T09:40:17-0500"
+                            }
+                        },
+                        {
+                            "uri": {
+                                "filename": "HCV1a_drug_resistant_sample0001-01",
+                                "uri": "http://example.com/nuc-read/514682",
+                                "access_time": "2017-01-24T09:40:17-0500"
+                            }
+                        },
+                        {
+                            "uri": {
+                                "filename": "HCV1a_drug_resistant_sample0001-02",
+                                "uri": "http://example.com/nuc-read/514683",
+                                "access_time": "2017-01-24T09:40:17-0500"
                             }
                         }
                     ],
                     "output_subdomain": [
                         {
-                            "mediatype": "text/tsv",
+                            "mediatype": "text/csv",
                             "uri": {
-                                "uri": "https://data.argosdb.org/ ln2data/02_15_2022/annotation_property_list.tsv",
-                                "access_time": "2022-02-03T13:42:44-0500",
-                                "filename": "annotation_property_list.tsv"
+                                "uri": "http://example.com/data/514769/dnaAccessionBased.csv",
+                                "access_time": "2017-01-24T09:40:17-0500"
+                            }
+                        },
+                        {
+                            "mediatype": "text/csv",
+                            "uri": {
+                                "uri": "http://example.com/data/514801/SNPProfile*.csv",
+                                "access_time": "2017-01-24T09:40:17-0500"
                             }
                         }
                     ]
                 },
-                "parametric_domain": [],
+                "parametric_domain": [
+                    {
+                        "param": "seed",
+                        "value": "14",
+                        "step": "1"
+                    },
+                    {
+                        "param": "minimum_match_len",
+                        "value": "66",
+                        "step": "1"
+                    },
+                    {
+                        "param": "divergence_threshold_percent",
+                        "value": "0.30",
+                        "step": "1"
+                    },
+                    {
+                        "param": "minimum_coverage",
+                        "value": "15",
+                        "step": "2"
+                    },
+                    {
+                        "param": "freq_cutoff",
+                        "value": "0.10",
+                        "step": "2"
+                    }
+                ],
                 "error_domain": {
-                    "empirical_error": {},
-                    "algorithmic_error": {}
+                    "empirical_error": {
+                        "false_negative_alignment_hits": "<0.0010",
+                        "false_discovery": "<0.05"
+                    },
+                    "algorithmic_error": {
+                        "false_positive_mutation_calls_discovery": "<0.00005",
+                        "false_discovery": "0.005"
+                    }
                 },
                 "extension_domain": [
                     {
-                        "extension_schema": "http://www.w3id.org/biocompute/extension_domain/1.2.0/dataset/dataset_extension.json",
-                        "dataset_extension": {
-                            "additional_license": {
-                                "data_license": "https://creativecommons.org/licenses/by/4.0/",
-                                "script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
-                            },
-                            "dataset_categories": [
-                                {
-                                    "category_value": "Other",
-                                    "category_name": "species"
-                                },
-                                {
-                                    "category_value": "Other",
-                                    "category_name": "molecule"
-                                },
-                                {
-                                    "category_value": "non-core",
-                                    "category_name": "priority"
-                                },
-                                {
-                                    "category_value": "Dictionary",
-                                    "category_name": "species"
-                                },
-                                {
-                                    "category_value": "tsv",
-                                    "category_name": "file_type"
-                                },
-                                {
-                                    "category_value": "reviewed",
-                                    "category_name": "status"
-                                }
-                            ]
+                        "extension_schema": "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.1.0/fhir/fhir_extension.json",
+                        "fhir_extension": [
+                            {
+                                "fhir_endpoint": "http://fhirtest.uhn.ca/baseDstu3",
+                                "fhir_version": "3",
+                                "fhir_resources": [
+                                    {
+                                        "fhir_resource": "Sequence",
+                                        "fhir_id": "21376"
+                                    },
+                                    {
+                                        "fhir_resource": "DiagnosticReport",
+                                        "fhir_id": "6288583"
+                                    },
+                                    {
+                                        "fhir_resource": "ProcedureRequest",
+                                        "fhir_id": "25544"
+                                    },
+                                    {
+                                        "fhir_resource": "Observation",
+                                        "fhir_id": "92440"
+                                    },
+                                    {
+                                        "fhir_resource": "FamilyMemberHistory",
+                                        "fhir_id": "4588936"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "extension_schema": "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.1.0/scm/scm_extension.json",
+                        "scm_extension": {
+                            "scm_repository": "https://github.com/example/repo1",
+                            "scm_type": "git",
+                            "scm_commit": "c9ffea0b60fa3bcf8e138af7c99ca141a6b8fb21",
+                            "scm_path": "workflow/hive-viral-mutation-detection.cwl",
+                            "scm_preview": "https://github.com/example/repo1/blob/c9ffea0b60fa3bcf8e138af7c99ca141a6b8fb21/workflow/hive-viral-mutation-detection.cwl"
                         }
                     }
                 ]
@@ -1757,9 +1967,12 @@
             "prefix": "BCO",
             "owner": "tester",
             "state": "DRAFT",
-            "last_update": "2024-04-04T04:34:54.867Z",
+            "score": 0,
+            "last_update": "2024-04-11T16:44:51.054Z",
             "access_count": 0,
-            "authorized_users": []
+            "authorized_users": [
+                4
+            ]
         }
     },
     {
@@ -1989,6 +2202,7 @@
             "prefix": "BCO",
             "owner": "hivelab",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 0,
             "authorized_users": []
@@ -2221,6 +2435,7 @@
             "prefix": "BCO",
             "owner": "jdoe",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 0,
             "authorized_users": []
@@ -2269,6 +2484,7 @@
             "prefix": "BCO",
             "owner": "hivelab",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T13:00:38.650Z",
             "access_count": 0,
             "authorized_users": []
@@ -2501,6 +2717,7 @@
             "prefix": "NOPUB",
             "owner": "tester",
             "state": "PUBLISHED",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 2,
             "authorized_users": []
@@ -2733,6 +2950,7 @@
             "prefix": "NOPUB",
             "owner": "tester",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 3,
             "authorized_users": [
@@ -2754,7 +2972,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -2966,8 +3184,9 @@
             },
             "prefix": "TEST",
             "owner": "bco_api_user",
-            "state": "DRAFT",
-            "last_update": "2024-04-04T04:34:54.867Z",
+            "state": "DELETE",
+            "score": 0,
+            "last_update": "2024-04-04T04:34:54Z",
             "access_count": 0,
             "authorized_users": [
                 4
@@ -3201,6 +3420,7 @@
             "prefix": "TEST",
             "owner": "hivelab",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 2,
             "authorized_users": []
@@ -3433,6 +3653,7 @@
             "prefix": "TEST",
             "owner": "hivelab",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 0,
             "authorized_users": []
@@ -3665,6 +3886,7 @@
             "prefix": "TEST",
             "owner": "hivelab",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 0,
             "authorized_users": []
@@ -3897,6 +4119,7 @@
             "prefix": "TEST",
             "owner": "hivelab",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 1,
             "authorized_users": []
@@ -4129,6 +4352,7 @@
             "prefix": "TEST",
             "owner": "hivelab",
             "state": "DRAFT",
+            "score": 0,
             "last_update": "2024-04-04T04:34:54.867Z",
             "access_count": 1,
             "authorized_users": []
