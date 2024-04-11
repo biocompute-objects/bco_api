@@ -55,7 +55,7 @@ class CreatePrefixeTestCase(APITestCase):
         }
 
     def test_create_prefix_success(self):
-        """The prefix was successfully created. 200
+        """The prefix was successfully created. 201 
         """
 
         token = Token.objects.get(user=User.objects.get(username='bco_api_user')).key
@@ -121,14 +121,16 @@ class CreatePrefixeTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = self.client.post('/api/prefixes/create/', data=data, format='json')
         # 201: The prefix * was successfully created.
+        
         self.assertEqual(response.data[2]['TEST2']['status_code'], 201)
 
         # 400: Bad Request. The prefix * does not follow the naming rules for a prefix.
         self.assertIn('prefix', response.data[0]['INVALID-PREFIX']['data'])
         
         # 409: Conflict. The prefix the requestor is attempting to create already exists.
+        
         self.assertIn('prefix_name', response.data[3]['TEST']['data'])
-    
+        
         self.assertEqual(response.status_code, 207)
 
     def test_create_prefix_unauthorized(self):
@@ -151,4 +153,5 @@ class CreatePrefixeTestCase(APITestCase):
         }
 
         response = self.client.post('/api/prefixes/create/', data=data, format='json')
+        import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, 403)
