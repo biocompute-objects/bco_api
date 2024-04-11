@@ -45,6 +45,7 @@
 - unwanted swagger endpoints
 - need tests for token
 - prefix api documentation and portal docs for prefix
+- Remove ETag from Portal
 
 Prefix Perms:
 	add -> create new DRAFT
@@ -56,7 +57,10 @@ Prefix Perms:
    
   If prefix is public anyone can view, but only auth users can modify.
   
-  Things to look for when reviewing code:
+##  Things to look for when reviewing code:
+### For Swaggar: 
+  - Each swaggar endpoint has a "one click" working example.
+  ### For functions:
   - variable names are consistant and make sense
   - all functions have documentation. This shoudl include:
 	- descriptions

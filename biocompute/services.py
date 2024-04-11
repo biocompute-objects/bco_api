@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 # biocopmute/services.py
 
+import copy
 import json
+import jsonref
+import jsonschema
+import re
 from hashlib import sha256
 from biocompute.models import Bco
+from biocompute.selectors import object_id_deconstructor, datetime_converter
 from copy import deepcopy
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -13,6 +18,8 @@ from django.utils import timezone
 from prefix.models import Prefix
 from prefix.services import prefix_counter_increment
 from rest_framework import serializers
+from simplejson.errors import JSONDecodeError
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
 """BioCompute Services
 
@@ -20,6 +27,199 @@ Service functions for working with BCOs
 """
 
 HOSTNAME = settings.PUBLIC_HOSTNAME
+BASE_DIR = settings.BASE_DIR
+
+class BcoValidator:
+    """BCO Validator
+
+    Handles validation of BioCompute Objects (BCOs) against JSON Schemas.
+    """
+
+    def __init__(self):
+        """Initializes the BCOValidator with common attributes, if any."""
+        self.base_path = f"{BASE_DIR}/config/IEEE/2791object.json"
+
+    @staticmethod
+    def load_schema(schema_uri):
+        """
+        Loads a JSON Schema from a given URI.
+
+        Parameters:
+        - schema_uri (str): The URI or path to the JSON schema.
+
+        Returns:
+        - dict: The loaded JSON schema.
+        """
+
+        if schema_uri == \
+          "https://w3id.org/ieee/ieee-2791-schema/2791object.json":
+            return jsonref.load_uri(
+                f"file://{BASE_DIR}/config/IEEE/2791object.json"
+            )
+        try:
+            return jsonref.load_uri(schema_uri)
+        except (JSONDecodeError, TypeError, RequestsConnectionError) as e:
+            error_msg = "Failed to load schema. "
+            if isinstance(e, JSONDecodeError):
+                return {schema_uri: [error_msg + "JSON Decode Error."]}
+            elif isinstance(e, TypeError):
+                return {schema_uri: [error_msg + "Invalid format."]}
+            elif isinstance(e, RequestsConnectionError):
+                return {schema_uri: [error_msg + "Connection Error."]}
+
+    def validate_json(self, schema, json_object):
+        """
+        Validates a JSON object against a specified schema.
+
+        Parameters:
+        - schema (dict): The JSON schema to validate against.
+        - json_object (dict): The JSON object to be validated.
+
+        Returns:
+        - list: A list of error messages, empty if valid.
+        """
+        errors = []
+        validator = jsonschema.Draft7Validator(schema)
+        for error in validator.iter_errors(json_object):
+            path = "".join(f"[{v}]" for v in error.path)
+            errors.append(f"{path}: {error.message}" if path else error.message)
+        return errors
+
+    def parse_and_validate(self, bco):
+        """
+        Parses and validates a BCO against both the base and extension schemas.
+
+        Parameters:
+        - bco (dict): The BioCompute Object to validate.
+
+        Returns:
+        - dict: A dictionary containing the validation results.
+        """
+        
+        identifier = bco.get("object_id", "Unknown")
+        results = {identifier: {'number_of_errors': 0, 'error_detail': []}}
+
+        # Validate against the base schema
+        base_schema = self.load_schema(bco['spec_version'])
+        base_errors = self.validate_json(base_schema, bco)
+        results[identifier]['error_detail'].extend(base_errors)
+        results[identifier]['number_of_errors'] += len(base_errors)
+
+        # Validate against extension schemas, if any
+        for extension in bco.get("extension_domain", []):
+            extension_schema_uri = extension.get("extension_schema")
+            extension_schema = self.load_schema(extension_schema_uri)
+            if not isinstance(extension_schema, dict):  # Validation passed
+                extension_errors = self.validate_json(extension_schema, extension)
+                results[identifier]['error_detail'].extend(extension_errors)
+                results[identifier]['number_of_errors'] += len(extension_errors)
+
+        return results
+
+class ModifyBcoDraftSerializer(serializers.Serializer):
+    """Serializer for modifying draft BioCompute Objects (BCO).
+
+    This serializer is used to validate and serialize data related to the
+    update of BCO drafts.
+
+    Attributes:
+    - contents (JSONField): 
+        The contents of the BCO in JSON format.
+    - authorized_users (ListField): 
+        A list of usernames authorized to access the BCO, besides the owner.
+
+    Methods:
+    - validate: Validates the incoming data for updating a BCO draft.
+    - update: Updates a BCO instance based on the validated data.
+    """
+    contents = serializers.JSONField()
+    authorized_users = serializers.ListField(child=serializers.CharField(), required=False)
+
+    def validate(self, attrs):
+        """BCO Modify Draft Validator
+
+        Parameters:
+        - attrs (dict): 
+            The incoming data to be validated.
+
+        Returns:
+        - dict:
+            The validated data.
+
+        Raises:
+        - serializers.ValidationError: If any validation checks fail.
+        """
+
+        errors = {}
+
+        if 'authorized_users' in attrs:
+            for user in attrs['authorized_users']:
+                try:
+                    User.objects.get(username=user)
+                except Exception as err:
+                    errors['authorized_users'] =f"Invalid user: {user}"
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return attrs
+
+    @transaction.atomic
+    def update(self, validated_data):
+        """Update BCO
+
+        Updates an existing BioCompute Object (BCO) draft instance with
+        validated data.
+
+        This method applies the validated changes to a BCO draft, including
+        updating its contents and the list of authorized users. It also
+        recalculates the `etag` of the BCO to reflect the new contents
+        and ensures that the `last_update` timestamp is current. If a list of
+        `authorized_users` is provided, this method replaces the current list
+        of authorized users with the new list, allowing for dynamic access
+        control to the BCO. Users not included in the new list will lose
+        their access unless they are the owner or have other permissions.
+
+        This method employs Django's atomic transactions to ensure database
+        integrity during the update process. 
+
+        Parameters:
+        - instance (Bco):
+            The BCO instance to be updated. This parameter is automatically
+            supplied by the Django Rest Framework and not explicitly passed
+            in the serializer's call.
+        - validated_data (dict): 
+            The data that has passed validation checks and is to be used to
+            update the BCO instance. It includes updated `contents` and
+            potentially a new list of `authorized_users`.
+
+        Returns:
+        - Bco: The updated BCO instance
+
+        Raises:
+        - Bco.DoesNotExist: 
+            If the BCO instance with the specified `object_id` does not exist.
+        - User.DoesNotExist:
+            If one or more of the usernames in the `authorized_users` list do not correspond to valid User instances.
+        """
+
+        authorized_usernames = validated_data.pop('authorized_users', [])
+        bco_instance = Bco.objects.get(
+            object_id = validated_data['contents']['object_id']
+        )
+        bco_instance.contents = validated_data['contents']
+        bco_instance.last_update=timezone.now()
+        bco_contents = deepcopy(bco_instance.contents)
+        etag = generate_etag(bco_contents)
+        bco_instance.contents['etag'] = etag
+        bco_instance.save()
+        if authorized_usernames:
+            authorized_users = User.objects.filter(
+                username__in=authorized_usernames
+            )
+            bco_instance.authorized_users.set(authorized_users)
+
+        return bco_instance
 
 class ModifyBcoDraftSerializer(serializers.Serializer):
     """Serializer for modifying draft BioCompute Objects (BCO).
@@ -305,6 +505,80 @@ def generate_etag(bco_contents: dict) -> str:
         A SHA-256 hash string acting as the etag for the BCO.
     """
 
-    del bco_contents['object_id'], bco_contents['spec_version'], bco_contents['etag']
+    bco_contents_copy = copy.deepcopy(bco_contents)
+
+    for key in ['object_id', 'spec_version', 'etag']:
+            bco_contents_copy.pop(key, None)
+    
     bco_etag = sha256(json.dumps(bco_contents).encode('utf-8')).hexdigest()
     return bco_etag
+
+def check_etag_validity(bco_contents: dict) -> bool:
+    """
+    Check the validity of an ETag for a BioCompute Object (BCO).
+
+    This function regenerates the ETag based on the current state of the BCO's contents,
+    excluding the 'object_id', 'spec_version', and 'etag' fields, and compares it to the
+    provided ETag. If both ETags match, it indicates that the BCO has not been altered in
+    a way that affects its ETag, thus confirming its validity.
+
+    Parameters:
+    - bco_contents (dict):
+        The current contents of the BCO.
+
+    Returns:
+    - bool:
+        True if the provided ETag matches the regenerated one, False otherwise.
+    """
+    
+    provided_etag = bco_contents.get("etag", "")
+    bco_contents_copy = copy.deepcopy(bco_contents)
+
+    for key in ['object_id', 'spec_version', 'etag']:
+        bco_contents_copy.pop(key, None)
+
+    regenerated_etag = sha256(json.dumps(bco_contents_copy).encode('utf-8')).hexdigest()
+    print(provided_etag, regenerated_etag)
+    return provided_etag == regenerated_etag
+
+@transaction.atomic
+def publish_draft(bco_instance: Bco, user: User, object: dict):
+    """Create Published BCO
+    """
+    
+    new_bco_instance = deepcopy(bco_instance)
+    new_bco_instance.id = None
+    new_bco_instance.state = "PUBLISHED"
+    if "published_object_id" in object:
+        new_bco_instance.object_id = object["published_object_id"]
+    else:
+        contents= new_bco_instance.contents
+        version = contents['provenance_domain']['version']
+        draft_deconstructed = object_id_deconstructor(object["object_id"])
+        draft_deconstructed[-1] = version
+        new_bco_instance.object_id = '/'.join(draft_deconstructed[1:])
+    contents["object_id"] = new_bco_instance.object_id
+    new_bco_instance.last_update = timezone.now()
+    contents["provenance_domain"]["modified"] = datetime_converter(
+        timezone.now()
+    )
+    contents["etag"] = generate_etag(contents)
+    new_bco_instance.save()
+
+    if object["delete_draft"] is True:
+        deleted = delete_draft(bco_instance=bco_instance, user=user)
+
+    return new_bco_instance
+
+def delete_draft(bco_instance:Bco, user:User,):
+    """Delete Draft
+
+    Delete draft bco
+    """
+
+    if bco_instance.owner == user:
+        bco_instance.state = "DELETE"
+        bco_instance.save()
+
+    return "deleted"
+  

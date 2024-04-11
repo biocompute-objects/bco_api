@@ -10,7 +10,23 @@ from django.contrib.auth.models import User, Permission
 from django.db import utils 
 from prefix.models import Prefix
 
-def user_can_modify(user: User, prefix_name:str) -> bool:
+def user_can_publish_prefix(user: User, prefix_name:str) -> bool:
+    """User Can Publish
+
+    Takes a prefix name and user. Returns a bool if the user can publish a BCO
+    with the prefix if it exists. If the prefix does not exist `None` is
+    returned.
+    """
+
+    try:
+        Prefix.objects.get(prefix=prefix_name)
+    except Prefix.DoesNotExist:
+        return None
+    codename = f"publish_{prefix_name}"
+    user_prefixes = get_user_prefixes(user)
+    return codename in user_prefixes 
+
+def user_can_modify_prefix(user: User, prefix_name:str) -> bool:
     """User Can Modify
 
     Takes a prefix name and user. Returns a bool if the user can modify a BCO
@@ -27,7 +43,7 @@ def user_can_modify(user: User, prefix_name:str) -> bool:
 
     return codename in user_prefixes 
 
-def user_can_draft(user: User, prefix_name:str) -> bool:
+def user_can_draft_prefix(user: User, prefix_name:str) -> bool:
     """User Can Draft
 
     Takes a prefix name and user. Returns a bool if the user can draft a BCO
@@ -44,7 +60,7 @@ def user_can_draft(user: User, prefix_name:str) -> bool:
 
     return codename in user_prefixes 
 
-def user_can_view(prefix_name:str, user: User) -> bool:
+def user_can_view_prefix(prefix_name:str, user: User) -> bool:
     """User Can View
 
     Takes a prefix name and user. Returns a bool if the user can view a BCO
