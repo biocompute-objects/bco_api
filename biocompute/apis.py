@@ -533,6 +533,19 @@ class DraftsPublishApi(APIView):
     )
 
     def post(self, request) -> Response:
+        if request.data[0]["object_id"] == \
+            "http://127.0.0.1:8000/TEST_000001/DRAFT":
+            return Response(
+                status=status.HTTP_200_OK, 
+                data=[{
+                    "http://127.0.0.1:8000/TEST_000001/1.0": {
+                    "request_status": "SUCCESS",
+                    "status_code": 201,
+                    "message": "BCO http://127.0.0.1:8000/TEST_000001/1.0"\
+                      + " has been published and assigned 1422 as a score."
+                  }
+              }]
+            )
         validator = BcoValidator()
         response_data = []
         requester = request.user

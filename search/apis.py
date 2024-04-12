@@ -1,12 +1,16 @@
 # search/apis.py
+
 import json
+from biocompute.models import Bco
+from django.db.models import Q
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from search.selectors import search_db, controled_list
+from search.selectors import controled_list, RETURN_VALUES
+from search.selectors import RETURN_VALUES as return_values
 from itertools import chain
 
 class SearchObjectsAPI(APIView):
@@ -14,73 +18,96 @@ class SearchObjectsAPI(APIView):
     Search the BCODB
 
     -------------------
+    Provides an API endpoint for querying BioCompute Objects (BCOs) based on
+    various attributes. This endpoint supports multiple query parameters for
+    flexible search capabilities.
 
-    Endpoint for use of query string based search.
-    Four parameters are defined by this API: 
-    1. contents: Search in the contents of the BCO
-    2. prefix: BCO Prefix to search
-    3. owner_user: Search by BCO owner
-    4. object_id: BCO object_id to search for
-
-    Shell
+    Example usage with curl:
     ```shell
-    curl -X GET "http://localhost:8000/api/objects/?contents=review&prefix=BCO&owner_user=bco_api_user&object_id=DRAFT" -H  "accept: application/json"
+    curl -X GET "http://localhost:8000/api/objects/?contents=review&prefix=BCO&owner=tester&object_id=BCO" -H "accept: application/json"
     ```
+
+    This API view is accessible to any user without authentication requirements.
     """
 
     permission_classes = [AllowAny]
-    auth = openapi.Parameter('test', openapi.IN_QUERY, description="test manual param", type=openapi.TYPE_BOOLEAN)
 
     @swagger_auto_schema(
+        operation_id="api_objects_search",
         manual_parameters=[
+          openapi.Parameter('object_id', 
+            openapi.IN_QUERY,
+            description="Search BCO Object Identifier, and primary key.",
+            type=openapi.TYPE_STRING
+          ),
           openapi.Parameter('contents', 
             openapi.IN_QUERY,
-            description="Search in the contents of the BCO", 
+            description="Search in the BCO JSON contents.",
             type=openapi.TYPE_STRING
           ),
           openapi.Parameter('prefix', 
             openapi.IN_QUERY,
-            description="BCO Prefix to search", 
+            description="BCO Prefix to search for.", 
             type=openapi.TYPE_STRING
           ),
-          openapi.Parameter('owner_user', 
+          openapi.Parameter('owner', 
             openapi.IN_QUERY,
-            description="Search by BCO owner", 
+            description="Search by User Name that 'owns' the object", 
             type=openapi.TYPE_STRING
           ),
-          openapi.Parameter('object_id', 
+          openapi.Parameter('authorized_users', 
             openapi.IN_QUERY,
-            description="BCO object_id to search for", 
+            description="Search by users who have access to the BCO", 
+            type=openapi.TYPE_STRING
+          ),
+          openapi.Parameter('state', 
+            openapi.IN_QUERY,
+            description="State of object. REFERENCED, PUBLISHED, DRAFT, and"\
+              + "DELETE are currently accepted values", 
+            type=openapi.TYPE_STRING,
+            default="published"
+          ),
+          openapi.Parameter('score', 
+            openapi.IN_QUERY,
+            description="Score assigned to BCO at the time of publishing."\
+              + " Draft objects will not have a score.", 
+            type=openapi.TYPE_STRING
+          ),
+          openapi.Parameter('last_update', 
+            openapi.IN_QUERY,
+            description="Date Time object for the last database change to this"\
+              + " object", 
+            type=openapi.TYPE_STRING
+          ),
+          openapi.Parameter('access_count', 
+            openapi.IN_QUERY,
+            description="Then number of times this object has been downloaded or"\
+              + " viewed.", 
             type=openapi.TYPE_STRING
           )
         ],
         responses={
             200: "Search successfull"
         },
-        tags=["BCO Search"],
+        tags=["BCO Management"],
     )
     
     def get(self, request) -> Response:
-        return_values = [
-          "contents",
-          "last_update",
-          "object_class",
-          "object_id",
-          "owner_group",
-          "owner_user",
-          "prefix",
-          "schema",
-          "state",
-        ]
-        search = dict(request.GET)
-        result = controled_list(request.user)
-        for query, value in search.items():
-            for item in value:
-              if query == 'owner_user':
-                filter = f'{query}'
-              else:
-                filter = f'{query}__icontains'                 
-              result = search_db(filter, item, result)
-        search_result = chain(result.values(*return_values))
-        return Response(status=status.HTTP_200_OK, data={search_result})
+        viewable_bcos = controled_list(request.user)
+        
+        query = Q()
 
+        for field in return_values:
+           values = request.GET.getlist(field)
+           if values:
+              field_query = Q()
+              for value in values:
+                    field_query |= Q(**{f'{field}__icontains': value})
+              query &= field_query
+
+        return_bco = viewable_bcos.filter(query)
+        bco_data = chain(return_bco.values(*return_values))
+        return Response(status=status.HTTP_200_OK, data=bco_data)
+
+class DepreciatedSearchObjectsAPI(SearchObjectsAPI):
+    swagger_schema = None
