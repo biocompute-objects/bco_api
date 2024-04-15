@@ -257,7 +257,7 @@ class RegisterUserNoVerificationAPI(APIView):
 
     authentication_classes = []
     permission_classes = []
-
+    swagger_schema = None
     def post(self, request):
         """Register a new BCODB user.
 
