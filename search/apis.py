@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from search.selectors import controled_list, RETURN_VALUES
 from search.selectors import RETURN_VALUES as return_values
 from itertools import chain
+from config.services import legacy_api_converter
 
 class SearchObjectsAPI(APIView):
     """
@@ -104,6 +105,30 @@ class SearchObjectsAPI(APIView):
               for value in values:
                     field_query |= Q(**{f'{field}__icontains': value})
               query &= field_query
+
+        return_bco = viewable_bcos.filter(query)
+        bco_data = chain(return_bco.values(*return_values))
+        return Response(status=status.HTTP_200_OK, data=bco_data)
+  
+    def post(self, request) -> Response:
+        """This POST method is deprecated. Please use GET instead."""
+        
+        viewable_bcos = controled_list(request.user)
+        data = legacy_api_converter(request.data)
+        query = Q()
+        for object in data:
+          if object["type"] == "mine":
+            field_query = Q()
+            field_query |= Q(**{'owner': request.user})
+            query &= field_query
+          if object["type"] == "prefix":
+            field_query = Q()
+            field_query |= Q(**{"prefix": object["search"]})
+            query &= field_query
+          if object["type"] == "bco_id":
+            field_query = Q()
+            field_query |= Q(**{"object_id": object["search"]})
+            query &= field_query
 
         return_bco = viewable_bcos.filter(query)
         bco_data = chain(return_bco.values(*return_values))
