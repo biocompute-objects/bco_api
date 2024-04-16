@@ -347,7 +347,8 @@ class DraftsModifyApi(APIView):
             data = legacy_api_converter(request.data)
         
         for index, object in enumerate(data):
-            response_id = object.get("object_id", index)
+            import pdb; pdb.set_trace()
+            response_id = object["contents"].get("object_id", index)
             modify_permitted = user_can_modify_bco(response_id, requester)
             
             if modify_permitted is None:

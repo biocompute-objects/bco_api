@@ -21,12 +21,9 @@ class BcoDraftModifyTestCase(TestCase):
         self.token = Token.objects.get(user=User.objects.get(username="tester"))
 
         self.legacy_data = {
-            "POST_api_objects_draft_modify": [
+            "POST_api_objects_drafts_modify": [
                 {
-                    "prefix": "NOPUB",
-                    "owner_group": "tester",
                     "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000002/DRAFT",
-                    "schema": "IEEE",
                     "contents": {
                         "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000002/DRAFT",
                         "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
