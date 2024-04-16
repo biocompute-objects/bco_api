@@ -10,6 +10,7 @@ from biocompute.models import Bco
 from datetime import datetime
 from django.conf import settings
 from django.contrib.auth. models import User
+from django.db.models import Q
 from prefix.selectors import (
     user_can_view_prefix,
     user_can_modify_prefix,
@@ -224,6 +225,27 @@ def retrieve_bco(bco_accession:str, user:User, bco_version:str=None) -> bool:
         return False
     
     return bco_instance
+
+def get_authorized_bcos(user: User):
+    """
+    Retrieve all BioCompute Objects (BCOs) that a specific user is authorized
+    to access, excluding those in 'DELETE' state.
+
+    Parameters:
+    - user (User): 
+        The Django User instance for whom to retrieve authorized BCOs.
+
+    Returns:
+    - QuerySet: 
+        A Django QuerySet containing the BCOs the user is authorized to access.
+    """
+
+    bcos = Bco.objects.filter(
+        Q(owner=user) | Q(authorized_users=user)
+    ).exclude(state='DELETE').values_list('object_id', flat=True).distinct()
+
+
+    return bcos
 
 def object_id_deconstructor(object_id=str) -> list:
     """

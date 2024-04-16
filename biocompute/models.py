@@ -30,7 +30,7 @@ class Bco(models.Model):
     owner = ForeignKey(User)
         String representing the django.contrib.auth.models.User that 'owns' the object
     authorized_users: ManyToManyField(User)
-        String representing the User that has access to the object
+        String representing the Users that have access to the object
     prefix: str
         Prefix for the BCO
     state:str

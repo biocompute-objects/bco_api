@@ -5,7 +5,8 @@ from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from authentication.models import Authentication, NewUser
 from rest_framework.authtoken.models import Token
-
+from prefix.selectors import get_user_prefixes
+from biocompute.selectors import get_authorized_bcos
 
 def get_anon()-> User:
     """Get AnonymosUser
@@ -73,27 +74,15 @@ def get_user_info(user: User) -> dict:
     other_info = {
         "permissions": {},
         "account_creation": "",
-        "account_expiration": "",
     }
-    user_perms = {"user": [], "groups": []}
-
-    for permission in user.user_permissions.all():
-        if permission.name not in user_perms["user"]:
-            user_perms["user"].append(permission.name)
-
-    for group in user.groups.all():
-        if group.name not in user_perms["groups"]:
-            user_perms["groups"].append(group.name)
-        for permission in Permission.objects.filter(group=group):
-            if permission.name not in user_perms["user"]:
-                user_perms["user"].append(permission.name)
+    user_perms = {"prefixes": get_user_prefixes(user), "BCOs": get_authorized_bcos(user)}
 
     other_info["permissions"] = user_perms
 
     other_info["account_creation"] = user.date_joined
 
     return {
-        "hostname": settings.ALLOWED_HOSTS[0],
+        "hostname": settings.HOSTNAME,
         "human_readable_hostname": settings.HUMAN_READABLE_HOSTNAME,
         "public_hostname": settings.PUBLIC_HOSTNAME,
         "token": token.key,
