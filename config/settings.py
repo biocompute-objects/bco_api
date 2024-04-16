@@ -13,7 +13,7 @@ secrets = configparser.ConfigParser()
 secrets.read(BASE_DIR + "/.secrets")
 PRODUCTION = secrets["SERVER"]["PRODUCTION"]
 DEBUG = PRODUCTION
-
+VERSION = secrets["SERVER"]["SERVER_VERSION"]
 # Set the anonymous user's key.
 ANON_KEY = secrets["DJANGO_KEYS"]["ANON_KEY"]
 
