@@ -53,7 +53,7 @@ BCO_DRAFT_SCHEMA = openapi.Schema(
                 ),
                 "authorized_users": openapi.Schema(
                     type=openapi.TYPE_ARRAY,
-                    description="Users which can access the BCO draft.",
+                    description="Users that can access the BCO draft.",
                     items=openapi.Schema(type=openapi.TYPE_STRING, example="tester")
                 ),
                 "contents": openapi.Schema(
