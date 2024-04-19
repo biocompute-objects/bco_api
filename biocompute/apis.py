@@ -102,11 +102,12 @@ class DraftsCreateApi(APIView):
         data = request.data
         rejected_requests = False
         accepted_requests = False
-        if 'POST_api_objects_draft_create' in request.data:
+        if 'POST_api_objects_drafts_create' in request.data:
             data = legacy_api_converter(request.data)
         
         for index, object in enumerate(data):
-            response_id = object.get("object_id", index)
+            response_id = object["contents"].get("object_id", index)
+            # response_id = object.get("object_id", index)
             bco_prefix = object.get("prefix", index)
             prefix_permitted = user_can_draft_prefix(owner, bco_prefix)
 
@@ -347,7 +348,7 @@ class DraftsModifyApi(APIView):
             data = legacy_api_converter(request.data)
         
         for index, object in enumerate(data):
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             response_id = object["contents"].get("object_id", index)
             modify_permitted = user_can_modify_bco(response_id, requester)
             
