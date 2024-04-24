@@ -395,7 +395,7 @@ class PrefixGetInfoApi(APIView):
             response_object = get_prefix_object(object)
             
             try: 
-                if response_object['fields']['public'] is True or \
+                if response_object['public'] is True or \
                     requester.username in response_object['user_permissions']:
                     response_data.append(response_constructor(
                         identifier=response_id,

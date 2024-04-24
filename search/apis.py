@@ -3,6 +3,7 @@
 import json
 from biocompute.models import Bco
 from django.db.models import Q
+from django.contrib.auth.models import User
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -14,9 +15,51 @@ from search.selectors import RETURN_VALUES as return_values
 from itertools import chain
 from config.services import legacy_api_converter
 
+class SearchUsersAPI(APIView):
+    """
+    Search the BCODB for Users
+
+    -------------------
+    Provides an API endpoint for querying users. This endpoint will eventually
+    support multiple query parameters for flexible search capabilities, but 
+    currently only allows submission of a single username.
+
+    Example usage with curl:
+    ```shell
+    curl -X GET "http://localhost:8000/api/users/search/?username=tester" -H "accept: application/json"
+    ```
+
+    This API view is accessible to any user with authentication.
+    """
+
+    @swagger_auto_schema(
+        operation_id="api_users_search",
+        manual_parameters=[
+          openapi.Parameter('username', 
+            openapi.IN_QUERY,
+            description="Search BCODB for a username.",
+            type=openapi.TYPE_STRING,
+            default="tester"
+          )
+        ],
+        responses={
+            200: "User Found",
+            404: "User not found"
+        },
+        tags=["Prefix Management"],
+    )
+    
+    def get(self, request) -> Response:
+        username = request.GET["username"]
+        try:
+          user = User.objects.get(username=username)
+          return Response(status=status.HTTP_200_OK, data=user.username)
+        except User.DoesNotExist:
+          return Response(status=status.HTTP_404_NOT_FOUND, data=username)
+
 class SearchObjectsAPI(APIView):
     """
-    Search the BCODB
+    Search the BCODB for BCOs
 
     -------------------
     Provides an API endpoint for querying BioCompute Objects (BCOs) based on
@@ -112,7 +155,6 @@ class SearchObjectsAPI(APIView):
   
     def post(self, request) -> Response:
         """This POST method is deprecated. Please use GET instead."""
-        
         viewable_bcos = controled_list(request.user)
         data = legacy_api_converter(request.data)
         query = Q()
@@ -123,12 +165,18 @@ class SearchObjectsAPI(APIView):
             query &= field_query
           if object["type"] == "prefix":
             field_query = Q()
-            field_query |= Q(**{"prefix": object["search"]})
-            query &= field_query
+            if object["search"] == "":
+               field_query |= Q()
+            else:
+              field_query |= Q(**{"prefix": object["search"]})
+              query &= field_query
           if object["type"] == "bco_id":
             field_query = Q()
-            field_query |= Q(**{"object_id": object["search"]})
-            query &= field_query
+            if object["search"] == "":
+               field_query |= Q()
+            else:
+              field_query |= Q(**{"object_id": object["search"]})
+              query &= field_query
 
         return_bco = viewable_bcos.filter(query)
         bco_data = chain(return_bco.values(*return_values))
