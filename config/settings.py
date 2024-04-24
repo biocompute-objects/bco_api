@@ -12,10 +12,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 secrets = configparser.ConfigParser()
 secrets.read(BASE_DIR + "/.secrets")
 PRODUCTION = secrets["SERVER"]["PRODUCTION"]
-DEBUG = PRODUCTION
+DEBUG = secrets["SERVER"]["DEBUG"]
 VERSION = secrets["SERVER"]["SERVER_VERSION"]
 # Set the anonymous user's key.
 ANON_KEY = secrets["DJANGO_KEYS"]["ANON_KEY"]
+ALLOWED_HOSTS = secrets["SERVER"]["ALLOWED_HOSTS"].split(',')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = secrets["DJANGO_KEYS"]["SECRET_KEY"]

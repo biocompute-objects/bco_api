@@ -101,6 +101,7 @@ class DraftsCreateApi(APIView):
         data = request.data
         rejected_requests = False
         accepted_requests = False
+
         if 'POST_api_objects_draft_create' in request.data:
             data = legacy_api_converter(request.data)
         

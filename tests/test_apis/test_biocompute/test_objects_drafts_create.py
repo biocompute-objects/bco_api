@@ -25,7 +25,7 @@ class BcoDraftCreateTestCase(TestCase):
                 {
                     "prefix": "NOPUB",
                     "owner_group": "tester",
-                    "object_id": "http://127.0.0.1:8000/NOPUB_000002/DRAFT",
+                    "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000002/DRAFT",
                     "schema": "IEEE",
                     "contents": {
                         "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000002/DRAFT",
@@ -38,7 +38,7 @@ class BcoDraftCreateTestCase(TestCase):
 
         self.data = [
             {
-                # "object_id": "http://127.0.0.1:8000/BCO_000001/DRAFT",
+                # "object_id": "https://test.portal.biochemistry.gwu.edu/BCO_000001/DRAFT",
                 "prefix": "BCO",
                 "authorized_users": ["hivelab"],
                 "contents": {
@@ -48,7 +48,7 @@ class BcoDraftCreateTestCase(TestCase):
                 }
             },
             {
-                # "object_id": "http://127.0.0.1:8000/TEST_000001",
+                # "object_id": "https://test.portal.biochemistry.gwu.edu/TEST_000001",
                 "prefix": "TEST",
                 "contents": {
                     "object_id": "https://biocomputeobject.org/TEST_000001",
@@ -106,7 +106,7 @@ class BcoDraftCreateTestCase(TestCase):
         Gives 403 forbidden request instead of 400'''
         data =  [
             {
-                "object_id": "http://127.0.0.1:8000/TEST_000001",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/TEST_000001",
                 # "prefix": "TEST",
                 "contents": {
                     "object_id": "https://biocomputeobject.org/TEST_000001",
