@@ -104,15 +104,14 @@ def response_constructor(
     """
 
     response_object = {
-	    identifier: {
-            "request_status": status,
-            "status_code": code
-	    }
+	    "identifier": identifier,
+        "request_status": status,
+        "status_code": code
     }
     
     if data is not None:
-        response_object[identifier]["data"] = data
+        response_object["data"] = data
     if message is not None:
-        response_object[identifier]["message"] = message
+        response_object["message"] = message
 
     return response_object

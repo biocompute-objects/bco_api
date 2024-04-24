@@ -450,7 +450,7 @@ class PrefixGetInfoApi(APIView):
                 data=response_data
             )
 
-        return Response(status=status.HTTP_201_CREATED, data=response_data)
+        return Response(status=status.HTTP_200_OK, data=response_data)
 
 class PrefixesForUserApi(APIView):
     """Get Prefixes for User
