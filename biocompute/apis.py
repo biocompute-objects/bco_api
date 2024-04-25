@@ -546,6 +546,8 @@ class DraftsPublishApi(APIView):
             data = legacy_api_converter(request.data)
         
         for index, object in enumerate(data):
+            import pdb; pdb.set_trace()
+            # response_id = object["contents"].get("object_id", index)
             response_id = object.get("object_id", index)
             bco_instance = user_can_publish_bco(object, requester)
 
