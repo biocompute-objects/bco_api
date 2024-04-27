@@ -116,7 +116,15 @@ def get_prefix_object(prefix_name:str) -> dict:
         prefix_instance = Prefix.objects.get(prefix=prefix_name)
     except Prefix.DoesNotExist:
         return None
-    prefix_object = serialize('python', [prefix_instance])[0]
+
+    prefix_object = { #serialize('python', [prefix_instance])[0]
+        "pk": prefix_instance.pk,
+        "created": prefix_instance.created,
+        "description": prefix_instance.description,
+        "owner": prefix_instance.owner.username,
+        "public": prefix_instance.public,
+        "counter": prefix_instance.counter
+    }
     if prefix_instance.public is False:
         prefix_permissions = get_prefix_permissions(prefix_name)
         prefix_object["user_permissions"] = prefix_permissions

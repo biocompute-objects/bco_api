@@ -1,83 +1,5 @@
 [
     {
-        "model": "admin.logentry",
-        "pk": 1,
-        "fields": {
-            "action_time": "2024-04-03T11:36:31.006Z",
-            "user": 7,
-            "content_type": 12,
-            "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
-            "object_repr": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
-            "action_flag": 2,
-            "change_message": "[{\"changed\": {\"fields\": [\"Authorized users\"]}}]"
-        }
-    },
-    {
-        "model": "admin.logentry",
-        "pk": 2,
-        "fields": {
-            "action_time": "2024-04-11T12:43:08.498Z",
-            "user": 7,
-            "content_type": 12,
-            "object_id": "http://127.0.0.1:8000/TEST_000001/DRAFT",
-            "object_repr": "http://127.0.0.1:8000/TEST_000001/DRAFT",
-            "action_flag": 2,
-            "change_message": "[{\"changed\": {\"fields\": [\"Contents\"]}}]"
-        }
-    },
-    {
-        "model": "admin.logentry",
-        "pk": 3,
-        "fields": {
-            "action_time": "2024-04-11T13:34:58.678Z",
-            "user": 7,
-            "content_type": 12,
-            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
-            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
-            "action_flag": 3,
-            "change_message": ""
-        }
-    },
-    {
-        "model": "admin.logentry",
-        "pk": 4,
-        "fields": {
-            "action_time": "2024-04-11T15:01:33.676Z",
-            "user": 7,
-            "content_type": 12,
-            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
-            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
-            "action_flag": 3,
-            "change_message": ""
-        }
-    },
-    {
-        "model": "admin.logentry",
-        "pk": 5,
-        "fields": {
-            "action_time": "2024-04-11T20:49:34.241Z",
-            "user": 7,
-            "content_type": 12,
-            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
-            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
-            "action_flag": 3,
-            "change_message": ""
-        }
-    },
-    {
-        "model": "admin.logentry",
-        "pk": 6,
-        "fields": {
-            "action_time": "2024-04-11T20:52:33.448Z",
-            "user": 7,
-            "content_type": 12,
-            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
-            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
-            "action_flag": 3,
-            "change_message": ""
-        }
-    },
-    {
         "model": "auth.permission",
         "pk": 1,
         "fields": {
@@ -910,10 +832,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/BCO_000000/1.0",
+        "pk": "https://test.portal.biochemistry.gwu.edu/BCO_000000/1.0",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -1143,10 +1065,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/BCO_000000/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/BCO_000000/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -1376,10 +1298,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/BCO_000001/1.0",
+        "pk": "https://test.portal.biochemistry.gwu.edu/BCO_000001/1.0",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -1609,10 +1531,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/BCO_000001/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/BCO_000001/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/BCO_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/BCO_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "eb8ac2d04b2d3204b88e0bc6e3a66dcfac4af934c1ebe7ce629f8f584d5f3d7a",
                 "provenance_domain": {
@@ -1977,10 +1899,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/BCO_000002/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/BCO_000002/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -2210,10 +2132,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/BCO_000003/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/BCO_000003/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -2443,10 +2365,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/BCO_000004/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/BCO_000004/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/BCO_000004/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/BCO_000004/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "0d692b94bc2528660470e38c78708cc06605f941",
                 "provenance_domain": {
@@ -2492,10 +2414,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/NOPUB_000001/1.0",
+        "pk": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/1.0",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -2725,10 +2647,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -2960,10 +2882,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/TEST_000001/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/TEST_000001/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -3195,10 +3117,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/TEST_000002/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/TEST_000002/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -3428,10 +3350,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/TEST_000004/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/TEST_000004/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -3661,10 +3583,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/TEST_000005/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/TEST_000005/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -3894,10 +3816,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/TEST_000006/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/TEST_000006/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {
@@ -4127,10 +4049,10 @@
     },
     {
         "model": "biocompute.bco",
-        "pk": "http://127.0.0.1:8000/TEST_000007/DRAFT",
+        "pk": "https://test.portal.biochemistry.gwu.edu/TEST_000007/DRAFT",
         "fields": {
             "contents": {
-                "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+                "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000001/DRAFT",
                 "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                 "etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
                 "provenance_domain": {

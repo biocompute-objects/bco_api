@@ -846,7 +846,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "1ef53d4042d14299918a4e1f21d2be128a2a7427",
+        "pk": "0bd55c955fcbfc269f6dc8f61ea107674cafdecb",
         "fields": {
             "user": 5,
             "created": "2024-03-14T15:21:04.318Z"
@@ -854,7 +854,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "49020e6fb85eb19a15bbdfb5cf6a1a28aaa8c1ce",
+        "pk": "bd97d8cbec1fc7234e11e80957496aefc20c6395",
         "fields": {
             "user": 7,
             "created": "2024-04-03T10:53:08.951Z"
@@ -862,7 +862,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "705531f3b2fbf80bb5a5b9d0cf4ee663676b4579",
+        "pk": "c400a6076a2dfe7e9906ab86c6ad4574d1d60e03",
         "fields": {
             "user": 4,
             "created": "2024-03-14T15:21:14.996Z"
@@ -870,7 +870,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "b8e588c4bdfb366420007827054042e8e594ec51",
+        "pk": "627626823549f787c3ec763ff687169206626149",
         "fields": {
             "user": 1,
             "created": "2024-03-14T13:53:45.793Z"
@@ -878,7 +878,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "ba1a932a6af59930293e087c1633fa60927b6690",
+        "pk": "3f5504d88a5085d0452b19350fb6f82ae7097dd0",
         "fields": {
             "user": 6,
             "created": "2024-03-14T15:21:09.348Z"
@@ -4391,6 +4391,18 @@
             "description": "Test prefix",
             "owner": "tester",
             "counter": 7,
+            "public": true
+        }
+    },
+    {
+        "model": "prefix.prefix",
+        "pk": "HIVE",
+        "fields": {
+            "certifying_key": "lazc=!pr35pau5b2x-x70y3_t++d5^s4cgk=mjo5o3^9zvrzki",
+            "created": "2024-03-14T13:53:59Z",
+            "description": "Test HIVE prefix",
+            "owner": "hivelab",
+            "counter": 0,
             "public": true
         }
     }

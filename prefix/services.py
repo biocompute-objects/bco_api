@@ -8,7 +8,7 @@ from django.db import transaction, utils
 from django.db.models import F
 from django.utils import timezone
 from prefix.models import Prefix
-from prefix.selectors import get_prefix_object
+from prefix.selectors import get_prefix_object, get_prefix_permissions
 from rest_framework import serializers
 
 """Prefix Services
@@ -139,25 +139,37 @@ class PrefixSerializer(serializers.Serializer):
         if prefix_instance.owner != validated_data['owner']:
             return "denied"
         if prefix_instance.public != validated_data['public']:
-            prefix_instance.public = validated_data['public']
             #TODO: handle adding/deleting permissions for change of public status
-        update_user_permissions(prefix_name,validated_data['user_permissions'])
-        prefix_instance.description = validated_data.get('description', prefix_instance.description)
+            # add permissions to public -> private
+            # Remove permissions to private -> public
+            prefix_instance.public = validated_data['public']
+        old_perms = get_prefix_permissions(prefix_name=prefix_name)
+        if validated_data['user_permissions'] != old_perms:
+            update_user_permissions(
+                prefix_name= prefix_name,
+                old_perms=old_perms,
+                new_perms=validated_data['user_permissions']
+            )
+        
+        prefix_instance.description = validated_data.get(
+            'description', prefix_instance.description
+        )
         prefix_instance.save()
         prefix_object = get_prefix_object(prefix_name)
         return prefix_object
 
-def update_user_permissions(prefix_name: str, user_permissions: dict):
-    """Udate Prefix Permissions
+def update_user_permissions(prefix_name:str, new_perms:dict, old_perms:dict):
+    """
+    Update user permissions based on a provided mapping of users to
+    permissions. Only modifies permissions related to the specified prefix.
 
-    Update user permissions based on a provided mapping of users to permissions.
-    Only modifies permissions related to the specified prefix.
     Step 1: Build a list of permissions associated with the prefix
-    Step 2: Iterate over the user_permissions dict to update each user
-    Step 3: Find which permissions to add (from the provided list) and which to remove
-    Step 4: Add new permissions and remove old ones not in the new list
+    Step 2: Iterate over users to update each user's permissions
+    Step 3: Determine which permissions to add and which to remove
+    Step 4: Apply permission updates
     """
 
+    # Build a list of permissions associated with the prefix
     prefix_permissions = []
     for perm_type in ["view", "add", "change", "delete", "publish"]:
         codename = f"{perm_type}_{prefix_name}"
@@ -165,35 +177,44 @@ def update_user_permissions(prefix_name: str, user_permissions: dict):
             perm = Permission.objects.get(codename=codename)
             prefix_permissions.append(perm)
         except Permission.DoesNotExist:
-            # If the permission doesn't exist, skip it
             pass
 
-    prefix_permissions_dict = {
-        perm.codename: perm for perm in prefix_permissions
-    }
+    prefix_permissions_dict = {perm.codename: perm for perm in prefix_permissions}
 
-    for username, perms in user_permissions.items():
+    # Set of all users mentioned in either new or old perms
+    all_users = set(new_perms.keys()) | set(old_perms.keys())
+
+    for username in all_users:
         try:
             user = User.objects.get(username=username)
-            current_perms = set(user.user_permissions.filter(
-                pk__in=[permission.pk for permission in prefix_permissions])
+            # Current permissions from old_perms or empty if not previously set
+            current_perms = set(
+                prefix_permissions_dict.get(perm_codename)
+                for perm_codename in old_perms.get(username, [])
+                if perm_codename in prefix_permissions_dict
             )
-            new_perms = {
-                prefix_permissions_dict[perm_codename] for perm_codename \
-                in perms if perm_codename in prefix_permissions_dict
-            }
+            
+            # New permissions from new_perms or empty if not provided
+            new_perms_set = set(
+                prefix_permissions_dict.get(perm_codename)
+                for perm_codename in new_perms.get(username, [])
+                if perm_codename in prefix_permissions_dict
+            )
 
-            perms_to_add = new_perms - current_perms
-            perms_to_remove = current_perms - new_perms
+            # Determine permissions to add and to remove
+            perms_to_add = new_perms_set - current_perms
+            perms_to_remove = current_perms - new_perms_set
 
+            # Apply permission updates
             if perms_to_add:
                 user.user_permissions.add(*perms_to_add)
             if perms_to_remove:
                 user.user_permissions.remove(*perms_to_remove)
 
         except User.DoesNotExist:
-            # Handle case where user doesn't exist if necessary
+            # Optionally handle the case where the user doesn't exist
             pass
+
 
 def create_permissions_for_prefix(instance=Prefix):
     """Prefix Permission Creation

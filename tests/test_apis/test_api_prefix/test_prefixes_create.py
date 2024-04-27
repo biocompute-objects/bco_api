@@ -55,7 +55,7 @@ class CreatePrefixeTestCase(APITestCase):
         }
 
     def test_create_prefix_success(self):
-        """The prefix was successfully created. 200
+        """The prefix was successfully created. 201 
         """
 
         token = Token.objects.get(user=User.objects.get(username='bco_api_user')).key
@@ -151,4 +151,5 @@ class CreatePrefixeTestCase(APITestCase):
         }
 
         response = self.client.post('/api/prefixes/create/', data=data, format='json')
+        import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, 403)

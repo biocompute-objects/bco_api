@@ -2,6 +2,7 @@
 # config/services.py
 
 from rest_framework import status
+import pdb; 
 
 """DB Level Services
 
@@ -50,14 +51,19 @@ def legacy_api_converter(data:dict) ->dict:
     _, new_data = data.popitem()
 
     if "draft_id" in new_data[0]:
-        return_data =[]
-        for object in new_data:
-            return_data.append({
-                "object_id": object["draft_id"],
-                "published_object_id": object["object_id"],
-                "delete_draft": object["delete_draft"]
-            })
-        return return_data
+            return_data =[]
+            for object in new_data:
+                if "object_id" in object:
+                    return_data.append({
+                        "object_id": object["draft_id"],
+                        "published_object_id": object["object_id"],
+                        "delete_draft": object["delete_draft"]
+                    })
+                else:
+                    return_data.append({
+                        "object_id": object["draft_id"],
+                        "delete_draft": object["delete_draft"]
+                    })
 
     if "prefixes" in new_data[0]:
         return_data =[]
