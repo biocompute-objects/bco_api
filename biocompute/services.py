@@ -567,7 +567,6 @@ def publish_draft(bco_instance: Bco, user: User, object: dict):
     )
     contents["etag"] = generate_etag(contents)
     thingk = bco_score(bco_instance=new_bco_instance)
-    import pdb; pdb.set_trace()
 
     if object["delete_draft"] is True:
         deleted = delete_draft(bco_instance=bco_instance, user=user)

@@ -12,7 +12,6 @@ from rest_framework import permissions
 from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token
 from biocompute.apis import DraftRetrieveApi, PublishedRetrieveApi
 
-# import pdb; pdb.set_trace()
 VERSION = settings.VERSION
 
 ShcemaView = get_schema_view(

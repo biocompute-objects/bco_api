@@ -151,5 +151,4 @@ class CreatePrefixeTestCase(APITestCase):
         }
 
         response = self.client.post('/api/prefixes/create/', data=data, format='json')
-        import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, 403)

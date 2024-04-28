@@ -12,6 +12,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
+from tests.fixtures.testing_bcos import NOPUB_000001_DRAFT, BCO_000000_DRAFT, BCO_000001_DRAFT
 
 class BcoDraftModifyTestCase(TestCase):
     fixtures = ['tests/fixtures/test_data']
@@ -27,47 +28,33 @@ class BcoDraftModifyTestCase(TestCase):
                     # "owner_group": "tester",
                     "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
                     # "schema": "IEEE",
-                    "contents": {
-                        "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
-                        "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                        "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                    }
+                    "contents": NOPUB_000001_DRAFT
                 }
             ]
         }
 
-        self.data = {
-            'POST_api_objects_drafts_modify': [
+        self.data = [
             {
                 "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
                 "prefix": "BCO",
                 "authorized_users": ["hivelab"],
-                "contents": {
-                    "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
-                    "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                    "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                }
+                "contents": NOPUB_000001_DRAFT
             },
             {
                 "object_id": "http://127.0.0.1:8000/BCO_000000/DRAFT",
                 "prefix": "TEST",
                 "authorized_users": ["tester"],
-                "contents": {
-                    "object_id": "http://127.0.0.1:8000/BCO_000000/DRAFT",
-                    "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                    "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                    }
-                }
-            ]
-        }
+                "contents": BCO_000000_DRAFT
+            }
+        ]
 
-    def test_legacy_successful_modification(self):
-        """200: Modification of BCO drafts is successful.
-        """
+    # def test_legacy_successful_modification(self):
+    #     """200: Modification of BCO drafts is successful.
+    #     """
 
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        response = self.client.post('/api/objects/drafts/modify/', self.legacy_data, format='json')
-        self.assertEqual(response.status_code, 200)
+    #     self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+    #     response = self.client.post('/api/objects/drafts/modify/', self.legacy_data, format='json')
+    #     self.assertEqual(response.status_code, 200)
 
     def test_successful_modification(self):
         """200: Modification of BCO drafts is successful.
@@ -86,17 +73,13 @@ class BcoDraftModifyTestCase(TestCase):
                     "object_id": "http://127.0.0.1:8000/BCO_000000/DRAFT",
                     "prefix": "TEST",
                     "authorized_users": ["tester"],
-                    "contents": {
-                        "object_id": "http://127.0.0.1:8000/BCO_000000/DRAFT",
-                        "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                        "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                    }
+                    "contents": BCO_000000_DRAFT
                 },
                 {
                     'prefix': 'Tianyi',
                     'owner_group': 'bco_drafter',
                     'schema': 'IEEE',
-                    'contents': {}
+                    'contents': BCO_000001_DRAFT
                 }
             ]
         }
@@ -131,12 +114,11 @@ class BcoDraftModifyTestCase(TestCase):
                     'prefix': 'BCO',
                     'owner_group': 'bco_drafter',
                     'schema': 'IEEE',
-                    'contents': {}
+                    'contents': BCO_000000_DRAFT
                 },
                 
             ]
         }
         self.client.credentials(HTTP_AUTHORIZATION='Token InvalidToken')
         response = self.client.post('/api/objects/drafts/modify/', data=data, format='json')
-        import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, 403)

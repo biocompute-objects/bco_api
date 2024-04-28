@@ -17,7 +17,6 @@ VERSION = secrets["SERVER"]["SERVER_VERSION"]
 # Set the anonymous user's key.
 ANON_KEY = secrets["DJANGO_KEYS"]["ANON_KEY"]
 ALLOWED_HOSTS = secrets["SERVER"]["ALLOWED_HOSTS"].split(',')
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = secrets["DJANGO_KEYS"]["SECRET_KEY"]
 
@@ -29,7 +28,6 @@ HOSTNAME = secrets["SERVER"]["HOSTNAME"]
 HUMAN_READABLE_HOSTNAME = secrets["SERVER"]["HUMAN_READABLE_HOSTNAME"]
 # The publicly accessible hostname.
 PUBLIC_HOSTNAME = secrets["SERVER"]["PUBLIC_HOSTNAME"]
-# import pdb; pdb.set_trace()
 
 
 CORS_ORIGIN_ALLOW_ALL = True

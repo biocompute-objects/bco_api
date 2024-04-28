@@ -30,7 +30,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from tests.fixtures.example_bco import BCO_000001
+from tests.fixtures.testing_bcos import BCO_000001_DRAFT
 
 hostname = settings.PUBLIC_HOSTNAME
 
@@ -59,7 +59,7 @@ BCO_DRAFT_SCHEMA = openapi.Schema(
                 "contents": openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     description="Contents of the BCO.",
-                    example=BCO_000001
+                    example=BCO_000001_DRAFT
                 ),
             },
         ),
@@ -203,7 +203,7 @@ class DraftsModifyApi(APIView):
                     "contents": openapi.Schema(
                         type=openapi.TYPE_OBJECT,
                         description="Contents of the BCO.",
-                        example=BCO_000001
+                        example=BCO_000001_DRAFT
                     ),
                 },
             ),
@@ -226,6 +226,7 @@ class DraftsModifyApi(APIView):
         data = request.data
         rejected_requests = False
         accepted_requests = False
+
         if 'POST_api_objects_drafts_modify' in request.data:
             data = legacy_api_converter(request.data)
         
@@ -320,7 +321,7 @@ class DraftsModifyApi(APIView):
                 "contents": openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     description="Contents of the BCO.",
-                    example=BCO_000001
+                    example=BCO_000001_DRAFT
                 ),
             },
         ),
@@ -345,7 +346,6 @@ class DraftsModifyApi(APIView):
         accepted_requests = False
         if 'POST_api_objects_drafts_modify' in request.data:
             data = legacy_api_converter(request.data)
-        
         for index, object in enumerate(data):
             response_id = object.get("object_id", index)
             modify_permitted = user_can_modify_bco(response_id, requester)
@@ -389,8 +389,9 @@ class DraftsModifyApi(APIView):
                         identifier=response_id,
                         status = "SERVER ERROR",
                         code= 500,
-                        message= f"BCO {response_id} failed",
+                        message= f"BCO {response_id} failed. {err}",
                     ))
+                    rejected_requests = True
 
             else:
                 response_data.append(response_constructor(
@@ -557,7 +558,6 @@ class DraftsPublishApi(APIView):
             data = legacy_api_converter(request.data)
         
         for index, object in enumerate(data):
-            import pdb; pdb.set_trace()
             # response_id = object["contents"].get("object_id", index)
             response_id = object.get("object_id", index)
             bco_instance = user_can_publish_bco(object, requester)

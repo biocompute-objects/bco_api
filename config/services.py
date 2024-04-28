@@ -2,7 +2,6 @@
 # config/services.py
 
 from rest_framework import status
-import pdb; 
 
 """DB Level Services
 

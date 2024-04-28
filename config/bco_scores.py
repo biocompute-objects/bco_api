@@ -42,7 +42,6 @@ def main():
                 "usability_domain_length": usability_domain_length
             }
         except TypeError:
-            import pdb; pdb.set_trace()
             bco['score'] = {
                 "usability_domain_length": 0
             }
