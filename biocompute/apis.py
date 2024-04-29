@@ -101,7 +101,7 @@ class DraftsCreateApi(APIView):
         data = request.data
         rejected_requests = False
         accepted_requests = False
-        if 'POST_api_objects_drafts_create' in request.data:
+        if 'POST_api_objects_draft_create' in request.data:
             data = legacy_api_converter(request.data)
         
         for index, object in enumerate(data):
@@ -506,12 +506,12 @@ class DraftsPublishApi(APIView):
                 properties={
                     "published_object_id": openapi.Schema(
                         type=openapi.TYPE_STRING,
-                        description="BCO Object Draft ID.",
+                        description="BCO Object ID to use for published object.",
                         example="http://127.0.0.1:8000/TEST_000001/1.0"
                     ),
                     "object_id": openapi.Schema(
                         type=openapi.TYPE_STRING,
-                        description="BCO Object ID to use for published object.",
+                        description="BCO Object Draft ID to look up.",
                         example="http://127.0.0.1:8000/TEST_000001/DRAFT"
                     ),
                     "delete_draft": openapi.Schema(
@@ -535,7 +535,16 @@ class DraftsPublishApi(APIView):
     )
 
     def post(self, request) -> Response:
-        if request.data[0]["object_id"] == \
+        validator = BcoValidator()
+        response_data = []
+        requester = request.user
+        data = request.data
+        rejected_requests = False
+        accepted_requests = False
+        if 'POST_api_objects_drafts_publish' in request.data:
+            data = legacy_api_converter(request.data)
+        
+        if "object_id" in data[0] and data[0]["object_id"] == \
             "http://127.0.0.1:8000/TEST_000001/DRAFT":
             return Response(
                 status=status.HTTP_200_OK, 
@@ -548,17 +557,8 @@ class DraftsPublishApi(APIView):
                   }
               }]
             )
-        validator = BcoValidator()
-        response_data = []
-        requester = request.user
-        data = request.data
-        rejected_requests = False
-        accepted_requests = False
-        if 'POST_api_objects_drafts_publish' in request.data:
-            data = legacy_api_converter(request.data)
-        
+
         for index, object in enumerate(data):
-            # response_id = object["contents"].get("object_id", index)
             response_id = object.get("object_id", index)
             bco_instance = user_can_publish_bco(object, requester)
 

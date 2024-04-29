@@ -552,10 +552,10 @@ def publish_draft(bco_instance: Bco, user: User, object: dict):
     new_bco_instance = deepcopy(bco_instance)
     new_bco_instance.id = None
     new_bco_instance.state = "PUBLISHED"
+    contents= new_bco_instance.contents
     if "published_object_id" in object:
         new_bco_instance.object_id = object["published_object_id"]
     else:
-        contents= new_bco_instance.contents
         version = contents['provenance_domain']['version']
         draft_deconstructed = object_id_deconstructor(object["object_id"])
         draft_deconstructed[-1] = version
@@ -566,9 +566,9 @@ def publish_draft(bco_instance: Bco, user: User, object: dict):
         timezone.now()
     )
     contents["etag"] = generate_etag(contents)
-    thingk = bco_score(bco_instance=new_bco_instance)
+    score = bco_score(bco_instance=new_bco_instance)
 
-    if object["delete_draft"] is True:
+    if "delete_draft" in object and object["delete_draft"] is True:
         deleted = delete_draft(bco_instance=bco_instance, user=user)
 
     return new_bco_instance

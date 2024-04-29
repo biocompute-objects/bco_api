@@ -98,7 +98,7 @@ def user_can_publish_bco(object: dict, user:User) -> Bco:
          if the user is authorized to publish the specified BCO, `False` 
          otherwise. Returns `None` if the specified BCO does not exist.
     """
-    
+
     draft_deconstructed = object_id_deconstructor(object["object_id"])
     published_deconstructed = []
     if "published_object_id" in object:
