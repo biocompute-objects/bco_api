@@ -767,6 +767,8 @@ class ValidateBcoApi(APIView):
             data = legacy_api_converter(data=request.data)
 
         for index, object in enumerate(data):
+            # import pdb; pdb.set_trace()
+            response_id = object.get("object_id", index)
             bco_results = validator.parse_and_validate(bco=object)
             identifier, results = bco_results.popitem()
 
@@ -782,7 +784,7 @@ class ValidateBcoApi(APIView):
                 message = "BCO valid"
 
             response_data.append(response_constructor(
-                identifier = identifier,
+                identifier = response_id,
                 status=bco_status,
                 code=status_code,
                 message=message,
@@ -791,7 +793,7 @@ class ValidateBcoApi(APIView):
 
         if accepted_requests is False and rejected_requests == True:
             return Response(
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_207_MULTI_STATUS,
                 data=response_data
             )
         
