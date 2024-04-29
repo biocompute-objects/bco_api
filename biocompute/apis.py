@@ -752,8 +752,8 @@ class ValidateBcoApi(APIView):
             200: "All BCO validations are successful.",
             207: "Some or all BCO validations failed. Each object submitted"
                 " will have it's own response object with it's own status"
-                " message:\n",
-            400: "All BCO validations failed."
+                " message:\n"
+            400: "Bad request."
         },
         tags=["BCO Management"],
     )
@@ -767,8 +767,6 @@ class ValidateBcoApi(APIView):
             data = legacy_api_converter(data=request.data)
 
         for index, object in enumerate(data):
-            # import pdb; pdb.set_trace()
-            response_id = object.get("object_id", index)
             bco_results = validator.parse_and_validate(bco=object)
             identifier, results = bco_results.popitem()
 
@@ -784,20 +782,14 @@ class ValidateBcoApi(APIView):
                 message = "BCO valid"
 
             response_data.append(response_constructor(
-                identifier = response_id,
+                identifier = identifier,
                 status=bco_status,
                 code=status_code,
                 message=message,
                 data=results
             ))
-
-        if accepted_requests is False and rejected_requests == True:
-            return Response(
-                status=status.HTTP_207_MULTI_STATUS,
-                data=response_data
-            )
         
-        if accepted_requests is True and rejected_requests is True:
+        if rejected_requests is True:
             return Response(
                 status=status.HTTP_207_MULTI_STATUS,
                 data=response_data
