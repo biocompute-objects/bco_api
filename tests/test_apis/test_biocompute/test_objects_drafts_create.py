@@ -44,10 +44,10 @@ class BcoDraftCreateTestCase(TestCase):
                 "contents": BCO_000001_DRAFT
             },
             {
-                "object_id": "http://127.0.0.1:8000/TEST_000001/DRAFT",
+                "object_id": "http://127.0.0.1:8000/TEST_000003/DRAFT",
                 "prefix": "TEST",
                 "contents": {
-                    "object_id": "https://biocomputeobject.org/TEST_000001/DRAFT",
+                    "object_id": "https://biocomputeobject.org/TEST_000003/DRAFT",
                     "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                     "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
                 }
@@ -69,6 +69,7 @@ class BcoDraftCreateTestCase(TestCase):
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         response = self.client.post('/api/objects/drafts/create/', self.data, format='json')
+        print(response.data)
         self.assertEqual(response.status_code, 200)
 
     def test_partial_failure(self):
