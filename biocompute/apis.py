@@ -716,3 +716,95 @@ class PublishedRetrieveApi(APIView):
         bco_counter_increment(bco_instance)
         return Response(status=status.HTTP_200_OK, data=bco_instance.contents)
 
+class ValidateBcoApi(APIView):
+    """Bulk Validate BCOs  [Bulk Enabled]
+
+    --------------------
+
+    Bulk operation to validate BCOs.
+
+    ```JSON
+    [
+        {...BCO CONTENTS...},
+        {...BCO CONTENTS...}
+    ]
+    
+    """
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    
+    @swagger_auto_schema(
+        operation_id="api_bco_validate",
+        request_body=openapi.Schema(
+        type=openapi.TYPE_ARRAY,
+        title="Validate BCO against Schema",
+        items=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["contents"],
+            description="Contents of the BCO.",
+            example=BCO_000001_DRAFT
+            
+        ),
+        description="Validate BCO against IEEE schema.",
+        ),
+        responses={
+            200: "All BCO validations are successful.",
+            207: "Some or all BCO validations failed. Each object submitted"
+                " will have it's own response object with it's own status"
+                " message:\n",
+            400: "All BCO validations failed."
+        },
+        tags=["BCO Management"],
+    )
+    def post(self, request):
+        validator = BcoValidator()
+        response_data = []
+        rejected_requests = False
+        accepted_requests = False
+        data = request.data
+        if 'POST_validate_bco' in request.data:
+            data = legacy_api_converter(data=request.data)
+
+        for index, object in enumerate(data):
+            bco_results = validator.parse_and_validate(bco=object)
+            identifier, results = bco_results.popitem()
+
+            if results["number_of_errors"] > 0:
+                rejected_requests = True
+                bco_status = "FAILED"
+                status_code = 400
+                message = "BCO not valid"
+            else:
+                accepted_requests = True
+                bco_status = "SUCCESS"
+                status_code = 200
+                message = "BCO valid"
+
+            response_data.append(response_constructor(
+                identifier = identifier,
+                status=bco_status,
+                code=status_code,
+                message=message,
+                data=results
+            ))
+
+        if accepted_requests is False and rejected_requests == True:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=response_data
+            )
+        
+        if accepted_requests is True and rejected_requests is True:
+            return Response(
+                status=status.HTTP_207_MULTI_STATUS,
+                data=response_data
+            )
+
+        if accepted_requests is True and rejected_requests is False:
+            return Response(
+                status=status.HTTP_200_OK,
+                data=response_data
+            )
+
+        return Response(status=status.HTTP_200_OK, data={})

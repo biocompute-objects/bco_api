@@ -60,7 +60,6 @@ class BcoDraftCreateTestCase(TestCase):
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         response = self.client.post('/api/objects/drafts/create/', self.legacy_data, format='json')
-        print(response.data)
         self.assertEqual(response.status_code, 200)
 
     def test_successful_creation(self):
@@ -69,7 +68,6 @@ class BcoDraftCreateTestCase(TestCase):
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         response = self.client.post('/api/objects/drafts/create/', self.data, format='json')
-        print(response.data)
         self.assertEqual(response.status_code, 200)
 
     def test_partial_failure(self):

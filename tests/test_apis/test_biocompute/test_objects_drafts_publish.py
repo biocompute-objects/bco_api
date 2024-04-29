@@ -71,6 +71,7 @@ class BcoDraftPublishTestCase(TestCase):
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         response = self.client.post('/api/objects/drafts/publish/', self.data, format='json')
+        print(response.data)
         self.assertEqual(response.status_code, 200)
 
     def test_partial_failure(self):
