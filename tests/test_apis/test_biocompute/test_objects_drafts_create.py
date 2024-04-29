@@ -9,10 +9,14 @@ returns 207, 403 (needs to be reviewed)
 
 import json
 from django.test import TestCase
+from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from tests.fixtures.testing_bcos import BCO_000001_DRAFT
+
+
+HOSTNAME = settings.PUBLIC_HOSTNAME
 
 class BcoDraftCreateTestCase(TestCase):
     fixtures = ['tests/fixtures/test_data']
@@ -26,10 +30,10 @@ class BcoDraftCreateTestCase(TestCase):
                 {
                     "prefix": "NOPUB",
                     "owner_group": "tester",
-                    "object_id": "http://127.0.0.1:8000/NOPUB_000002/DRAFT",
+                    "object_id": f"{HOSTNAME}/NOPUB_000002/DRAFT",
                     "schema": "IEEE",
                     "contents": {
-                        "object_id": "http://127.0.0.1:8000/NOPUB_000002/DRAFT",
+                        "object_id": f"{HOSTNAME}/NOPUB_000002/DRAFT",
                         "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                         "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
                     }
@@ -44,10 +48,10 @@ class BcoDraftCreateTestCase(TestCase):
                 "contents": BCO_000001_DRAFT
             },
             {
-                "object_id": "http://127.0.0.1:8000/TEST_000003/DRAFT",
+                "object_id": f"{HOSTNAME}/TEST_000003/DRAFT",
                 "prefix": "TEST",
                 "contents": {
-                    "object_id": "https://biocomputeobject.org/TEST_000003/DRAFT",
+                    "object_id": f"{HOSTNAME}/TEST_000003/DRAFT",
                     "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                     "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
                 }
@@ -80,7 +84,7 @@ class BcoDraftCreateTestCase(TestCase):
                     'owner_group': 'bco_drafter',
                     'schema': 'IEEE',
                     'contents': {
-                        "object_id": "https://biocomputeobject.org/BCO_000005",
+                        "object_id": f"{HOSTNAME}/BCO_000005",
                         "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                         "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
                     }
@@ -102,10 +106,10 @@ class BcoDraftCreateTestCase(TestCase):
         Gives 403 forbidden request instead of 400'''
         data =  [
             {
-                "object_id": "http://127.0.0.1:8000/TEST_000001",
+                "object_id": f"{HOSTNAME}/TEST_000001",
                 # "prefix": "TEST",
                 "contents": {
-                    "object_id": "https://biocomputeobject.org/TEST_000001",
+                    "object_id": f"{HOSTNAME}/TEST_000001",
                     "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
                     "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea",
                 }

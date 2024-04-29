@@ -79,11 +79,11 @@ def legacy_api_converter(data:dict) ->dict:
     return new_data
 
 def response_constructor(
-        identifier: str,
-        status: str,
-        code: str,
-        message: str=None,
-        data: dict= None
+    identifier: str,
+    status: str,
+    code: str,
+    message: str=None,
+    data: dict= None
         )-> dict:
 
     """Constructs a structured response dictionary.
