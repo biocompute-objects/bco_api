@@ -564,7 +564,7 @@ NOPUB_000001_DRAFT = {
         "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
         "created": "2022-02-07T17:36:05.872Z",
         "modified": "2022-06-28T23:44:49.394Z",
-        "derived_from": [],
+        "derived_from": "",
         "contributors": [
             {
                 "contribution": [

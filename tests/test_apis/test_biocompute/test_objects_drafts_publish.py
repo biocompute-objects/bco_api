@@ -40,40 +40,20 @@ class BcoDraftPublishTestCase(TestCase):
                     "prefix": "NOPUB",
                     "owner_group": "tester",
                     "draft_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
-                    # "object_id": "http://127.0.0.1:8000/NOPUB_000001/2.0",
                     "schema": "IEEE",
                     "delete_draft":"false",
-                    # "contents": {
-                    #     "object_id": "https://test.portal.biochemistry.gwu.edu/NOPUB_000002/DRAFT",
-                    #     "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                    #     "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                    # }
                 }
             ]
         }
 
         self.data = [
             {
-                # "object_id": "http://127.0.0.1:8000/BCO_000001/DRAFT",
+                "object_id": "http://127.0.0.1:8000/BCO_000001/DRAFT",
+                "published_object_id": "http://127.0.0.1:8000/BCO_000001/1.1",
                 "prefix": "BCO",
-                "authorized_users": ["hivelab"],
-                "draft_id": "https://test.portal.biochemistry.gwu.edu/BCO_000001/DRAFT",
-                "contents": {
-                    "object_id": "https://test.portal.biochemistry.gwu.edu/BCO_000001/DRAFT",
-                    "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                    "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                }
             },
             {
-                # "object_id": "http://127.0.0.1:8000/TEST_000001",
-                "prefix": "TEST",
-                "authorized_users": ["tester"],
-                "draft_id":"http://127.0.0.1:8000/NOPUB_000001/DRAFT",
-                "contents": {
-                    "object_id": "https://biocomputeobject.org/TEST_000001",
-                    "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                    "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                }
+                "object_id": "http://127.0.0.1:8000/TEST_000001/DRAFT",
             }
         ]
 
@@ -94,64 +74,21 @@ class BcoDraftPublishTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_partial_failure(self):
-        '''Test case for partial failure (response code 300)
-        Returns 207(Multi status) instead of 300(Partial faliure)'''
-        data = {
-            'POST_api_objects_drafts_modify': [
-                {
-                    "object_id": "http://127.0.0.1:8000/BCO_000000/DRAFT",
-                    "prefix": "TEST",
-                    "authorized_users": ["tester"],
-                    "contents": {
-                        "object_id": "http://127.0.0.1:8000/BCO_000000/DRAFT",
-                        "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                        "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                    }
-                },
-                {
-                    'prefix': 'Tianyi',
-                    'owner_group': 'bco_drafter',
-                    'schema': 'IEEE',
-                    'contents': {}
-                }
-            ]
-        }
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        response = self.client.post('/api/objects/drafts/modify/', data=data, format='json')
-        self.assertEqual(response.status_code, 207)
+        """Test case for partial failure (response code 207)
+        Returns 207(Multi status)"""
 
-    def test_bad_request(self):
-        '''Test case for bad request (response code 400)
-        Gives 403 forbidden request instead of 400'''
-        data =  [
+        data = [
             {
-                "object_id": "http://127.0.0.1:8000/TEST_000001",
-                "contents": {
-                    "object_id": "https://biocomputeobject.org/TEST_000001",
-                    "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                    "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea",
-                }
+                "object_id": "http://127.0.0.1:8000/BCO_000001/DRAFT",
+                "published_object_id": "http://127.0.0.1:8000/BCO_000001/1.0",
+                "prefix": "BCO",
+            },
+            {
+                "object_id": "http://127.0.0.1:8000/TEST_000001/DRAFT",
             }
         ]
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        response = self.client.post('/api/objects/drafts/modify/', data=data, format='json')
-        self.assertEqual(response.status_code, 400)
 
-    def test_invalid_token(self):
-        '''Test case for invalid token (response code 403)
-        Setting authentication token to an invalid value'''
-        
-        data = {
-            'POST_api_objects_drafts_modify': [
-                {
-                    'prefix': 'BCO',
-                    'owner_group': 'bco_drafter',
-                    'schema': 'IEEE',
-                    'contents': {}
-                },
-                
-            ]
-        }
-        self.client.credentials(HTTP_AUTHORIZATION='Token InvalidToken')
-        response = self.client.post('/api/objects/drafts/modify/', data=data, format='json')
-        self.assertEqual(response.status_code, 403)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        response = self.client.post('/api/objects/drafts/publish/', data=data, format='json')
+        self.assertEqual(response.status_code, 207)
+

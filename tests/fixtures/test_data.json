@@ -844,7 +844,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -1077,7 +1077,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -1310,7 +1310,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -1539,7 +1539,7 @@
                 "etag": "eb8ac2d04b2d3204b88e0bc6e3a66dcfac4af934c1ebe7ce629f8f584d5f3d7a",
                 "provenance_domain": {
                     "name": "HCV1a ledipasvir resistance SNP detection",
-                    "version": "1.0",
+                    "version": "1.1",
                     "created": "2017-01-24T09:40:17-0500",
                     "modified": "2024-04-11T16:44:51.054Z",
                     "review": [
@@ -1911,7 +1911,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -2144,7 +2144,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -2426,7 +2426,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -2659,7 +2659,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -3129,7 +3129,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -3362,7 +3362,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -3595,7 +3595,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -3828,7 +3828,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
@@ -4061,7 +4061,7 @@
                     "license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
                     "created": "2022-02-07T17:36:05.872Z",
                     "modified": "2022-06-28T23:44:49.394Z",
-                    "derived_from": [],
+                    "derived_from": "",
                     "contributors": [
                         {
                             "contribution": [
