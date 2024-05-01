@@ -752,7 +752,7 @@ class ValidateBcoApi(APIView):
             200: "All BCO validations are successful.",
             207: "Some or all BCO validations failed. Each object submitted"
                 " will have it's own response object with it's own status"
-                " message:\n"
+                " message:\n",
             400: "Bad request."
         },
         tags=["BCO Management"],
