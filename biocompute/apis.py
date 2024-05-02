@@ -4,6 +4,7 @@
 """BioCompute Object APIs
 """
 
+from authentication.services import CustomJSONWebTokenAuthentication
 from biocompute.services import (
     BcoDraftSerializer,
     BcoValidator,
@@ -664,7 +665,7 @@ class PublishedRetrieveApi(APIView):
         Specifies the version of the BCO to be retrieved.
     """
     
-    authentication_classes = []
+    authentication_classes = [CustomJSONWebTokenAuthentication]
     permission_classes = [AllowAny]
     
     @swagger_auto_schema(
@@ -697,7 +698,6 @@ class PublishedRetrieveApi(APIView):
 
     def get(self, request, bco_accession, bco_version):
         requester = request.user
-        print(requester)
         bco_instance = retrieve_bco(bco_accession, requester, bco_version)
         if bco_instance is False:
             return Response(
