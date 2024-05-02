@@ -52,8 +52,8 @@ def legacy_api_converter(data:dict) ->dict:
     if "draft_id" in new_data[0]:
         return_data =[]
         for object in new_data:
+            delete_draft = object.get("delete_draft", False)
             if "object_id" in object:
-                delete_draft = object.get("delete_draft", False)
                 return_data.append({
                     "object_id": object["draft_id"],
                     "published_object_id": object["object_id"],
@@ -62,7 +62,7 @@ def legacy_api_converter(data:dict) ->dict:
             else:
                 return_data.append({
                     "object_id": object["draft_id"],
-                    "delete_draft": object["delete_draft"]
+                    "delete_draft": delete_draft
                 })
         return return_data
 

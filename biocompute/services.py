@@ -568,6 +568,8 @@ def publish_draft(bco_instance: Bco, user: User, object: dict):
     contents["etag"] = generate_etag(contents)
     score = bco_score(bco_instance=new_bco_instance)
 
+    new_bco_instance.save()
+
     if "delete_draft" in object and object["delete_draft"] is True:
         deleted = delete_draft(bco_instance=bco_instance, user=user)
 
