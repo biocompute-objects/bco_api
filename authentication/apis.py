@@ -4,6 +4,7 @@ import json
 import jwt
 import uuid
 from django.contrib.auth.models import User
+from django.conf import settings
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
@@ -25,11 +26,26 @@ from authentication.services import (
     send_new_user_email
 )
 
+ANON_KEY = settings.ANON_KEY
+
+AUTH_SCHEMA = {
+    "iss": openapi.Schema(
+        type=openapi.TYPE_STRING,
+        description="The 'iss' (issuer) claim identifies the principal"
+        " that issued the JWT.",
+        example="https://example.org"
+    ),
+    "sub": openapi.Schema(
+        type=openapi.TYPE_STRING,
+        description="The 'sub' (subject) claim identifies the"
+        " principal that is the subject of the JWT.",
+        example="0000-0000-0000-0000"
+    )
+}
+
 class NewAccountApi(APIView):
     """
     Account creation request
-
-    --------------------
 
     Ask for a new account.  Sends an e-mail to the provided e-mail, which must
     then be clicked to activate the account.
@@ -64,6 +80,7 @@ class NewAccountApi(APIView):
     permission_classes = []
 
     @swagger_auto_schema(
+        operation_id="api_accounts_new",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             title="Account Creation Schema",
@@ -105,7 +122,7 @@ class NewAccountApi(APIView):
                 status=status.HTTP_201_CREATED,
                 data={
                     "message":"Testing account request successful. Check" \
-                    + " your email fro the activation link."
+                    + " your email for the activation link."
                     }
             )
  
@@ -148,7 +165,7 @@ class AccountActivateApi(APIView):
     --------------------
 
     This endpoint is a GET request to activate a new account.  
-    To activate an account during registration the userwill receive an email
+    To activate an account during registration the user will receive an email
     or a temporary identifier to authenticate and activate account. This 
     endpoint will check the validity of the provided temporary identifier for 
     a specific user account. This is open to anyone to activate a new account, 
@@ -159,28 +176,24 @@ class AccountActivateApi(APIView):
     authentication_classes = []
     permission_classes = []
 
-    auth = []
-    auth.append(
-        openapi.Parameter(
-            "email",
-            openapi.IN_PATH,
-            description="Email to be authenticated.",
-            type=openapi.TYPE_STRING,
-            default="test@test.test"
-        )
-    )
-    auth.append(
-        openapi.Parameter(
-            "temp_identifier",
-            openapi.IN_PATH,
-            description="The temporary identifier sent",
-            type=openapi.TYPE_STRING,
-            default="testTempIdentifier123456789"
-        )
-    )
-
     @swagger_auto_schema(
-        manual_parameters=auth,
+        operation_id="api_accounts_activate",
+        manual_parameters=[
+            openapi.Parameter(
+                "email",
+                openapi.IN_PATH,
+                description="Email to be authenticated.",
+                type=openapi.TYPE_STRING,
+                default="test@test.test"
+            ),
+            openapi.Parameter(
+                "temp_identifier",
+                openapi.IN_PATH,
+                description="The temporary identifier sent",
+                type=openapi.TYPE_STRING,
+                default="testTempIdentifier123456789"
+            )
+        ],
         responses={
             200: "Account has been activated.",
             403: "Requestor's credentials were rejected.",
@@ -228,66 +241,6 @@ class AccountActivateApi(APIView):
                 data={"message": "Requestor's credentials were rejected."}
             )
 
-class RegisterUserNoVerificationAPI(APIView):
-    """Register BCODB 
-    API View to register a new BCODB user with out an email verification step.
-
-    Methods:
-        post(request): Register a new BCODB user.
-
-    Attributes:
-        InputSerializer: Serializer class for validating input data.
-    """
-
-    class InputSerializer(serializers.Serializer):
-        """Serializer class for validating input data for registering a new BCODB user.
-
-        Fields:
-            hostname (str): The URL of the BCODB portal.
-            email (str): The email address of the user to register.
-            token (str): The authentication token for the BCODB portal.
-        """
-        hostname= serializers.URLField()
-        email = serializers.EmailField()
-        token = serializers.CharField()
-
-        class Meta:
-            model = User
-            fields = ["__all__"]
-
-    authentication_classes = []
-    permission_classes = []
-    swagger_schema = None
-    def post(self, request):
-        """Register a new BCODB user.
-
-        Args:
-            request (Request): The request object containing the input data.
-
-        Returns:
-            Response: A HTTP response indicating the result of the registration attempt.
-        """
-
-        user_info = self.InputSerializer(data=request.data)
-        user_info.is_valid(raise_exception=True)
-        token = user_info.validated_data['token']
-        url = user_info.validated_data['hostname']
-        email = user_info.validated_data['email']
-        if validate_token(token, url) is False:
-            return Response(status=status.HTTP_401_UNAUTHORIZED, data={"message": "portal authentication was invalid"})
-        if check_user_email(email) is True:
-            return Response(
-                status=status.HTTP_409_CONFLICT,
-                data={"message": "A BCODB account with that email already exists"}
-            )
-        user = create_bcodb_user(email)
-        data = json.dumps(get_user_info(user), default=str)
-        response = send_bcodb(
-            data=data, request_info=user_info.validated_data
-        )
-        if response.status_code == 200:
-            return Response(status=status.HTTP_201_CREATED, data={"message": "user account created"})
-
 class AccountDescribeApi(APIView):
     """
     Account details
@@ -299,18 +252,17 @@ class AccountDescribeApi(APIView):
     'Token' is the API token for this service.
     """
 
-    auth = [
-        openapi.Parameter(
-            "Authorization",
-            openapi.IN_HEADER,
-            description="Authorization Token",
-            type=openapi.TYPE_STRING,
-            default="Token 627626823549f787c3ec763ff687169206626149"
-        )
-    ]
-
     @swagger_auto_schema(
-        manual_parameters=auth,
+        operation_id="api_accounts_describe",
+        manual_parameters=[
+            openapi.Parameter(
+                "Authorization", 
+                openapi.IN_HEADER,
+                description="Authorization Token",
+                type=openapi.TYPE_STRING,
+                default="Token 627626823549f787c3ec763ff687169206626149"
+            )
+        ],
         responses={
             200: "Authorization is successful.",
             403: "Forbidden. Authentication credentials were not provided.",
@@ -328,8 +280,6 @@ class AccountDescribeApi(APIView):
 class AddAuthenticationApi(APIView):
     """
     Add Authentication Object
-
-    -----------------------------
 
     Adds an authentication dictionary to the list of auth_objects for a user
 
@@ -350,29 +300,15 @@ class AddAuthenticationApi(APIView):
             
     permission_classes = [IsAuthenticated,]
 
-    schema = openapi.Schema(
+    @swagger_auto_schema(
+        operation_id="api_auth_add",
+        request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Add Authentication",
         description="Adds an authentication objetc to the associated user",
         required=["iss", "sub"],
-        properties={
-            "iss": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="The 'iss' (issuer) claim identifies the principal"
-                    " that issued the JWT."
-            ),
-            "sub": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="The 'sub' (subject) claim identifies the"
-                    " principal that is the subject of the JWT.",  
-
-            )
-        }
-
-    )
-
-    @swagger_auto_schema(
-        request_body=schema,
+        properties=AUTH_SCHEMA
+        ),
         responses={
             200: "New authentication credentials added to existing object.",
             201: "Authentication object created and added to account.",
@@ -384,10 +320,22 @@ class AddAuthenticationApi(APIView):
     )
 
     def post(self, request):
+        demo_data = {
+            'iss': 'https://example.org',
+            'sub': '0000-0000-0000-0000'
+        }
         
+        if request.data == demo_data:
+            return Response(
+                status=status.HTTP_200_OK,
+                data={
+                    "message": "TESTING: "\
+                    +"New authentication credentials added to existing object"
+                }
+            )
         result = validate_auth_service(request.data)
         
-        if result != 1:
+        if result["message"] != "valid":
             return Response(status=status.HTTP_400_BAD_REQUEST, data=result)
         try: 
             auth_object = Authentication.objects.get(username=request.user.username)
@@ -424,8 +372,6 @@ class RemoveAuthenticationApi(APIView):
     """
     Removes Authentication Object
 
-    -----------------------------
-
     Removes an authentication dictionary to the list of auth_objects for a user
 
     ```JSON
@@ -437,30 +383,15 @@ class RemoveAuthenticationApi(APIView):
     """
     permission_classes = [IsAuthenticated,]
 
-    schema = openapi.Schema(
+    @swagger_auto_schema(
+        operation_id="api_auth_remove",
+        request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         title="Remove Authentication",
         description="Removess an authentication objetc to the associated user",
         required=["iss", "sub"],
-        properties={
-            "iss": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="The 'iss' (issuer) claim identifies the principal"
-                    " that issued the JWT."
-            ),
-            "sub": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="The 'sub' (subject) claim identifies the"
-                    " principal that is the subject of the JWT.",
-                    
-
-            )
-        }
-
-    )
-
-    @swagger_auto_schema(
-        request_body=schema,
+        properties=AUTH_SCHEMA
+        ),
         responses={
             200: "Remove authentication is successful.",
             403: "Authentication failed.",
@@ -470,11 +401,23 @@ class RemoveAuthenticationApi(APIView):
     )
 
     def post(self, request):
-        """"""
+        demo_data = {
+            'iss': 'https://example.org',
+            'sub': '0000-0000-0000-0000'
+        }
+        
+        if request.data == demo_data:
+            return Response(
+                status=status.HTTP_200_OK,
+                data={
+                    "message": "TESTING: "\
+                    +"Authentication object removed"
+                }
+            )
 
         result = validate_auth_service(request.data)
         
-        if result != 1:
+        if result["message"] != "valid":
             return Response(
                 status=status.HTTP_403_FORBIDDEN,
                 data=result
@@ -499,26 +442,24 @@ class RemoveAuthenticationApi(APIView):
         )
 
 class ResetTokenApi(APIView):
-    """Reset Token
-    -----------------------------
-    Resets the user's token and returns the new one.
+    """Reset API Token
+
+    Revokes the user's current API token and returns a new one.
     """
 
     permission_classes = [IsAuthenticated,]
-    
-    # schema = openapi.Schema()
-
-    auth = [
-        openapi.Parameter(
-            "Authorization",
-            openapi.IN_HEADER,
-            description="Authorization Token",
-            type=openapi.TYPE_STRING,
-        )
-    ]
 
     @swagger_auto_schema(
-        manual_parameters=auth,
+        operation_id="api_auth_reset_token",
+        manual_parameters=[
+            openapi.Parameter(
+                "Authorization",
+                openapi.IN_HEADER,
+                description="Authorization Token",
+                type=openapi.TYPE_STRING,
+                default=f"Token {ANON_KEY}"
+            )
+        ],
         responses={
             200: "Token reset is successful.",
             403: "Invalid token.",
@@ -529,6 +470,11 @@ class ResetTokenApi(APIView):
     def post(self, request):
         try:
             token = Token.objects.get(user=request.user)
+            if token.key == ANON_KEY:
+                return Response(
+                status=status.HTTP_200_OK,
+                data=get_user_info(user=request.user)
+            )
             token.delete()
             Token.objects.create(user=request.user)            
             return Response(
@@ -537,5 +483,71 @@ class ResetTokenApi(APIView):
             )
 
         except Exception as error:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": f"{error}"})
-        
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"message": f"{error}"}
+            )
+
+class RegisterUserNoVerificationAPI(APIView):
+    """Register BCODB 
+    API View to register a new BCODB user with out an email verification step.
+
+    Methods:
+        post(request): Register a new BCODB user.
+
+    Attributes:
+        InputSerializer: Serializer class for validating input data.
+    """
+
+    class InputSerializer(serializers.Serializer):
+        """Serializer class for validating input data for registering a new BCODB user.
+
+        Fields:
+            hostname (str): The URL of the BCODB portal.
+            email (str): The email address of the user to register.
+            token (str): The authentication token for the BCODB portal.
+        """
+        hostname= serializers.URLField()
+        email = serializers.EmailField()
+        token = serializers.CharField()
+
+        class Meta:
+            model = User
+            fields = ["__all__"]
+
+    authentication_classes = []
+    permission_classes = []
+    swagger_schema = None
+
+    def post(self, request):
+        """Register a new BCODB user.
+
+        Args:
+            request (Request): The request object containing the input data.
+
+        Returns:
+            Response: A HTTP response indicating the result of the registration attempt.
+        """
+        print("FIRST LINE")
+        user_info = self.InputSerializer(data=request.data)
+        user_info.is_valid(raise_exception=True)
+        token = user_info.validated_data['token']
+        url = user_info.validated_data['hostname']
+        email = user_info.validated_data['email']
+        if validate_token(token, url) is False:
+            return Response(status=status.HTTP_401_UNAUTHORIZED, data={"message": "portal authentication was invalid"})
+        if check_user_email(email) is True:
+            return Response(
+                status=status.HTTP_409_CONFLICT,
+                data={"message": "A BCODB account with that email already exists"}
+            )
+        user = create_bcodb_user(email)
+        data = json.dumps(get_user_info(user), default=str)
+
+        response = send_bcodb(
+            data=data, request_info=user_info.validated_data
+        )
+        if response.status_code == 200:
+            return Response(status=status.HTTP_201_CREATED, data={"message": "user account created"})
+
+        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
