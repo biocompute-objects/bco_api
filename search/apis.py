@@ -152,7 +152,10 @@ class SearchObjectsAPI(APIView):
         return_bco = viewable_bcos.filter(query)
         bco_data = chain(return_bco.values(*return_values))
         return Response(status=status.HTTP_200_OK, data=bco_data)
-  
+
+class DepreciatedSearchObjectsAPI(SearchObjectsAPI):
+    swagger_schema = None
+    
     def post(self, request) -> Response:
         """This POST method is deprecated. Please use GET instead."""
         viewable_bcos = controled_list(request.user)
@@ -181,6 +184,3 @@ class SearchObjectsAPI(APIView):
         return_bco = viewable_bcos.filter(query)
         bco_data = chain(return_bco.values(*return_values))
         return Response(status=status.HTTP_200_OK, data=bco_data)
-
-class DepreciatedSearchObjectsAPI(SearchObjectsAPI):
-    swagger_schema = None
