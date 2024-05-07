@@ -46,7 +46,7 @@ class SearchUsersAPI(APIView):
             200: "User Found",
             404: "User not found"
         },
-        tags=["Prefix Management"],
+        tags=["Database Searches"],
     )
     
     def get(self, request) -> Response:
@@ -133,7 +133,7 @@ class SearchObjectsAPI(APIView):
         responses={
             200: "Search successfull"
         },
-        tags=["BCO Management"],
+        tags=["Database Searches"],
     )
     
     def get(self, request) -> Response:
@@ -157,7 +157,10 @@ class DepreciatedSearchObjectsAPI(SearchObjectsAPI):
     swagger_schema = None
     
     def post(self, request) -> Response:
-        """This POST method is deprecated. Please use GET instead."""
+        """
+        This POST method is deprecated.
+        Please use GET instead.
+        """
         viewable_bcos = controled_list(request.user)
         data = legacy_api_converter(request.data)
         query = Q()

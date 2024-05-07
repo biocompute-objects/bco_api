@@ -176,7 +176,7 @@ def user_can_modify_bco(object_id: str, user:User) -> bool:
         `True` if the user is authorized to modify the specified BCO,
         `False` otherwise. Returns `None` if the specified BCO does not exist.
     """
-
+    
     try:
         bco_instance = Bco.objects.get(object_id=object_id)
     except Bco.DoesNotExist:

@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+# tests.fixtures.testing_bcos.py
 
 from django.conf import settings
 
 hostname = settings.PUBLIC_HOSTNAME
+
 BCO_000000_DRAFT = {
         "object_id": "http://127.0.0.1:8000/BCO_000000/DRAFT",
         "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
@@ -773,4 +776,238 @@ NOPUB_000001_DRAFT = {
             }
         }
     ]
+}
+
+TEST_000001_DRAFT = {
+	"object_id": "http://127.0.0.1:8000/TEST_000001/DRAFT",
+	"spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
+	"etag": "998f0b8a499bd88952f945367c17d62e95611c9d026fb0713b84a5fa9bfb745d",
+	"provenance_domain": {
+		"name": "ARGOSdb QC related annotation data property list",
+		"version": "1.21",
+		"license": "https://github.com/FDA-ARGOS/data.argosdb/blob/v0.4_Feb/LICENSE",
+		"created": "2022-02-07T17:36:05.872Z",
+		"modified": "2022-06-28T23:44:49.394Z",
+		"derived_from": "",
+		"contributors": [
+			{
+				"contribution": [
+					"createdBy",
+					"authoredBy",
+					"contributedBy"
+				],
+				"name": "Charles Hadley King",
+				"affiliation": "George Washington University",
+				"email": "hadley_king@gwu.edu",
+				"orcid": "https://orcid.org/0000-0003-1409-4549"
+			},
+			{
+				"contribution": [
+					"curatedBy",
+					"contributedBy"
+				],
+				"name": "Stephanie Singleton",
+				"affiliation": "The George Washington University ",
+				"email": "ssingleton@gwu.edu"
+			},
+			{
+				"contribution": [
+					"createdBy",
+					"curatedBy"
+				],
+				"name": "Jonathon Keeney",
+				"affiliation": "The George Washington University ",
+				"email": "keeneyjg@gwu.edu"
+			},
+			{
+				"name": "Raja Mazumder",
+				"contribution": [
+					"curatedBy"
+				],
+				"affiliation": "The George Washington University ",
+				"email": "mazumder@gwu.edu",
+				"orcid": "https://orcid.org/0000-0001-8823-9945"
+			}
+		],
+		"review": [
+
+		]
+	},
+	"usability_domain": [
+		"List of controlled vocabulary terms for ARGOSdb annotation and metadata table data properties.",
+		"This sheet was created to aid in the integration of ARGOS data from many disparate sources. Each of the column headers in each of the respective data sheets displayed on www.data.argosdb.org was recommended by project members and collaborators from the FDA. The resulting list was manually curated to combine similar terms, and provide a consistent representation across all datasets in ARGOSdb.",
+		"The final result here is a list of properties and descriptive information about the property. The following are the column headers and their meaning: Property - consensus name for data property described in row. Data Object Type - The dataset this property is used in. Optional/Required - indicates if the property is REQUIRED to hava a valid data row. $id - For JSON schema conversion. Title - Human readable name for property. Default is the same as property. Type - property type as defined by JSON types. default - a default value for property. examples - and example for the property. pattern - the regular expression evaluation for this property. description - A definition and additional information about the property.",
+		"The primary use case for this property definition list is to ensure all data submitted to data.argosdb.org is following a consistent representation, and adhears to a controlled vocabulary of data properties."
+	],
+	"description_domain": {
+		"keywords": [
+			"curation",
+			"definitions",
+			"ontology",
+			"controlled vocabulary"
+		],
+		"platform": [
+
+		],
+		"pipeline_steps": [
+			{
+				"step_number": 1,
+				"name": "Header download",
+				"description": "Create a text file with the headers from each data sheet published for v0.3. Using the command `head -1 > ~/headers.txt`",
+				"prerequisite": [
+
+				],
+				"input_list": [
+					{
+						"uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/SRA_ngsQC.tsv",
+						"filename": "SRA_ngsQC.tsv"
+					},
+					{
+						"uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/PRJNA231221_AssemblyUpdated.tsv",
+						"filename": "PRJNA231221_AssemblyUpdated.tsv"
+					},
+					{
+						"uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/sars-cov-2_lineage_mutations.tsv",
+						"filename": "sars-cov-2_lineage_mutations.tsv"
+					}
+				],
+				"output_list": [
+					{
+						"uri": "https://argosdb-vm-dev/software/argosdb/home/headers.txt",
+						"filename": "headers.txt"
+					}
+				]
+			},
+			{
+				"step_number": 2,
+				"name": "Manual Curation",
+				"description": "Manual curation of headers.txt into a curated list of terms with definitions.",
+				"prerequisite": [
+
+				],
+				"input_list": [
+					{
+						"uri": "https://argosdb-vm-dev/software/argosdb/home/headers.txt"
+					}
+				],
+				"output_list": [
+					{
+						"uri": "https://data.argosdb.org/ ln2data/02_15_2022/annotation_property_list.tsv",
+						"access_time": "2022-02-03T13:42:44-0500",
+						"filename": "annotation_property_list.tsv"
+					}
+				]
+			}
+		]
+	},
+	"execution_domain": {
+		"script": [
+			{
+				"uri": {
+					"uri": "https://docs.google.com/spreadsheets/d/1EbHiGSmv6ZTGk6erQCl1oH8ye7EFuQPwKfWS5_7Cn60/edit#gid=0",
+					"filename": "FINAL_v0.3_argos_dict"
+				}
+			}
+		],
+		"script_driver": "Google Drive/Sheets",
+		"software_prerequisites": [
+			{
+				"name": "Microsof Excel",
+				"version": "16.57",
+				"uri": {
+					"uri": "https://www.microsoft.com/en-us/microsoft-365/excel"
+				}
+			}
+		],
+		"external_data_endpoints": [
+			{
+				"name": "data.ARGOSdb.org",
+				"url": "data.ARGOSdb.org"
+			},
+			{
+				"name": "Google Drive",
+				"url": "https://drive.google.com/drive/u/3/folders/1uUa4UYG3dd6yTOdxiyoav6qktit4-J-9"
+			}
+		],
+		"environment_variables": {
+		}
+	},
+	"io_domain": {
+		"input_subdomain": [
+			{
+				"uri": {
+					"uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/SRA_ngsQC.tsv",
+					"filename": "SRA_ngsQC.tsv"
+				}
+			},
+			{
+				"uri": {
+					"uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/PRJNA231221_AssemblyUpdated.tsv",
+					"filename": "PRJNA231221_AssemblyUpdated.tsv"
+				}
+			},
+			{
+				"uri": {
+					"uri": "http://data.argosdb.org/ln2downloads/argosdb_qc/02_15_2022/sars-cov-2_lineage_mutations.tsv",
+					"filename": "sars-cov-2_lineage_mutations.tsv"
+				}
+			}
+		],
+		"output_subdomain": [
+			{
+				"mediatype": "text/tsv",
+				"uri": {
+					"uri": "https://data.argosdb.org/ ln2data/02_15_2022/annotation_property_list.tsv",
+					"access_time": "2022-02-03T13:42:44-0500",
+					"filename": "annotation_property_list.tsv"
+				}
+			}
+		]
+	},
+	"parametric_domain": [
+
+	],
+	"error_domain": {
+		"empirical_error": {
+		},
+		"algorithmic_error": {
+		}
+	},
+	"extension_domain": [
+		{
+			"extension_schema": "http://www.w3id.org/biocompute/extension_domain/1.2.0/dataset/dataset_extension.json",
+			"dataset_extension": {
+				"additional_license": {
+					"data_license": "https://creativecommons.org/licenses/by/4.0/",
+					"script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+				},
+				"dataset_categories": [
+					{
+						"category_value": "Other",
+						"category_name": "species"
+					},
+					{
+						"category_value": "Other",
+						"category_name": "molecule"
+					},
+					{
+						"category_value": "non-core",
+						"category_name": "priority"
+					},
+					{
+						"category_value": "Dictionary",
+						"category_name": "species"
+					},
+					{
+						"category_value": "tsv",
+						"category_name": "file_type"
+					},
+					{
+						"category_value": "reviewed",
+						"category_name": "status"
+					}
+				]
+			}
+		}
+	]
 }
