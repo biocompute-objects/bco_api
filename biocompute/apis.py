@@ -425,7 +425,6 @@ class DraftsModifyApi(APIView):
                 ]
             )
         for index, object in enumerate(data):
-            print(index, object.keys())
             response_id = object.get("object_id", index)
             modify_permitted = user_can_modify_bco(response_id, requester)
             

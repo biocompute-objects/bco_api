@@ -1,6 +1,7 @@
 # authentication/urls.py
 
 from django.urls import path
+from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token
 from authentication.apis import (
     NewAccountApi,
     AccountActivateApi,
@@ -12,6 +13,8 @@ from authentication.apis import (
 )
 
 urlpatterns = [
+    # path("token/", obtain_jwt_token),
+    # path("verify/", verify_jwt_token),
     path(
         "accounts/activate/<str:email>/<str:temp_identifier>",
         AccountActivateApi.as_view(),

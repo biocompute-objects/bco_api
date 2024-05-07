@@ -279,7 +279,6 @@ def delete_prefix(prefix_name: str, user: User) -> bool:
             for perm in ["add", "change",  "publish"]:
                 try:
                     Permission.objects.get(codename=f"{perm}_{prefix_name}").delete()
-                    print(f"{perm}_{prefix_name}")
                 except Permission.DoesNotExist:
                     pass
         return True
