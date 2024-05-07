@@ -13,7 +13,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
-from tests.fixtures.testing_bcos import BCO_000001_DRAFT
+from tests.fixtures.testing_bcos import BCO_000001_DRAFT, NOPUB_000001_DRAFT
 
 
 HOSTNAME = settings.PUBLIC_HOSTNAME
@@ -32,11 +32,7 @@ class BcoDraftCreateTestCase(TestCase):
                     "owner_group": "tester",
                     "object_id": f"{HOSTNAME}/NOPUB_000002/DRAFT",
                     "schema": "IEEE",
-                    "contents": {
-                        "object_id": f"{HOSTNAME}/NOPUB_000002/DRAFT",
-                        "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
-                        "etag": "11ee4c3b8a04ad16dcca19a6f478c0870d3fe668ed6454096ab7165deb1ab8ea"
-                    }
+                    "contents": NOPUB_000001_DRAFT
                 }
             ]
         }
