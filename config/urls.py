@@ -9,7 +9,6 @@ from django.urls import path, include, re_path
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
-from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token
 from biocompute.apis import DraftRetrieveApi, PublishedRetrieveApi
 
 VERSION = settings.VERSION
@@ -46,8 +45,6 @@ urlpatterns = [
             name="schema-redoc",
         ),
     path("api/admin/", admin.site.urls),
-    path("api/token/", obtain_jwt_token),
-    path("api/verify/", verify_jwt_token),
     path("api/", include("authentication.urls")),
     path("api/", include("search.urls")),
     path("api/", include("biocompute.urls")),

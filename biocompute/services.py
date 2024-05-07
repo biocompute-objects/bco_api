@@ -541,7 +541,7 @@ def check_etag_validity(bco_contents: dict) -> bool:
         bco_contents_copy.pop(key, None)
 
     regenerated_etag = sha256(json.dumps(bco_contents_copy).encode('utf-8')).hexdigest()
-    print(provided_etag, regenerated_etag)
+
     return provided_etag == regenerated_etag
 
 @transaction.atomic

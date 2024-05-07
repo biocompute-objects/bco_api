@@ -356,7 +356,7 @@ class AddAuthenticationApi(APIView):
                 username=request.user,
                 auth_service=[request.data]
                 )
-            print('status=status.HTTP_201_CREATED')
+
             return Response(
                 status=status.HTTP_201_CREATED,
                 data={"message": "Authentication object created and added to account"}
@@ -528,7 +528,7 @@ class RegisterUserNoVerificationAPI(APIView):
         Returns:
             Response: A HTTP response indicating the result of the registration attempt.
         """
-        print("FIRST LINE")
+
         user_info = self.InputSerializer(data=request.data)
         user_info.is_valid(raise_exception=True)
         token = user_info.validated_data['token']

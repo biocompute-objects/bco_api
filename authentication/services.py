@@ -159,8 +159,8 @@ def authenticate_orcid(payload:dict, token:str)-> User:
     try:
         jwt.decode(token, key=orcid_key, algorithms=['RS256'], audience=['APP-88DEA42BRILGEHKC', 'APP-ZQZ0BL62NV9SBWAX'])
     except Exception as exp:
-        print('exp:', exp)
         raise exceptions.AuthenticationFailed(exp)
+
     try:
         user = User.objects.get(username=Authentication.objects.get(auth_service__icontains=payload['sub']).username)
     except (Authentication.DoesNotExist, User.DoesNotExist):
