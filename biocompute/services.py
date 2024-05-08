@@ -97,13 +97,22 @@ class BcoValidator:
         """
         
         identifier = bco.get("object_id", "Unknown")
-        results = {identifier: {'number_of_errors': 0, 'error_detail': []}}
+        results = {
+            identifier: {
+                'number_of_errors': 0, 
+                'error_detail': [],
+                'score': 0,
+            }
+        }
 
         # Validate against the base schema
         base_schema = self.load_schema(bco['spec_version'])
         base_errors = self.validate_json(base_schema, bco)
         results[identifier]['error_detail'].extend(base_errors)
         results[identifier]['number_of_errors'] += len(base_errors)
+
+        if "usability_domain" in bco:
+            results[identifier]['score'] = sum(len(s) for s in bco['usability_domain'])
 
         # Validate against extension schemas, if any
         for extension in bco.get("extension_domain", []):
@@ -287,6 +296,7 @@ class ModifyBcoDraftSerializer(serializers.Serializer):
         )
         etag = generate_etag(bco_contents)
         bco_instance.contents['etag'] = etag
+        score = bco_score(bco_instance=bco_instance)
         bco_instance.save()
         if authorized_usernames:
             authorized_users = User.objects.filter(
@@ -405,8 +415,7 @@ class BcoDraftSerializer(serializers.Serializer):
         bco_contents = deepcopy(bco_instance.contents)
         etag = generate_etag(bco_contents)
         bco_instance.contents['etag'] = etag
-        bco_instance.save()
-
+        score = bco_score(bco_instance=bco_instance)
         if authorized_usernames:
             authorized_users = User.objects.filter(
                 username__in=authorized_usernames
@@ -595,11 +604,18 @@ def bco_score(bco_instance: Bco) -> Bco:
     """
 
     contents = bco_instance.contents
+
+    if "usability_domain" not in contents:
+        bco_instance.score = 0
+        return bco_instance
+        
     try:
         usability_domain_length = sum(len(s) for s in contents['usability_domain'])
         score = {"usability_domain_length": usability_domain_length}
     except TypeError:
         score = {"usability_domain_length": 0}
+        usability_domain_length = 0
+    
     bco_instance.score = usability_domain_length
     
     return bco_instance

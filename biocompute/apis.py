@@ -147,25 +147,26 @@ class DraftsCreateApi(APIView):
                 rejected_requests = True
                 continue
             
-            bco = BcoDraftSerializer(data=object, context={'request': request})
-        
-            if bco.is_valid():
+            serialized_bco = BcoDraftSerializer(data=object, context={'request': request})
+            if serialized_bco.is_valid():
                 try:
-                    bco.create(bco.validated_data)
+                    bco_instance = serialized_bco.create(serialized_bco.validated_data)
+                    response_id = bco_instance.object_id
+                    score = bco_instance.score
                     response_data.append(response_constructor(
-                        identifier=bco['object_id'].value,
+                        identifier=response_id,
                         status = "SUCCESS",
                         code= 200,
-                        message= f"BCO {bco['object_id'].value} created",
+                        message= f"BCO {response_id} created with a score of {score}",
                     ))
                     accepted_requests = True
 
                 except Exception as err:
                     response_data.append(response_constructor(
-                        identifier=bco['object_id'].value,
+                        identifier=serialized_bco['object_id'].value,
                         status = "SERVER ERROR",
                         code= 500,
-                        message= f"BCO {bco['object_id'].value} failed",
+                        message= f"BCO {serialized_bco['object_id'].value} failed",
                     ))
 
             else:
@@ -174,7 +175,7 @@ class DraftsCreateApi(APIView):
                     status = "REJECTED",
                     code= 400,
                     message= f"BCO {response_id} rejected",
-                    data=bco.errors
+                    data=serialized_bco.errors
                 ))
                 rejected_requests = True
 
@@ -424,6 +425,7 @@ class DraftsModifyApi(APIView):
                     )
                 ]
             )
+
         for index, object in enumerate(data):
             response_id = object.get("object_id", index)
             modify_permitted = user_can_modify_bco(response_id, requester)
@@ -449,16 +451,17 @@ class DraftsModifyApi(APIView):
                 rejected_requests = True
                 continue
             
-            bco = ModifyBcoDraftSerializer(data=object)
+            serialized_bco = ModifyBcoDraftSerializer(data=object)
         
-            if bco.is_valid():
+            if serialized_bco.is_valid():
                 try:
-                    bco.update(bco.validated_data)
+                    bco_instance = serialized_bco.update(serialized_bco.validated_data)
+                    score = bco_instance.score
                     response_data.append(response_constructor(
                         identifier=response_id,
                         status = "SUCCESS",
                         code= 200,
-                        message= f"BCO {response_id} updated",
+                        message= f"BCO {response_id} updated with a sore of {score}",
                     ))
                     accepted_requests = True
 
@@ -544,7 +547,7 @@ class ValidateBcoApi(APIView):
         validator = BcoValidator()
         response_data = []
         rejected_requests = False
-        accepted_requests = False
+        accepted_requests = True
         data = request.data
         if 'POST_validate_bco' in request.data:
             data = legacy_api_converter(data=request.data)
