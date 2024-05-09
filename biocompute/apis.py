@@ -321,28 +321,26 @@ class DraftsPublishApi(APIView):
                 continue
 
             bco_results = validator.parse_and_validate(bco_instance.contents)
-            for identifier, result in bco_results.items():
-                if result["number_of_errors"] > 0:
-                    response_data.append(response_constructor(
-                        identifier=response_id,
-                        status = "REJECTED",
-                        code= 400,
-                        message= f"Publishing BCO {response_id} rejected",
-                        data=bco_results
-                    ))
-                    rejected_requests = True
-                    
-                else:
-                    published_bco = publish_draft(bco_instance, requester, object)
-                    identifier=published_bco.object_id
-                    score = published_bco.score
-                    response_data.append(response_constructor(
-                        identifier=identifier,
-                        status = "SUCCESS",
-                        code= 201,
-                        message= f"BCO {identifier} has been published and assigned {score} as a score.",
-                    ))
-                    accepted_requests = True
+            identifier, results = bco_results.popitem()
+
+            if results["number_of_errors"] > 0:
+                rejected_requests = True
+                bco_status = "FAILED"
+                status_code = 400
+                message = "BCO not valid"
+            else:
+                accepted_requests = True
+                bco_status = "SUCCESS"
+                status_code = 200
+                message = "BCO valid"
+
+            response_data.append(response_constructor(
+                identifier = identifier,
+                status=bco_status,
+                code=status_code,
+                message=message,
+                data=results
+            ))
 
         status_code = response_status(accepted_requests, rejected_requests)
         return Response(status=status_code, data=response_data)
