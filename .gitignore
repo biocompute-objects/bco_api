@@ -130,11 +130,8 @@ dmypy.json
 
 # --- USER-ADDED IGNORES --- #
 
-# The settings file.
-bcodb/settings.py
-
 # The server configuration file.
-server.conf
+.secrets
 
 # The migrations folder.
 # bco_api/api/migrations/
@@ -143,3 +140,4 @@ server.conf
 static/
 # JetBrains IDEs
 .idea/
+backups

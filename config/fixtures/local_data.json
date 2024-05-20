@@ -1,5 +1,83 @@
 [
     {
+        "model": "admin.logentry",
+        "pk": 1,
+        "fields": {
+            "action_time": "2024-04-03T11:36:31.006Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+            "object_repr": "http://127.0.0.1:8000/NOPUB_000001/DRAFT",
+            "action_flag": 2,
+            "change_message": "[{\"changed\": {\"fields\": [\"Authorized users\"]}}]"
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 2,
+        "fields": {
+            "action_time": "2024-04-11T12:43:08.498Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/DRAFT",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/DRAFT",
+            "action_flag": 2,
+            "change_message": "[{\"changed\": {\"fields\": [\"Contents\"]}}]"
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 3,
+        "fields": {
+            "action_time": "2024-04-11T13:34:58.678Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "action_flag": 3,
+            "change_message": ""
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 4,
+        "fields": {
+            "action_time": "2024-04-11T15:01:33.676Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "action_flag": 3,
+            "change_message": ""
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 5,
+        "fields": {
+            "action_time": "2024-04-11T20:49:34.241Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "action_flag": 3,
+            "change_message": ""
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 6,
+        "fields": {
+            "action_time": "2024-04-11T20:52:33.448Z",
+            "user": 7,
+            "content_type": 12,
+            "object_id": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "object_repr": "http://127.0.0.1:8000/TEST_000001/1.21",
+            "action_flag": 3,
+            "change_message": ""
+        }
+    },
+    {
         "model": "auth.permission",
         "pk": 1,
         "fields": {
@@ -768,7 +846,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "1ef53d4042d14299918a4e1f21d2be128a2a7427",
+        "pk": "0bd55c955fcbfc269f6dc8f61ea107674cafdecb",
         "fields": {
             "user": 5,
             "created": "2024-03-14T15:21:04.318Z"
@@ -776,7 +854,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "49020e6fb85eb19a15bbdfb5cf6a1a28aaa8c1ce",
+        "pk": "bd97d8cbec1fc7234e11e80957496aefc20c6395",
         "fields": {
             "user": 7,
             "created": "2024-04-03T10:53:08.951Z"
@@ -784,7 +862,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "705531f3b2fbf80bb5a5b9d0cf4ee663676b4579",
+        "pk": "c400a6076a2dfe7e9906ab86c6ad4574d1d60e03",
         "fields": {
             "user": 4,
             "created": "2024-03-14T15:21:14.996Z"
@@ -792,7 +870,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "b8e588c4bdfb366420007827054042e8e594ec51",
+        "pk": "627626823549f787c3ec763ff687169206626149",
         "fields": {
             "user": 1,
             "created": "2024-03-14T13:53:45.793Z"
@@ -800,7 +878,7 @@
     },
     {
         "model": "authtoken.token",
-        "pk": "ba1a932a6af59930293e087c1633fa60927b6690",
+        "pk": "3f5504d88a5085d0452b19350fb6f82ae7097dd0",
         "fields": {
             "user": 6,
             "created": "2024-03-14T15:21:09.348Z"
@@ -1539,7 +1617,7 @@
                 "etag": "eb8ac2d04b2d3204b88e0bc6e3a66dcfac4af934c1ebe7ce629f8f584d5f3d7a",
                 "provenance_domain": {
                     "name": "HCV1a ledipasvir resistance SNP detection",
-                    "version": "1.1",
+                    "version": "1.0",
                     "created": "2017-01-24T09:40:17-0500",
                     "modified": "2024-04-11T16:44:51.054Z",
                     "review": [
@@ -4313,6 +4391,18 @@
             "description": "Test prefix",
             "owner": "tester",
             "counter": 7,
+            "public": true
+        }
+    },
+    {
+        "model": "prefix.prefix",
+        "pk": "HIVE",
+        "fields": {
+            "certifying_key": "lazc=!pr35pau5b2x-x70y3_t++d5^s4cgk=mjo5o3^9zvrzki",
+            "created": "2024-03-14T13:53:59Z",
+            "description": "Test HIVE prefix",
+            "owner": "hivelab",
+            "counter": 0,
             "public": true
         }
     }

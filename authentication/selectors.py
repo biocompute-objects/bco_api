@@ -2,10 +2,13 @@
 
 import jwt
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
-from authentication.models import Authentication
+from django.contrib.auth.models import User
+from django.db.models import Q
+from authentication.models import Authentication, NewUser
 from rest_framework.authtoken.models import Token
-
+from prefix.selectors import get_user_prefixes
+from prefix.models import Prefix
+from biocompute.selectors import get_authorized_bcos
 
 def get_anon()-> User:
     """Get AnonymosUser
@@ -38,10 +41,23 @@ def check_user_email(email: str)-> bool:
 
     Using the provided email check for a user in the DB
     """
+
     try:
         if User.objects.get(email=email):
             return True
     except User.DoesNotExist:
+        return False
+
+def check_new_user(email: str) -> bool:
+    """Check for new user
+
+    Using the provided email check for a new user in the DB.
+    """
+    
+    try:
+        NewUser.objects.get(email=email)
+        return True
+    except NewUser.DoesNotExist:
         return False
 
 def get_user_info(user: User) -> dict:
@@ -56,34 +72,18 @@ def get_user_info(user: User) -> dict:
         A dict with the user information.
     """
 
-    token = Token.objects.get(user=user.pk)
-    other_info = {
-        "permissions": {},
-        "account_creation": "",
-        "account_expiration": "",
-    }
-    user_perms = {"user": [], "groups": []}
-
-    for permission in user.user_permissions.all():
-        if permission.name not in user_perms["user"]:
-            user_perms["user"].append(permission.name)
-
-    for group in user.groups.all():
-        if group.name not in user_perms["groups"]:
-            user_perms["groups"].append(group.name)
-        for permission in Permission.objects.filter(group=group):
-            if permission.name not in user_perms["user"]:
-                user_perms["user"].append(permission.name)
-
-    other_info["permissions"] = user_perms
-
-    other_info["account_creation"] = user.date_joined
-
     return {
-        "hostname": settings.ALLOWED_HOSTS[0],
+        "hostname": settings.HOSTNAME,
         "human_readable_hostname": settings.HUMAN_READABLE_HOSTNAME,
         "public_hostname": settings.PUBLIC_HOSTNAME,
-        "token": token.key,
+        "token": Token.objects.get(user=user.pk).key,
         "username": user.username,
-        "other_info": other_info,
+        "permissions": {
+            "owned_prefixes": Prefix.objects.filter(
+                Q(owner=user)
+            ).values_list('prefix', flat=True).distinct(),
+            "permissions": get_user_prefixes(user),
+            "BCOs": get_authorized_bcos(user)
+        },
+        "account_creation": user.date_joined
     }
