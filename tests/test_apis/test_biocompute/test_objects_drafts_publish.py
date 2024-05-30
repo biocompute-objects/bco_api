@@ -5,7 +5,7 @@
 DraftsPublishApi:
 - checks for legacy submission
 - for each object:
- - `user_can_publish_bco`:
+ - `user_can_publish_draft`:
    - checks for published_object_id and makes sure it does not exist
    - checks that DRAFT exists
    - if published_object_id in request, then checks that published_object_id version matches BCO version

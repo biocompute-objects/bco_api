@@ -4,7 +4,7 @@
 """BioCompute Object APIs
 """
 
-from authentication.services import CustomJSONWebTokenAuthentication
+import jsonref
 from biocompute.services import (
     BcoDraftSerializer,
     BcoValidator,
@@ -13,13 +13,16 @@ from biocompute.services import (
     bco_counter_increment
 )
 from biocompute.selectors import (
+    object_id_deconstructor,
     retrieve_bco,
     user_can_modify_bco,
-    user_can_publish_bco,
+    user_can_publish_draft,
+    user_can_publish_prefix,
+    prefix_from_object_id,
 )
 from config.services import (
     legacy_api_converter,
-    response_constructor,
+    bulk_response_constructor,
     response_status,
 )
 from drf_yasg import openapi
@@ -34,6 +37,7 @@ from rest_framework.response import Response
 from tests.fixtures.testing_bcos import BCO_000001_DRAFT
 
 hostname = settings.PUBLIC_HOSTNAME
+BASE_DIR = settings.BASE_DIR
 
 BCO_DRAFT_SCHEMA = openapi.Schema(
         type=openapi.TYPE_ARRAY,
@@ -114,7 +118,7 @@ class DraftsCreateApi(APIView):
             return Response(
                 status=status.HTTP_200_OK,
                 data=[
-                    response_constructor(
+                    bulk_response_constructor(
                         identifier=test_object_id,
                         status = "SUCCESS",
                         code= 200,
@@ -129,7 +133,7 @@ class DraftsCreateApi(APIView):
             prefix_permitted = user_can_draft_prefix(owner, bco_prefix)
 
             if prefix_permitted is None:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "NOT FOUND",
                     code= 404,
@@ -139,7 +143,7 @@ class DraftsCreateApi(APIView):
                 continue
 
             if prefix_permitted is False:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "FORBIDDEN",
                     code= 400,
@@ -155,7 +159,7 @@ class DraftsCreateApi(APIView):
                     bco_instance = serialized_bco.create(serialized_bco.validated_data)
                     response_id = bco_instance.object_id
                     score = bco_instance.score
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=response_id,
                         status = "SUCCESS",
                         code= 200,
@@ -164,7 +168,7 @@ class DraftsCreateApi(APIView):
                     accepted_requests = True
 
                 except Exception as err:
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=serialized_bco['object_id'].value,
                         status = "SERVER ERROR",
                         code= 500,
@@ -172,7 +176,7 @@ class DraftsCreateApi(APIView):
                     ))
 
             else:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "REJECTED",
                     code= 400,
@@ -183,6 +187,149 @@ class DraftsCreateApi(APIView):
 
         status_code = response_status(accepted_requests, rejected_requests)
         return Response(status=status_code, data=response_data)
+
+class PublishBcoApi(APIView):
+    """Publish Single BCO
+
+    API endpoint for publishing a BioCompute Object (BCO).
+
+    This endpoint allows authenticated users to publish an individual BCO. 
+    The draft is validated and processed upon submission.
+    """
+
+    permission_classes = [IsAuthenticated]
+    # swagger_schema = None
+    #TODO: Add Swaggar docs
+    # schema  = jsonref.load_uri(
+    #     f"file://{BASE_DIR}/config/IEEE/2791object.json"
+    # )
+    @swagger_auto_schema(
+        operation_id="api_objects_publish",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            # properties=schema,
+            
+    ),
+        responses={
+            200: "Request was accepted.",
+            400: "Requests was rejected.",
+            403: "Invalid token.",
+        },
+        tags=["BCO Management"],
+    )
+
+    def post(self, request) -> Response:
+        validator = BcoValidator()
+        requester = request.user
+        data = request.data
+        identifier, bco_results = validator.parse_and_validate(data).popitem()
+        prefix_name = prefix_from_object_id(identifier)
+        publish_permission = user_can_publish_prefix(requester, prefix_name)
+
+        if bco_results["number_of_errors"] > 0:
+            response_data = bulk_response_constructor(
+                identifier = identifier,
+                status="FAILED",
+                code=400,
+                message="BCO not valid",
+                data=bco_results
+            )
+        else:
+            response_data = bulk_response_constructor(
+                identifier = identifier,
+                status="SUCCESS",
+                code=200,
+                message="BCO valid",
+                data=bco_results
+            )
+
+        import pdb; pdb.set_trace()
+        return Response(status=status.HTTP_200_OK, data=response_data)
+    
+        # for index, object in enumerate(data):
+        #     response_id = object.get("object_id", index)
+        #     bco_instance = user_can_publish_draft(object, requester)
+
+        #     if bco_instance is None:
+        #         response_data.append(bulk_response_constructor(
+        #             identifier=response_id,
+        #             status = "NOT FOUND",
+        #             code= 404,
+        #             message= f"Invalid BCO: {response_id} does not exist.",
+        #         ))
+        #         rejected_requests = True
+        #         continue
+
+        #     if bco_instance is False:
+        #         response_data.append(bulk_response_constructor(
+        #             identifier=response_id,
+        #             status = "FORBIDDEN",
+        #             code= 403,
+        #             message= f"User, {requester}, does not have draft permissions"\
+        #                 + f" for BCO {response_id}.",
+        #         ))
+        #         rejected_requests = True
+        #         continue
+
+        #     if type(bco_instance) is str:
+        #         response_data.append(bulk_response_constructor(
+        #             identifier=response_id,
+        #             status = "BAD REQUEST",
+        #             code= 400,
+        #             message= bco_instance
+        #         ))
+        #         rejected_requests = True
+        #         continue
+
+        #     if type(bco_instance) is tuple:
+        #         response_data.append(bulk_response_constructor(
+        #             identifier=response_id,
+        #             status = "BAD REQUEST",
+        #             code= 400,
+        #             message= f"Invalid `published_object_id`."\
+        #                 + f"{bco_instance[0]} and {bco_instance[1]}"\
+        #                 + " do not match.",
+        #         ))
+        #         rejected_requests = True
+        #         continue
+            
+        #     if bco_instance.state == 'PUBLISHED':
+        #         object_id = bco_instance.object_id
+        #         response_data.append(bulk_response_constructor(
+        #             identifier=response_id,
+        #             status = "CONFLICT",
+        #             code= 409,
+        #             message= f"Invalid `object_id`: {object_id} already"\
+        #                 + " exists.",
+        #         ))
+        #         rejected_requests = True
+        #         continue
+
+        #     bco_results = validator.parse_and_validate(bco_instance.contents)
+        #     import pdb; pdb.set_trace()
+        #     identifier, results = bco_results.popitem()
+
+        #     if results["number_of_errors"] > 0:
+        #         rejected_requests = True
+        #         bco_status = "FAILED"
+        #         status_code = 400
+        #         message = "BCO not valid"
+        #     else:
+        #         accepted_requests = True
+        #         bco_status = "SUCCESS"
+        #         status_code = 200
+        #         message = "BCO valid"
+
+        #     response_data.append(bulk_response_constructor(
+        #         identifier = identifier,
+        #         status=bco_status,
+        #         code=status_code,
+        #         message=message,
+        #         data=results
+        #     ))
+
+        # status_code = response_status(accepted_requests, rejected_requests)
+        # return Response(status=status_code, data=response_data)
 
 class DraftsPublishApi(APIView):
     """Publish Draft BCO [Bulk Enabled]
@@ -248,13 +395,13 @@ class DraftsPublishApi(APIView):
         accepted_requests = False
         if 'POST_api_objects_drafts_publish' in request.data:
             data = legacy_api_converter(request.data)
-        
+
         if "object_id" in data[0] and data[0]["object_id"] == \
             f"{hostname}/TEST_000001/DRAFT":
             identifier= f"{hostname}/TEST_000001/DRAFT"
             return Response(
                 status=status.HTTP_200_OK, 
-                data=[response_constructor(
+                data=[bulk_response_constructor(
                     identifier=identifier,
                     status = "SUCCESS",
                     code= 201,
@@ -265,10 +412,10 @@ class DraftsPublishApi(APIView):
 
         for index, object in enumerate(data):
             response_id = object.get("object_id", index)
-            bco_instance = user_can_publish_bco(object, requester)
+            bco_instance = user_can_publish_draft(object, requester)
 
             if bco_instance is None:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "NOT FOUND",
                     code= 404,
@@ -278,7 +425,7 @@ class DraftsPublishApi(APIView):
                 continue
 
             if bco_instance is False:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "FORBIDDEN",
                     code= 403,
@@ -289,7 +436,7 @@ class DraftsPublishApi(APIView):
                 continue
 
             if type(bco_instance) is str:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "BAD REQUEST",
                     code= 400,
@@ -299,7 +446,7 @@ class DraftsPublishApi(APIView):
                 continue
 
             if type(bco_instance) is tuple:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "BAD REQUEST",
                     code= 400,
@@ -312,7 +459,7 @@ class DraftsPublishApi(APIView):
             
             if bco_instance.state == 'PUBLISHED':
                 object_id = bco_instance.object_id
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "CONFLICT",
                     code= 409,
@@ -323,7 +470,7 @@ class DraftsPublishApi(APIView):
                 continue
 
             bco_results = validator.parse_and_validate(bco_instance.contents)
-            import pdb; pdb.set_trace()
+
             identifier, results = bco_results.popitem()
 
             if results["number_of_errors"] > 0:
@@ -332,12 +479,17 @@ class DraftsPublishApi(APIView):
                 status_code = 400
                 message = "BCO not valid"
             else:
+                publish_draft(
+                    bco_instance=bco_instance,
+                    user=requester,
+                    object=object
+                )
                 accepted_requests = True
                 bco_status = "SUCCESS"
                 status_code = 200
                 message = "BCO valid"
 
-            response_data.append(response_constructor(
+            response_data.append(bulk_response_constructor(
                 identifier = identifier,
                 status=bco_status,
                 code=status_code,
@@ -418,7 +570,7 @@ class DraftsModifyApi(APIView):
             return Response(
                 status=status.HTTP_200_OK,
                 data=[
-                    response_constructor(
+                    bulk_response_constructor(
                         identifier=test_object_id,
                         status = "SUCCESS",
                         code= 200,
@@ -432,7 +584,7 @@ class DraftsModifyApi(APIView):
             modify_permitted = user_can_modify_bco(response_id, requester)
             
             if modify_permitted is None:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "NOT FOUND",
                     code= 404,
@@ -442,7 +594,7 @@ class DraftsModifyApi(APIView):
                 continue
 
             if modify_permitted is False:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "FORBIDDEN",
                     code= 400,
@@ -458,7 +610,7 @@ class DraftsModifyApi(APIView):
                 try:
                     bco_instance = serialized_bco.update(serialized_bco.validated_data)
                     score = bco_instance.score
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=response_id,
                         status = "SUCCESS",
                         code= 200,
@@ -467,7 +619,7 @@ class DraftsModifyApi(APIView):
                     accepted_requests = True
 
                 except Exception as err:
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=response_id,
                         status = "SERVER ERROR",
                         code= 500,
@@ -476,7 +628,7 @@ class DraftsModifyApi(APIView):
                     rejected_requests = True
 
             else:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "REJECTED",
                     code= 400,
@@ -562,14 +714,14 @@ class ValidateBcoApi(APIView):
                 bco_status = "FAILED"
                 status_code = 400
                 message = "BCO not valid"
+
             else:
-                import pdb; pdb.set_trace()
                 accepted_requests = True
                 bco_status = "SUCCESS"
                 status_code = 200
                 message = "BCO valid"
 
-            response_data.append(response_constructor(
+            response_data.append(bulk_response_constructor(
                 identifier = identifier,
                 status=bco_status,
                 code=status_code,
