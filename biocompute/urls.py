@@ -7,6 +7,7 @@ from biocompute.apis import (
     DraftsCreateApi,
     DraftsModifyApi,
     DraftsPublishApi,
+    PublishBcoApi,
     ValidateBcoApi,
 )
 
@@ -15,4 +16,5 @@ urlpatterns = [
     path("objects/drafts/modify/", DraftsModifyApi.as_view()),
     path("objects/drafts/publish/", DraftsPublishApi.as_view()),
     path("objects/validate/", ValidateBcoApi.as_view()),
+    path("objects/publish/", PublishBcoApi.as_view()),
 ]

@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from config.services import legacy_api_converter, response_constructor
+from config.services import legacy_api_converter, bulk_response_constructor
 from prefix.services import PrefixSerializer, delete_prefix
 from prefix.selectors import get_prefix_object, get_user_prefixes
 
@@ -151,7 +151,7 @@ class PrefixesCreateApi(APIView):
         if data[0]['prefix']=='test' and data[0]['public'] is True:
             return Response(
                 status=status.HTTP_201_CREATED,
-                data=[response_constructor(
+                data=[bulk_response_constructor(
                     identifier="TEST",
                     status = "SUCCESS",
                     code= 201,
@@ -165,7 +165,7 @@ class PrefixesCreateApi(APIView):
 
             if prefix_data.is_valid():
                 prefix_data.create(prefix_data.validated_data)
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "SUCCESS",
                     code= 201,
@@ -174,7 +174,7 @@ class PrefixesCreateApi(APIView):
                 accepted_requests = True
                 
             else:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "REJECTED",
                     code= 400,
@@ -249,7 +249,7 @@ class PrefixesDeleteApi(APIView):
         if data[0] == "TEST":
             return Response(
                 status=status.HTTP_201_CREATED,
-                data=[response_constructor(
+                data=[bulk_response_constructor(
                     identifier="TEST",
                     status = "SUCCESS",
                     code= 200,
@@ -261,7 +261,7 @@ class PrefixesDeleteApi(APIView):
             response_status = delete_prefix(object, requester)
 
             if response_status is True:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "SUCCESS",
                     code= 200,
@@ -270,7 +270,7 @@ class PrefixesDeleteApi(APIView):
                 accepted_requests = True
 
             else:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "REJECTED",
                     code= 400,
@@ -349,7 +349,7 @@ class PrefixGetInfoApi(APIView):
             try: 
                 if response_object['public'] is True or \
                     requester.username in response_object['user_permissions']:
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=response_id,
                         status = "SUCCESS",
                         code= 200,
@@ -358,7 +358,7 @@ class PrefixGetInfoApi(APIView):
                     ))
                     accepted_requests = True
                 else:
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=response_id,
                         status = "FORBIDDEN",
                         code= 403,
@@ -368,7 +368,7 @@ class PrefixGetInfoApi(APIView):
             
             except TypeError:
                 if response_object is None:
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=response_id,
                         status = "NOT FOUND",
                         code= 404,
@@ -376,7 +376,7 @@ class PrefixGetInfoApi(APIView):
                     ))
                     rejected_requests = True
                 else:
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=response_id,
                         status = "BAD REQUEST",
                         code= 400,
@@ -441,7 +441,7 @@ class PrefixesModifyApi(APIView):
             if prefix.is_valid():
                 if requester == prefix.validated_data['owner']:
                     prefix_update = prefix.update(prefix.validated_data)
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=response_id,
                         status = "SUCCESS",
                         code= 200,
@@ -451,7 +451,7 @@ class PrefixesModifyApi(APIView):
                     accepted_requests = True
                 
                 else:
-                    response_data.append(response_constructor(
+                    response_data.append(bulk_response_constructor(
                         identifier=response_id,
                         status = "REJECTED",
                         code= 400,
@@ -461,7 +461,7 @@ class PrefixesModifyApi(APIView):
                     rejected_requests = True
 
             else:
-                response_data.append(response_constructor(
+                response_data.append(bulk_response_constructor(
                     identifier=response_id,
                     status = "REJECTED",
                     code= 400,

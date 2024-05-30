@@ -12,7 +12,7 @@ from rest_framework import status
 """
 
 def response_status(accepted_requests: bool, rejected_requests: bool)-> status:
-    """Determine Response Status
+    """Determine Response Status for Bulk Requests
     
     Determines the appropriate HTTP response status code based on the 
     acceptance or rejection of requests.
@@ -79,7 +79,7 @@ def legacy_api_converter(data:dict) ->dict:
     
     return new_data
 
-def response_constructor(
+def bulk_response_constructor(
     identifier: str,
     status: str,
     code: str,

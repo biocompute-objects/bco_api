@@ -73,11 +73,11 @@ def prefix_from_object_id(object_id: str) -> str:
             f"The object ID '{object_id}' does not conform to the expected"\
             + "format and the prefix cannot be extracted."
         )
-    
-def user_can_publish_bco(object: dict, user:User) -> Bco:
-    """Publish BCO
 
-    Determines if a user has permission to publish a specific BioCompute
+def user_can_publish_draft(object: dict, user:User) -> Bco:
+    """Publish Draft BCO
+
+    Determines if a user has permission to publish a specific Draft BioCompute
     Object (BCO).
 
     Checks if a given user is authorized to publish a BCO identified by its
