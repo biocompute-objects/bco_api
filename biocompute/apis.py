@@ -102,12 +102,14 @@ class DraftsCreateApi(APIView):
         data = request.data
         rejected_requests = False
         accepted_requests = False
-
+        
         if 'POST_api_objects_draft_create' in request.data:
             data = legacy_api_converter(request.data)
 
-        if data[0]["contents"]["object_id"]==BCO_000001_DRAFT["object_id"] and\
-            request.data[0]["prefix"] == "TEST":
+        test_id = data[0]["contents"].get("object_id", None)
+        test_prefix = data[0].get("prefix", None)
+
+        if test_id==BCO_000001_DRAFT["object_id"] and test_prefix == "TEST":
             test_object_id = BCO_000001_DRAFT["object_id"]
             return Response(
                 status=status.HTTP_200_OK,
@@ -321,6 +323,7 @@ class DraftsPublishApi(APIView):
                 continue
 
             bco_results = validator.parse_and_validate(bco_instance.contents)
+            import pdb; pdb.set_trace()
             identifier, results = bco_results.popitem()
 
             if results["number_of_errors"] > 0:
@@ -560,6 +563,7 @@ class ValidateBcoApi(APIView):
                 status_code = 400
                 message = "BCO not valid"
             else:
+                import pdb; pdb.set_trace()
                 accepted_requests = True
                 bco_status = "SUCCESS"
                 status_code = 200
@@ -653,7 +657,6 @@ class PublishedRetrieveApi(APIView):
         Specifies the version of the BCO to be retrieved.
     """
     
-    authentication_classes = [CustomJSONWebTokenAuthentication]
     permission_classes = [AllowAny]
     
     @swagger_auto_schema(
