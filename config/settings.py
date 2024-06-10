@@ -5,6 +5,7 @@ Django settings for BioCompute Database project.
 import os
 from datetime import timedelta
 import configparser
+import django
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # --- SECURITY SETTINGS --- #
