@@ -478,12 +478,14 @@ class DraftsPublishApi(APIView):
                 bco_status = "FAILED"
                 status_code = 400
                 message = "BCO not valid"
+
             else:
-                publish_draft(
+                new_bco_instance = publish_draft(
                     bco_instance=bco_instance,
                     user=requester,
                     object=object
                 )
+                identifier = new_bco_instance.object_id
                 accepted_requests = True
                 bco_status = "SUCCESS"
                 status_code = 200
@@ -633,7 +635,7 @@ class DraftsModifyApi(APIView):
                     status = "REJECTED",
                     code= 400,
                     message= f"BCO {response_id} rejected",
-                    data=bco.errors
+                    data=serialized_bco.errors
                 ))
                 rejected_requests = True
 
