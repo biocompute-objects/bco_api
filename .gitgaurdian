@@ -1,3 +1,2 @@
-exclude:
-  - tests/*
-  - admin_only/*
+tests/*
+admin_only/*
