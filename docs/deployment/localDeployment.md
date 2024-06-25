@@ -34,8 +34,7 @@ vim bco_api/bco_api/server.conf
 
 Production and publishing flags NOTE: Valid values are True or False (note the capitalization).
 
-[PRODUCTION]
-production=False
+
 DB Version
 
 [VERSION]
