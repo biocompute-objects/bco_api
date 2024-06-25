@@ -56,7 +56,7 @@ The HOSTNAME to be returnd in the `user_info` object. This is used by the BCO Po
 The HUMAN_READABLE_HOSTNAME to be returnd in the `user_info` object. This is used by the BCO Portal for interacting with a specific instance of the BCO DB, and in the Swager Docs. 
 
 ### PUBLIC_HOSTNAME
-The PUBLIC_HOSTNAME to be returnd in the `user_info` object. This is used by the BCO Portal for interacting with a specific instance of the BCO DB, and in the Swager Docs. It is also utilized by the `activation_link`, `retrieve_bco`, `validate_bco_object_id` functions, as well as in the API tests.
+The PUBLIC_HOSTNAME to be returnd in the `user_info` object. This is used by the BCO Portal for interacting with a specific instance of the BCO DB (i.e. to make requests), and in the Swager Docs. It is also utilized by the `activation_link`, `retrieve_bco`, `validate_bco_object_id` functions, as well as in the API tests.
 
 ### DATABASE
 This value is used as the `"NAME"`in Django's [DATABASES](https://docs.djangoproject.com/en/5.0/ref/settings/#databases) object. The BCO DB is set up to use the default SQLITE. If you would like to have a database that is outside of the project folder and/or has a non-default name than you can provide an absolute path for the name value here.
