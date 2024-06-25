@@ -1,5 +1,10 @@
 # BCODB Local Deployment
 
+## System Setup
+### Requirements
+- Python 3: [3.10.6 reccomended](https://www.python.org/downloads/release/python-3106/)
+- [PyEnv](https://github.com/pyenv/pyenv) (optional but recommended fro Mac/Linux)
+
 ## Clone the repository
 ```
 git clone https://github.com/biocompute-objects/bco_api
@@ -11,12 +16,21 @@ git clone https://github.com/biocompute-objects/bco_api
 git switch [DESIRED BRANCH TAG]
 ```
 
-## Enter the repository, create a virtual environment, and install the required packages
+## Enter the repository
 ```
 cd bco_api
+```
 
+## Create a virtual environment and install the required packages
+
+### For Mac/Linux:
+
+*skip this first step if you do not want to use `pyenv`*
+```
 pyenv local 3.10.6
+```
 
+```
 python3 -m venv env
 
 source env/bin/activate
@@ -24,66 +38,90 @@ source env/bin/activate
 python -m pip install -r requirements.txt 
 ```
 
-(You can use python3 if you’d like, but since you’re in the virtual environment you created python points to python3.10.6)
+*If you are using `pyenv` and  you’re in the virtual environment you created using just `python` points to python3.10.6*
 
-## Modify the Config files:
-Check/Edit the server.conf file
-This is the main server configuration file for the BCO API. (most of these values will NOT need to be changed for local deployment)
+### For Windows:
+```
+`cd server`
+`python -m venv env`
+`source env/Scripts/activate`
+`pip install -r requirements.txt`
+```
 
-vim bco_api/bco_api/server.conf
+## Configure the DB settings using the `.secrets` file:
 
-Production and publishing flags NOTE: Valid values are True or False (note the capitalization).
+### OPTION 1: Generate the secrets file 
+
+In the project root copy the `.secrets.example` to `.secrets`
+
+```
+cp .secrets.example .secrets
+```
+#### Generate the DJANGO_KEY
+Generate a 32-bytes long PSK key using the `openssl` command or `PowerShell` command.
+
+##### Mac/Linux:
+```
+openssl rand -base64 32
+```
+##### Windows:
+```   
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }) -as [byte[]])
+```
+
+Use a text editor to open the `.secrets` file update the rest of the values with the required values. For specifics see the [configuration](/docs/config.md) documentation. 
+
+### OPTION 2: Use the `local_deployment.secrets` file
+Fromt the project root:
+```
+cp admin_only/local_deployment.secrets .secrets
+```
+
+## Set up the databse
+### Option #1: Use existing DB
+This option will give you a working BCO DB with a couple of test users, existing BCOs, and some prefixes. 
+```
+cp admin/db.sqlite3 .
+python3 manage.py migrate
+```
 
 
-DB Version
+superusername: bco_api_user
+password: testing123
+````
 
-[VERSION]
-version=22.01
-Is this a publish-only server?
+---
+### Option #2: Create a new DB with test data
+Create a DB:
 
-[PUBLISHONLY]
-publishonly=False
-Security settings: Create a key for an anonymous public user.
+`python3 manage.py migrate`
 
-[KEYS]
-anon=627626823549f787c3ec763ff687169206626149
-Which host names do you want to associate with the server? Note: the local hostname (i.e. 127.0.0.1) should come at the end.
+Load the DB with test data:
 
-[HOSTNAMES]
-prod_names=test.portal.biochemistry.gwu.edu,127.0.0.1
-names=127.0.0.1:8000,127.0.0.1
-Give the human-readable hostnames
+`python manage.py loaddata tests/fixtures/testing_data.json`
 
-[HRHOSTNAME]
-hrnames=BCO Server (Default)
-The public hostname of the server (i.e. the one to make requests to)
+---
+#### Run Server
+`python3 manage.py runserver 8080`
 
-[PUBLICHOSTNAME]
-prod_name=https://test.portal.biochemistry.gwu.edu
-name=http://127.0.0.1:8000
-Who gets to make requests?
+Make sure API is accessible via web browser. EX: 
+````
+http://localhost:8080/users/admin/ 
+````
+If it worked you should be able to see the API Documentation site at:
 
-[REQUESTS_FROM]
-portal=https://test.portal.biochemistry.gwu.edu
-local_development_portal=http://127.0.0.1:3000,http://localhost:3000
-public=true
-Namings: How do you want to name your objects?
+`http://localhost:8080/users/docs/`
 
-[OBJECT_NAMING]
-prod_root_uri=https://test.portal.biochemistry.gwu.edu
-root_uri=http://127.0.0.1:8000
-prod_uri_regex=root_uri/prefix_(\d+)/(\d+).(\d+)
-uri_regex=root_uri/prefix_(\d+)/(\d+).(\d+)
-**Requests ** Where are the request templates defined?
 
-[REQUESTS]
-folder=../api/request_definitions/
-Where are the validation templates defined?
 
-[VALIDATIONS]
-folder=../api/validation_definitions/
-Set up DB
-cd bco_api/bco_api
+
+
+
+
+
+
+
+
 
 Option #1: Use existing DB
 Copy the dev db
