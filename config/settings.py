@@ -12,7 +12,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Load the server config file.
 secrets = configparser.ConfigParser()
 secrets.read(BASE_DIR + "/.secrets")
-PRODUCTION = secrets["SERVER"]["PRODUCTION"]
 DEBUG = secrets["SERVER"]["DEBUG"]
 VERSION = secrets["SERVER"]["SERVER_VERSION"]
 # Set the anonymous user's key.
