@@ -118,4 +118,10 @@ You should be able to log in with the superuser credentials you created or impor
 
 If you copied over the existing databases you should be able to use any of the tokens[KEYs] listed in the [authtoken_token.tsv](/admin_only/test_database_tables/authtoken_token.tsv) table to submit requests via the [Swagger page](http://localhost:8000/api/docs/)
 
-Otherwise you will have to create a new user. #TODO: Add to FAQs
+Otherwise you will have to create a new user.
+
+## "What Can I Do Now?"
+
+- Use the [Swagger Docs](http://localhost:8000/api/docs/) to develop or experiment with the APIs.
+- Connect to the public [BCO Portal](https://biocomputeobject.org/).
+
