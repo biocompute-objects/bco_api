@@ -1,0 +1,4 @@
+id	bco_id	user_id
+1	http://127.0.0.1:8000/BCO_000001/DRAFT	4
+2	http://127.0.0.1:8000/NOPUB_000001/DRAFT	5
+3	http://127.0.0.1:8000/TEST_000001/DRAFT	4

@@ -1,0 +1,5 @@
+prefix	certifying_key	created	description	counter	public	owner_id
+BCO	1	3/14/24 13:53	Default prefix for all BioCompute Objects	4	1	AnonymousUser
+NOPUB		3/26/24 22:22	Test non-public prefix.	0	0	bco_api_user
+TEST	12345	3/14/24 13:53	Test prefix	7	1	tester
+HIVE	lazc=!pr35pau5b2x-x70y3_t++d5^s4cgk=mjo5o3^9zvrzki	3/14/24 13:53	Test HIVE prefix	0	1	hivelab
