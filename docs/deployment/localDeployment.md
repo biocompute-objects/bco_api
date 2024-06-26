@@ -3,7 +3,7 @@
 ## System Setup
 ### Requirements
 - Python 3: [3.10.6 reccomended](https://www.python.org/downloads/release/python-3106/)
-- [PyEnv](https://github.com/pyenv/pyenv) (optional but recommended fro Mac/Linux)
+- [PyEnv](https://github.com/pyenv/pyenv) (optional but recommended for Mac/Linux)
 
 ## Clone the repository
 ```
@@ -38,7 +38,7 @@ source env/bin/activate
 python -m pip install -r requirements.txt 
 ```
 
-*If you are using `pyenv` and  you’re in the virtual environment you created using just `python` points to python3.10.6*
+*If you are using `pyenv` and you’re in the virtual environment you created using just `python` points to python3.10.6*
 
 ### For Windows:
 ```
@@ -77,7 +77,7 @@ Fromt the project root:
 cp admin_only/local_deployment.secrets .secrets
 ```
 
-## Set up the databse
+## Set up the database
 Both options will give you a working BCO DB with a couple of test users, existing BCOs, and some prefixes. 
 
 The details for the test data is included in the 
@@ -108,14 +108,14 @@ Start the Django server.
 python3 manage.py runserver
 ```
 
-The BCO DB is designed to run on the default django port `8000`. If you want to use another port you can specify that option at the end of the command: `python3 manage.py runserver 8181`
+The BCO DB is designed to run on the default Django port `8000`. If you want to use another port you can specify that option at the end of the command: `python3 manage.py runserver 8181`
 
-Make sure API is accessible via web browser. If it worked you should be able to see the Django Admin site at:
+Make sure API is accessible via web browser. If it worked, you should be able to see the Django Admin site at:
 ```
 http://localhost:8000/api/admin/
 ```
-If it worked you should be able to Log in with the superuser credentials you created or imported
+You should be able to log in with the superuser credentials you created or imported
 
-If you copied over the existing dbs you should be able to use any of the tokens[KEYs] listed in the [authtoken_token.tsv](/admin_only/test_database_tables/authtoken_token.tsv) table to submit requests via the [Swagger page](http://localhost:8000/api/docs/)
+If you copied over the existing databases you should be able to use any of the tokens[KEYs] listed in the [authtoken_token.tsv](/admin_only/test_database_tables/authtoken_token.tsv) table to submit requests via the [Swagger page](http://localhost:8000/api/docs/)
 
 Otherwise you will have to create a new user. #TODO: Add to FAQs
