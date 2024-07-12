@@ -608,7 +608,7 @@ def bco_score(bco_instance: Bco) -> Bco:
     if "usability_domain" not in contents:
         bco_instance.score = 0
         return bco_instance
-        
+
     try:
         usability_domain_length = sum(len(s) for s in contents['usability_domain'])
         score = {"usability_domain_length": usability_domain_length}
@@ -616,6 +616,28 @@ def bco_score(bco_instance: Bco) -> Bco:
         score = {"usability_domain_length": 0}
         usability_domain_length = 0
     
-    bco_instance.score = usability_domain_length
-    
+    # Calculate the base score
+    base_score = usability_domain_length
+
+    # Apply the field length modifier
+    field_length_modifier = 1.2
+    base_score *= field_length_modifier
+
+    # Check for the existence of the error domain
+    error_domain_exists = "error_domain" in contents
+    if error_domain_exists:
+        base_score += 5
+
+    # Apply the parametric object multiplier
+    parametric_object_count = len(contents.get('parametric_objects', []))
+    parametric_object_multiplier = 1.1
+    base_score *= (parametric_object_multiplier ** parametric_object_count)
+
+    # Add score for each reviewer object (up to 5)
+    reviewer_object_count = min(5, len(contents.get('reviewer_objects', [])))
+    base_score += reviewer_object_count
+
+    # Finalize the score
+    bco_instance.score = base_score
+
     return bco_instance
