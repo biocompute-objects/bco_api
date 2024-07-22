@@ -25,6 +25,7 @@ from config.services import (
     bulk_response_constructor,
     response_status,
 )
+from deepdiff import DeepDiff
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.conf import settings
@@ -34,7 +35,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from tests.fixtures.testing_bcos import BCO_000001_DRAFT
+from tests.fixtures.testing_bcos import BCO_000001_DRAFT, BCO_000000_DRAFT
 
 hostname = settings.PUBLIC_HOSTNAME
 BASE_DIR = settings.BASE_DIR
@@ -198,7 +199,7 @@ class PublishBcoApi(APIView):
     """
 
     permission_classes = [IsAuthenticated]
-    # swagger_schema = None
+    swagger_schema = None
     #TODO: Add Swaggar docs
     # schema  = jsonref.load_uri(
     #     f"file://{BASE_DIR}/config/IEEE/2791object.json"
@@ -860,3 +861,86 @@ class PublishedRetrieveApi(APIView):
     
         bco_counter_increment(bco_instance)
         return Response(status=status.HTTP_200_OK, data=bco_instance.contents)
+
+class CompareBcoApi(APIView):
+    """Bulk Compare BCOs  [Bulk Enabled]
+
+    --------------------
+
+    Bulk operation to compare BCOs.
+
+    ```JSON
+    [
+        {...BCO CONTENTS...},
+        {...BCO CONTENTS...}
+    ]
+
+    """
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    
+    @swagger_auto_schema(
+        operation_id="api_bco_compare",
+        request_body=openapi.Schema(
+        type=openapi.TYPE_ARRAY,
+        title="Bulk Compare BCOs",
+        items=openapi.Schema(
+            type=openapi.TYPE_ARRAY,
+            example=[BCO_000000_DRAFT, BCO_000001_DRAFT],
+            items=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                required=["contents"],
+                description="Contents of the BCO.",
+            )
+        ),
+        description="Compare one BCO against another.",
+        ),
+        responses={
+            200: "All BCO comparisons are successful.",
+            207: "Some or all BCO comparisons failed. Each object submitted"
+                " will have it's own response object with it's own status"
+                " message:\n",
+            400: "Bad request."
+        },
+        tags=["BCO Management"],
+    )
+    def post(self, request):
+        validator = BcoValidator()
+        response_data = []
+        rejected_requests = False
+        accepted_requests = True
+        data = request.data
+
+        for index, comparison in enumerate(data):
+            new_bco, old_bco = comparison
+            identifier = new_bco["object_id"]+ " vs " + old_bco["object_id"]
+
+            # new_results = validator.parse_and_validate(bco=new_bco)
+            # old_results = validator.parse_and_validate(bco=old_bco)
+            # import pdb; pdb.set_trace()
+            # new_identifier, new_results = new_results.popitem()
+            # old_identifier, old_results = bco_results.popitem()
+
+            # if results["number_of_errors"] > 0:
+            #     rejected_requests = True
+            #     bco_status = "FAILED"
+            #     status_code = 400
+            #     message = "BCO not valid"
+
+            # else:
+            #     accepted_requests = True
+            #     bco_status = "SUCCESS"
+            #     status_code = 200
+            #     message = "BCO valid"
+
+            response_data.append(bulk_response_constructor(
+                identifier = identifier,
+                status="SUCCESS",
+                code=200,
+                # message=message,
+                data=DeepDiff(new_bco, old_bco).to_json()
+            ))
+
+        status_code = response_status(accepted_requests, rejected_requests)
+        return Response(status=status_code, data=response_data)
