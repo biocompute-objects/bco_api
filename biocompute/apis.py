@@ -243,7 +243,6 @@ class PublishBcoApi(APIView):
                 data=bco_results
             )
 
-        import pdb; pdb.set_trace()
         return Response(status=status.HTTP_200_OK, data=response_data)
     
         # for index, object in enumerate(data):
@@ -306,7 +305,6 @@ class PublishBcoApi(APIView):
         #         continue
 
         #     bco_results = validator.parse_and_validate(bco_instance.contents)
-        #     import pdb; pdb.set_trace()
         #     identifier, results = bco_results.popitem()
 
         #     if results["number_of_errors"] > 0:
@@ -498,7 +496,7 @@ class DraftsPublishApi(APIView):
                 message=message,
                 data=results
             ))
-
+        
         status_code = response_status(accepted_requests, rejected_requests)
         return Response(status=status_code, data=response_data)
 

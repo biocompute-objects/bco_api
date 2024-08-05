@@ -9,29 +9,35 @@ import django
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # --- SECURITY SETTINGS --- #
-# Load the server config file.
-secrets = configparser.ConfigParser()
-secrets.read(BASE_DIR + "/.secrets")
-DEBUG = secrets["SERVER"]["DEBUG"]
-VERSION = secrets["SERVER"]["SERVER_VERSION"]
-# Set the anonymous user's key.
-ANON_KEY = secrets["DJANGO_KEYS"]["ANON_KEY"]
-ALLOWED_HOSTS = secrets["SERVER"]["ALLOWED_HOSTS"].split(',')
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secrets["DJANGO_KEYS"]["SECRET_KEY"]
+# Load the server .secrets file.
+try:
+    secrets = configparser.ConfigParser()
+    secrets.read(BASE_DIR + "/.secrets")
+    DEBUG = secrets["SERVER"]["DEBUG"]
+    VERSION = secrets["SERVER"]["SERVER_VERSION"]
+    ANON_KEY = secrets["DJANGO_KEYS"]["ANON_KEY"]
+    ALLOWED_HOSTS = secrets["SERVER"]["ALLOWED_HOSTS"].split(',')
+    SECRET_KEY = secrets["DJANGO_KEYS"]["SECRET_KEY"]
+    HOSTNAME = secrets["SERVER"]["HOSTNAME"]
+    DATABASE=secrets["SERVER"]["DATABASE"]
+    HUMAN_READABLE_HOSTNAME = secrets["SERVER"]["HUMAN_READABLE_HOSTNAME"]
+    PUBLIC_HOSTNAME = secrets["SERVER"]["PUBLIC_HOSTNAME"]
+    EMAIL_BACKEND = secrets["SERVER"]["EMAIL_BACKEND"]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-
-# The publicly accessible hostname.
-HOSTNAME = secrets["SERVER"]["HOSTNAME"]
-# The human-readable hostname.
-HUMAN_READABLE_HOSTNAME = secrets["SERVER"]["HUMAN_READABLE_HOSTNAME"]
-# The publicly accessible hostname.
-PUBLIC_HOSTNAME = secrets["SERVER"]["PUBLIC_HOSTNAME"]
-
-
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ORIGIN_WHITELIST = ["*"]
+except KeyError:
+    SECRET_KEY="^2uql114+yy0d$xv6+lm8*#1=uxs_oa0zw0bvu^fpi4tc9x0i"
+    ANON_KEY="627626823549f787c3ec763ff687169206626149"
+    DEBUG=True
+    ALLOWED_HOSTS="*"
+    SERVER_VERSION="24.08.08"
+    HOSTNAME="127.0.0.1:8000"
+    HUMAN_READABLE_HOSTNAME="Local Test BCODB"
+    PUBLIC_HOSTNAME="http://127.0.0.1:8000"
+    SERVER_URL="http://localhost:3000"
+    DATABASE="db.sqlite3"
+    EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend"
+    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ORIGIN_WHITELIST = ["*"]
 
 # Use the REST framework
 REST_FRAMEWORK = {
@@ -144,7 +150,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": secrets["SERVER"]["DATABASE"],
+        "NAME": DATABASE,
     }
 }
 
@@ -178,7 +184,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 # Make the object naming accessible as a dictionary.
 
 # emailing notifications
-EMAIL_BACKEND = secrets["SERVER"]["EMAIL_BACKEND"]
+EMAIL_BACKEND = EMAIL_BACKEND
 EMAIL_HOST = "localhost"
 EMAIL_PORT = 25
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

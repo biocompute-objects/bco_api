@@ -19,7 +19,7 @@ STATE_CHOICES = [
 ]
 
 class Bco(models.Model):
-    """BioComput Object Model.
+    """BioCompute Object Model.
 
     Attributes:
     -----------

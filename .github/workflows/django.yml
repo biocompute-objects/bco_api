@@ -24,9 +24,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Create .secret file
-      run: |
-        echo "${{ secrets.PORTAL_USERDB_SECRET }}" > server/.secret
+
     - name: Run Tests
       run: |
         python3.9 manage.py test
