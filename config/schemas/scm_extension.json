@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/biocompute/extension_domain/1.1.0/scm/scm_extension.json",
+  "title": "scm_extension",
+  "type": "object",
+  "description": "The external references extension to a SCM repository",
+  "required": ["scm_extension", "extension_schema"],
+  "additionalProperties": false,
+  "properties": {
+    "extension_schema": {
+      "title": "extension_schema",
+      "type": "string",
+      "format": "uri",
+      "description": "The schema applied to the extension object",
+      "examples": [
+        "http://www.w3id.org/biocompute/extension_domain/example.json"
+      ]
+    },
+    "scm_extension": {
+      "required": ["scm_repository", "scm_type", "scm_commit", "scm_path"],
+      "properties": {
+        "scm_repository": {
+          "type": "string",
+          "examples": ["https://github.com/example/repo1"],
+          "format": "uri"
+        },
+        "scm_type": {
+          "type": "string",
+          "enum": ["git", "svn", "hg", "other"]
+        },
+        "scm_commit": {
+          "type": "string",
+          "examples": ["c9ffea0b60fa3bcf8e138af7c99ca141a6b8fb21"]
+        },
+        "scm_path": {
+          "type": "string",
+          "examples": ["workflow/hive-viral-mutation-detection.cwl"],
+          "format": "string"
+        },
+        "scm_preview": {
+          "type": "string",
+          "examples": [
+            "https://github.com/example/repo1/blob/c9ffea0b60fa3bcf8e138af7c99ca141a6b8fb21/workflow/hive-viral-mutation-detection.cwl"
+          ],
+          "format": "uri"
+        }
+      }
+    }
+  }
+}
