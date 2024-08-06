@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://www.w3id.org/biocompute/extension_domain/1.1.0/galaxy/galaxy_extension.json",
+    "title": "galaxy_extension",
+    "type": "object",
+    "description": "The external references **example** extension for a Galaxy BCO.",
+    "required": ["galaxy_extension", "extension_schema"],
+    "additionalProperties": false,
+    "properties": {
+        "extension_schema": {
+            "type": "string",
+            "format": "uri",
+            "description": "The schema applied to the extension object",
+            "examples": [
+                "http://www.w3id.org/biocompute/extension_domain/example.json"
+            ]
+            
+        },
+        "galaxy_extension": {
+            "type": "object",
+            "required": [
+                "galaxy_url",
+                "galaxy_version"
+            ],
+            "properties": {
+                "galaxy_url": {
+                    "type": "string",
+                    "description": "The base url for the galaxy instance used to create the BioCompute Object.",
+                    "examples": [
+                        "https://galaxy.aws.biochemistry.gwu.edu/"
+                    ],
+                    "format": "uri"
+                },
+                "galaxy_version": {
+                    "type": "string",
+                    "description": "The specific version of the Galaxy software used to generate the BioCompute Object.",
+                    "examples": [
+                        "20.01"
+                    ]
+                }
+            }
+        }
+    }
+}
