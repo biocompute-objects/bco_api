@@ -14,7 +14,7 @@ try:
     secrets = configparser.ConfigParser()
     secrets.read(BASE_DIR + "/.secrets")
     DEBUG = secrets["SERVER"]["DEBUG"]
-    VERSION = secrets["SERVER"]["SERVER_VERSION"]
+    SERVER_VERSION = secrets["SERVER"]["SERVER_VERSION"]
     ANON_KEY = secrets["DJANGO_KEYS"]["ANON_KEY"]
     ALLOWED_HOSTS = secrets["SERVER"]["ALLOWED_HOSTS"].split(',')
     SECRET_KEY = secrets["DJANGO_KEYS"]["SECRET_KEY"]

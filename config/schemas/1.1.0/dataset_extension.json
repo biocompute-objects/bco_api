@@ -1,0 +1,86 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://www.w3id.org/biocompute/extension_domain/1.1.0/dataset/dataset_extension.json",
+    "title": "dataset_extension",
+    "type": "object",
+    "description": "The external references extension to list additional licenses and dataset catagories for a dataset BCO (dsBCO).",
+    "required": ["dataset_extension", "extension_schema"],
+    "additionalProperties": false,
+    "properties": {
+        "dataset_extension": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dataset_categories"],
+            "properties": {
+                "additional_license": {
+                    "type": "object",
+                    "description": "The additional license property contains the details about the licenses applied to the dataset and the script or tool/software used to process the given dataset.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "data_license": {
+                            "title": "data_license",
+                            "type": "string",
+                            "description": "The license applied to the data or the dataset by the author",
+                            "examples": [
+                                "https://creativecommons.org/licenses/by/4.0/"
+                            ]
+                        },
+                        "script_license": {
+                            "title": "script_license",
+                            "type": "string",
+                            "description": "The license applied to the computational script or the tool/software developed to process (parse, QC, align) the input dataset for a final output dataset.",
+                            "examples": [
+                                "https://www.gnu.org/licenses/gpl-3.0.en.html"
+                            ]
+                        }
+                    }
+                },
+                "dataset_categories": {
+                    "title": "dataset_categories",
+                    "type": "array",
+                    "description": "Dataset categories describe and provide more information about the dataset which can be used to classify, group, sort and filter datasets.",
+                    "items": {
+                        "required": [
+                            "category_value",
+                            "category_name"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "category_value": {
+                                "type": "string",
+                                "title": "category_value",
+                                "description": "An explanation about the purpose of this instance.",
+                                "examples": [
+                                    "Homo sapiens"
+                                ]
+                            },
+                            "category_name": {
+                                "type": "string",
+                                "title": "category_name",
+                                "description": "An explanation about the purpose of this instance.",
+                                "enum": [
+                                    "species",
+                                    "molecule",
+                                    "tag",
+                                    "file_type",
+                                    "status",
+                                    "scope"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+		"extension_schema": {
+            "title": "extension_schema",
+            "type": "string",
+			"format": "uri",
+            "description": "The schema applied to the extension object",
+            "examples": [
+                "http://www.w3id.org/biocompute/extension_domain/example.json"
+            ]
+			
+		}
+    }
+}
