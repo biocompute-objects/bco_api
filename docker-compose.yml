@@ -1,24 +1,18 @@
-#cat docker-compose.yml
-
-version: '3.4'
 
 services:
   bco-api:
     platform: linux/amd64
     build: .
-    image: ghcr.io/biocompute-objects/bco_api:23.07
     container_name: bco-api
-    volumes:
-       - ./data/db.sqlite3:/biocompute_api/db.sqlite3
-       - ./data/server.conf:/biocompute_api/server.conf
+    # volumes:
+    #   - ./db.sqlite3:/biocompute_api/db.sqlite3
+    #   - ./.secrets:/biocompute_api/.secrets
     environment:
       TZ: 'America/New_York'
-      ENV DJANGO_SUPERUSER_PASSWORD: "BioCompute123"
-      ENV DJANGO_SUPERUSER_USERNAME: "BioComputeSuperUser"
-      ENV DJANGO_SUPERUSER_EMAIL: "BioComputeSuperUser@gwu.edu"
+
     ports:
       - "8000:8000"
-    read_only: true
+
     tmpfs:
       - /tmp
     restart: unless-stopped
