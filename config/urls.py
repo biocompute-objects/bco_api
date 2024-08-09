@@ -11,7 +11,7 @@ from drf_yasg import openapi
 from rest_framework import permissions
 from biocompute.apis import DraftRetrieveApi, PublishedRetrieveApi
 
-VERSION = settings.VERSION
+VERSION = settings.SERVER_VERSION
 
 ShcemaView = get_schema_view(
     openapi.Info(

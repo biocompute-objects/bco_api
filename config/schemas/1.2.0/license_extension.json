@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://www.w3id.org/biocompute/extension_domain/1.1.0/license/license_extension.json",
+  "type": "object",
+  "description": "The extension to add additional licenses.",
+  "required": ["licence_extension", "extension_schema"],
+  "additionalProperties": false,
+  "properties": {
+    "extension_schema": {
+      "title": "extension_schema",
+      "type": "string",
+      "format": "uri",
+      "description": "The schema applied to the extension object",
+      "examples": [
+        "http://www.w3id.org/biocompute/extension_domain/example.json"
+      ]
+    },
+    "licence_extension": {
+      "required": ["data_license", "scripts_license"],
+      "properties": {
+        "data_license": {
+          "type": "string",
+          "examples": ["https://github.com/example/repo1"],
+          "format": "uri"
+        },
+        "scripts_license": {
+          "type": "string",
+          "examples": ["https://github.com/example/repo1"],
+          "format": "uri"
+        }
+      }
+    }
+  }
+}

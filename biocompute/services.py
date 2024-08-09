@@ -50,12 +50,25 @@ class BcoValidator:
         Returns:
         - dict: The loaded JSON schema.
         """
+        schema_mapping = {
+            "https://w3id.org/ieee/ieee-2791-schema/2791object.json": f"{BASE_DIR}/config/schemas/2791/2791object.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.1.0/dataset/dataset_extension.json": f"{BASE_DIR}/config/schemas/1.1.0/dataset_extension.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.1.0/fhir/fhir_extension.json": f"{BASE_DIR}/config/schemas/1.1.0/fhir_extension.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.1.0/galaxy/galaxy_extension.json": f"{BASE_DIR}/config/schemas/1.1.0/galaxy_extension.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.1.0/license/license_extension.json": f"{BASE_DIR}/config/schemas/1.1.0/license_extension.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.1.0/scm/scm_extension.json": f"{BASE_DIR}/config/schemas/1.1.0/scm_extension.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.2.0/dataset/dataset_extension.json": f"{BASE_DIR}/config/schemas/1.2.0/dataset_extension.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.2.0/fhir/fhir_extension.json": f"{BASE_DIR}/config/schemas/1.2.0/fhir_extension.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.2.0/galaxy/galaxy_extension.json": f"{BASE_DIR}/config/schemas/1.2.0/galaxy_extension.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.2.0/license/license_extension.json": f"{BASE_DIR}/config/schemas/1.2.0/license_extension.json",
+            "https://raw.githubusercontent.com/biocompute-objects/extension_domain/1.2.0/scm/scm_extension.json": f"{BASE_DIR}/config/schemas/1.2.0/scm_extension.json"
+        }
 
-        if schema_uri == \
-          "https://w3id.org/ieee/ieee-2791-schema/2791object.json":
-            return jsonref.load_uri(
-                f"file://{BASE_DIR}/config/IEEE/2791object.json"
-            )
+        if schema_uri in schema_mapping:
+            print(schema_uri in schema_mapping, schema_uri)
+            return jsonref.load_uri(f"file://{schema_mapping[schema_uri]}")
+        else:
+            print(schema_uri in schema_mapping, schema_uri)
         try:
             return jsonref.load_uri(schema_uri)
         except (JSONDecodeError, TypeError, RequestsConnectionError) as e:
