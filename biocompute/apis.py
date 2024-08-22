@@ -910,35 +910,27 @@ class CompareBcoApi(APIView):
         accepted_requests = True
         data = request.data
 
-        for index, comparison in enumerate(data):
-            new_bco, old_bco = comparison
-            identifier = new_bco["object_id"]+ " vs " + old_bco["object_id"]
+        try:
+            
+            for index, comparison in enumerate(data):
+                new_bco, old_bco = comparison
+                identifier = new_bco["object_id"]+ " vs " + old_bco["object_id"]
 
-            # new_results = validator.parse_and_validate(bco=new_bco)
-            # old_results = validator.parse_and_validate(bco=old_bco)
-            # import pdb; pdb.set_trace()
-            # new_identifier, new_results = new_results.popitem()
-            # old_identifier, old_results = bco_results.popitem()
+                result = DeepDiff(new_bco, old_bco)
+                parsed_results = {
+                    'dictionary_item_removed': list(result['dictionary_item_removed']),
+                    'values_changed': list(result['values_changed']),
+                    'iterable_item_removed': list(result['iterable_item_removed'])
+                }
 
-            # if results["number_of_errors"] > 0:
-            #     rejected_requests = True
-            #     bco_status = "FAILED"
-            #     status_code = 400
-            #     message = "BCO not valid"
+                response_data.append(bulk_response_constructor(
+                    identifier = identifier,
+                    status="SUCCESS",
+                    code=200,
+                    data=parsed_results
+                ))
 
-            # else:
-            #     accepted_requests = True
-            #     bco_status = "SUCCESS"
-            #     status_code = 200
-            #     message = "BCO valid"
-
-            response_data.append(bulk_response_constructor(
-                identifier = identifier,
-                status="SUCCESS",
-                code=200,
-                # message=message,
-                data=DeepDiff(new_bco, old_bco).to_json()
-            ))
-
-        status_code = response_status(accepted_requests, rejected_requests)
-        return Response(status=status_code, data=response_data)
+            status_code = response_status(accepted_requests, rejected_requests)
+            return Response(status=status_code, data=response_data)
+        except Exception:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={})
