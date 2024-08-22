@@ -909,6 +909,7 @@ class CompareBcoApi(APIView):
         rejected_requests = False
         accepted_requests = True
         data = request.data
+
         try:
             
             for index, comparison in enumerate(data):
