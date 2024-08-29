@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # biocopmute/services.py
 
+import datetime
+import os
+import glob
 import copy
 import json
 import jsonref
@@ -654,3 +657,51 @@ def bco_score(bco_instance: Bco) -> Bco:
     bco_instance.score = base_score
 
     return bco_instance
+
+def convert_to_ldh(object_id, username):
+    """
+    """
+
+    data = Bco.objects.get(object_id=object_id).contents
+    contents = {}
+    contents['entType'] = 'BioCompute Object'
+    contents['entIri'] = data['object_id']
+    contents['entId'] = data['object_id'].split('/')[-2]
+    contents['modified'] = datetime.datetime.utcnow().isoformat()+'Z'
+    contents['modifier'] = username
+    contents['entContent'] = {}
+
+
+    # contents['id'] = get_id()
+    # contents['IdFor'] = get_id_for()
+    contents['entAliases'] = [contents['entId'], contents['entIri'], contents['entType']]
+
+
+    try:
+        contents['entContent']['provenance'] = data['provenance_domain']
+    except KeyError:
+        pass
+    try:
+        contents['entContent']['usability'] = data['usability_domain']
+    except KeyError:
+        pass
+    try:
+        contents['entContent']['description'] = data['description_domain']
+    except KeyError:
+        pass
+    try:
+        contents['entContent']['execution'] = data['execution_domain']
+    except KeyError:
+        pass
+    try:
+        contents['entContent']['io'] = data['io_domain']
+    except KeyError:
+        pass
+    try:
+        contents['entContent']['parametric'] = data['parametric_domain']
+    except KeyError:
+        pass
+
+    print(contents)
+    return contents
+

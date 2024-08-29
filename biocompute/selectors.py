@@ -237,7 +237,7 @@ def get_authorized_bcos(user: User):
 
     Returns:
     - QuerySet: 
-        A Django QuerySet containing the BCOs the user is authorized to access.
+        A Django QuerySet containing the BCO object_ids the user is authorized to access.
     """
 
     bcos = Bco.objects.filter(
