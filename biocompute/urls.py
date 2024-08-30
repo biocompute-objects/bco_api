@@ -2,7 +2,7 @@
 """BioCompute URLs
 """
 
-from django.urls import path
+from django.urls import path, re_path
 from biocompute.apis import (
     DraftsCreateApi,
     DraftsModifyApi,
@@ -10,6 +10,7 @@ from biocompute.apis import (
     PublishBcoApi,
     ValidateBcoApi,
     CompareBcoApi,
+    ConverToLDH,
 )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path("objects/validate/", ValidateBcoApi.as_view()),
     path("objects/publish/", PublishBcoApi.as_view()),
     path("objects/compare/", CompareBcoApi.as_view()),
+    re_path("objects/convert_to_ldh/$", ConverToLDH.as_view()),
 ]
