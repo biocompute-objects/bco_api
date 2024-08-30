@@ -19,7 +19,9 @@ from biocompute.selectors import (
     user_can_publish_draft,
     user_can_publish_prefix,
     prefix_from_object_id,
+    get_authorized_bcos
 )
+from biocompute.services import convert_to_ldh
 from config.services import (
     legacy_api_converter,
     bulk_response_constructor,
@@ -910,27 +912,71 @@ class CompareBcoApi(APIView):
         accepted_requests = True
         data = request.data
 
-        try:
-            
-            for index, comparison in enumerate(data):
-                new_bco, old_bco = comparison
-                identifier = new_bco["object_id"]+ " vs " + old_bco["object_id"]
+        for index, comparison in enumerate(data):
+            new_bco, old_bco = comparison
+            identifier = new_bco["object_id"]+ " vs " + old_bco["object_id"]
 
-                result = DeepDiff(new_bco, old_bco)
-                parsed_results = {
-                    'dictionary_item_removed': list(result['dictionary_item_removed']),
-                    'values_changed': list(result['values_changed']),
-                    'iterable_item_removed': list(result['iterable_item_removed'])
+            response_data.append(bulk_response_constructor(
+                identifier = identifier,
+                status="SUCCESS",
+                code=200,
+                data=DeepDiff(new_bco, old_bco).to_json()
+            ))
+
+        status_code = response_status(accepted_requests, rejected_requests)
+        return Response(status=status_code, data=response_data)
+
+
+class ConverToLDH(APIView):
+    """Convert BCO to LDH Format
+
+    -------------------
+    Provides an API endpoint for converting BioCompute Objects (BCOs) to a LDH 
+    compatable format.
+
+    Example usage with curl:
+    ```shell
+    curl -X GET "http://localhost:8000/api/objects/?contents=review&prefix=BCO&owner=tester&object_id=BCO" -H "accept: application/json"
+    ```
+
+    This API view is accessible to any user without authentication requirements.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_id="convert_to_ldh",
+        manual_parameters=[
+            openapi.Parameter("object_id",
+                openapi.IN_QUERY,
+                description="Object ID to be converted.",
+                type=openapi.TYPE_STRING,
+                default="http://127.0.0.1:8000/BCO_000000/1.0"
+            )
+        ],
+        responses={
+            200: "Success. Object contents converted",
+            404: "Not found. That BCO could not be found on the server or The "\
+                 "requestor does not have appropriate permissions."
+        },
+        tags=["BCO Management"],
+    )
+
+    def get(self, request):
+        authorized_bcos = get_authorized_bcos(request.user.id)
+        
+        object_id = request.GET["object_id"]
+        if object_id in authorized_bcos:
+            data  = convert_to_ldh(
+                object_id=object_id,
+                username=request.user.username
+            )
+
+            return Response(status=status.HTTP_200_OK, data=data)
+        else:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND,
+                data={"message": f"{object_id}, could not be found "\
+                      + "on the server or user does not have permissions."
                 }
-
-                response_data.append(bulk_response_constructor(
-                    identifier = identifier,
-                    status="SUCCESS",
-                    code=200,
-                    data=parsed_results
-                ))
-
-            status_code = response_status(accepted_requests, rejected_requests)
-            return Response(status=status_code, data=response_data)
-        except Exception:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={})
+            )
