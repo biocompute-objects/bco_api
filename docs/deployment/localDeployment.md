@@ -84,7 +84,7 @@ The details for the test data is included in the
 ### Option #1: Use existing DB
 
 ```
-cp admin/db.sqlite3 .
+cp admin_only/db.sqlite3 .
 python3 manage.py migrate
 ```
 
