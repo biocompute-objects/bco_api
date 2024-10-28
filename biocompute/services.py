@@ -438,6 +438,7 @@ class BcoDraftSerializer(serializers.Serializer):
             )
             bco_instance.authorized_users.set(authorized_users)
 
+        bco_instance.save()
         return bco_instance
 
 def validate_bco_object_id(object_id: str, prefix_name: str):
@@ -532,7 +533,7 @@ def generate_etag(bco_contents: dict) -> str:
     - str: 
         A SHA-256 hash string acting as the etag for the BCO.
     """
-
+    
     bco_contents_copy = copy.deepcopy(bco_contents)
 
     for key in ['object_id', 'spec_version', 'etag']:
