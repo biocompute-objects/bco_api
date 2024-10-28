@@ -23,6 +23,7 @@ try:
     HUMAN_READABLE_HOSTNAME = secrets["SERVER"]["HUMAN_READABLE_HOSTNAME"]
     PUBLIC_HOSTNAME = secrets["SERVER"]["PUBLIC_HOSTNAME"]
     EMAIL_BACKEND = secrets["SERVER"]["EMAIL_BACKEND"]
+    CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
 
 except KeyError:
     SECRET_KEY="^2uql114+yy0d$xv6+lm8*#1=uxs_oa0zw0bvu^fpi4tc9x0i"
@@ -37,7 +38,8 @@ except KeyError:
     DATABASE="db.sqlite3"
     EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend"
     CORS_ORIGIN_ALLOW_ALL = True
-    CORS_ORIGIN_WHITELIST = ["*"]
+    CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
+
 
 # Use the REST framework
 REST_FRAMEWORK = {
