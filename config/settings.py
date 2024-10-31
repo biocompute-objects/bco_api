@@ -24,7 +24,9 @@ try:
     PUBLIC_HOSTNAME = secrets["SERVER"]["PUBLIC_HOSTNAME"]
     EMAIL_BACKEND = secrets["SERVER"]["EMAIL_BACKEND"]
     CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
-
+    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ORIGIN_WHITELIST = ["*"]
+    
 except KeyError:
     SECRET_KEY="^2uql114+yy0d$xv6+lm8*#1=uxs_oa0zw0bvu^fpi4tc9x0i"
     ANON_KEY="627626823549f787c3ec763ff687169206626149"
